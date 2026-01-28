@@ -10,21 +10,15 @@ use Illuminate\Support\Str;
 
 class JobController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            if (!Auth::user()->isEmployer()) {
-                abort(403, 'Access denied. Employer role required.');
-            }
-            return $next($request);
-        });
-    }
-
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        if (!Auth::user()->isEmployer()) {
+            abort(403, 'Access denied. Employer role required.');
+        }
+        
         $jobs = Auth::user()->jobListings()->latest()->paginate(10);
         return view('employer.jobs.index', compact('jobs'));
     }
@@ -34,6 +28,10 @@ class JobController extends Controller
      */
     public function create()
     {
+        if (!Auth::user()->isEmployer()) {
+            abort(403, 'Access denied. Employer role required.');
+        }
+        
         return view('employer.jobs.create');
     }
 
@@ -42,6 +40,10 @@ class JobController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::user()->isEmployer()) {
+            abort(403, 'Access denied. Employer role required.');
+        }
+        
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
