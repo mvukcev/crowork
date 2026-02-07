@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JobListing;
+use App\Models\Job;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $featuredJobs = JobListing::where('is_active', true)
-            ->latest()
+        $featuredJobs = Job::with('employer')
+            ->published()
+            ->active()
+            ->latest('published_at')
             ->take(6)
             ->get();
 

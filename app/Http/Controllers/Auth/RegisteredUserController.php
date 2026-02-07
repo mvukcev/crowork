@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Employer;
+use App\Models\WorkerProfile;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,10 +45,29 @@ class RegisteredUserController extends Controller
             'role' => $request->role,
         ]);
 
+        // Create role-specific records
+        if ($user->role === 'employer') {
+            Employer::create([
+                'user_id' => $user->id,
+                'company_name' => $user->name, // Default to user name, can be updated later
+            ]);
+        } elseif ($user->role === 'worker') {
+            WorkerProfile::create([
+                'user_id' => $user->id,
+            ]);
+        }
+
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        // Auto-login workers, but not employers (they need email verification + approval)
+        if ($user->role === 'worker') {
+            Auth::login($user);
+            return redirect('/jobs');
+        } else {
+            // Employers must verify email and wait for approval
+            return redirect('/employer/login')->with('message', 
+                'Account created successfully! Please verify your email. After verification, your account must be approved before you can post jobs.'
+            );
+        }
     }
 }

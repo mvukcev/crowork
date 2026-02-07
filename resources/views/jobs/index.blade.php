@@ -1,128 +1,301 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Browse all job opportunities in Croatia. Filter by location, job type, and more.">
-    <meta name="keywords" content="jobs, croatia, employment, career, search jobs">
-    <title>Browse Jobs - CroWork</title>
-    
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="antialiased bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex justify-between items-center">
-                <div class="text-2xl font-bold text-indigo-600">
-                    <a href="{{ route('home') }}">CroWork</a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('jobs.index') }}" class="text-indigo-600 font-semibold">Browse Jobs</a>
-                    @auth
-                        @if(auth()->user()->isEmployer())
-                            <a href="{{ route('employer.jobs.index') }}" class="text-gray-700 hover:text-indigo-600">My Jobs</a>
-                        @endif
-                        <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}" class="text-gray-700 hover:text-indigo-600">Login</a>
-                        <a href="{{ route('register') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Register</a>
-                    @endauth
-                </div>
-            </div>
-        </nav>
-    </header>
+<x-app-layout>
+    <x-slot name="title">Browse Jobs in Croatia</x-slot>
+    <x-slot name="description">Find your dream job in Croatia. Browse thousands of opportunities from verified employers with filter by location, salary, and more.</x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">Browse Jobs</h1>
+    <!-- Hero Section with Purple Theme -->
+    <x-hero 
+        size="md" 
+        title="Browse Jobs" 
+        subtitle="Discover amazing opportunities in Croatia. Filter by location, salary, skills, and more."
+        theme="jobs"
+    />
 
-        <!-- Filters -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <form action="{{ route('jobs.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                    <input type="text" name="search" id="search" value="{{ request('search') }}" 
-                           placeholder="Job title or company" 
-                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input type="text" name="location" id="location" value="{{ request('location') }}" 
-                           placeholder="e.g., Zagreb" 
-                           class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label for="job_type" class="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
-                    <select name="job_type" id="job_type" 
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">All Types</option>
-                        <option value="full-time" {{ request('job_type') == 'full-time' ? 'selected' : '' }}>Full-time</option>
-                        <option value="part-time" {{ request('job_type') == 'part-time' ? 'selected' : '' }}>Part-time</option>
-                        <option value="contract" {{ request('job_type') == 'contract' ? 'selected' : '' }}>Contract</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                        Filter Jobs
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Jobs List -->
-        @if($jobs->count() > 0)
-            <div class="space-y-4">
-                @foreach($jobs as $job)
-                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h2 class="text-2xl font-semibold text-gray-900 mb-2">
-                                    <a href="{{ route('jobs.show', $job->slug) }}" class="hover:text-indigo-600">
-                                        {{ $job->title }}
-                                    </a>
-                                </h2>
-                                <p class="text-gray-600 mb-2">{{ $job->company_name }}</p>
-                                <div class="flex gap-4 text-sm text-gray-500 mb-3">
-                                    <span>📍 {{ $job->location }}</span>
-                                    @if($job->job_type)
-                                        <span>💼 {{ ucfirst($job->job_type) }}</span>
-                                    @endif
-                                </div>
-                                <p class="text-gray-700 line-clamp-2">{{ Str::limit($job->description, 200) }}</p>
+    <!-- Alpine.js component for progressive enhancement -->
+    <div 
+        x-data="jobsFilter()" 
+        x-init="init()"
+        @popstate.window="handlePopState($event)"
+        @paginate.window="handlePagination($event)"
+        class="section-spacing"
+    >
+        <div class="container-base">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Filters Sidebar -->
+                <aside class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-elevation-1 p-6 sticky top-24">
+                        <h2 class="text-xl font-semibold text-text-primary mb-6">Filters</h2>
+                        
+                        <form 
+                            action="{{ route('jobs.index') }}" 
+                            method="GET" 
+                            @submit.prevent="applyFilters()"
+                            class="space-y-5"
+                        >
+                            <!-- Search -->
+                            <div>
+                                <label for="q" class="block text-body-sm font-semibold text-text-primary mb-2">
+                                    Search
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="q" 
+                                    name="q" 
+                                    x-model="filters.q"
+                                    @input.debounce.500ms="applyFilters()"
+                                    placeholder="Job title or company" 
+                                    value="{{ $filters['q'] ?? '' }}"
+                                    class="w-full px-4 py-2.5 text-body text-text-primary bg-white border border-border rounded-xl transition-all duration-normal focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm focus:shadow-md"
+                                />
                             </div>
-                            <div class="ml-4 text-right">
-                                @if($job->salary_min && $job->salary_max)
-                                    <p class="text-indigo-600 font-semibold text-lg">
-                                        €{{ number_format($job->salary_min) }} - €{{ number_format($job->salary_max) }}
-                                    </p>
-                                @endif
-                                <p class="text-xs text-gray-500 mt-2">{{ $job->created_at->diffForHumans() }}</p>
+
+                            <!-- City -->
+                            <div>
+                                <label for="city" class="block text-body-sm font-semibold text-text-primary mb-2">
+                                    City
+                                </label>
+                                <select 
+                                    id="city" 
+                                    name="city" 
+                                    x-model="filters.city"
+                                    @change="applyFilters()"
+                                    class="w-full px-4 py-2.5 text-body text-text-primary bg-white border border-border rounded-xl transition-all duration-normal focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm focus:shadow-md"
+                                >
+                                    <option value="">All Cities</option>
+                                    @foreach($cities as $city)
+                                        <option value="{{ $city }}" {{ ($filters['city'] ?? '') == $city ? 'selected' : '' }}>
+                                            {{ $city }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-                        </div>
+
+                            <!-- Category -->
+                            <div>
+                                <label for="category" class="block text-body-sm font-semibold text-text-primary mb-2">
+                                    Category
+                                </label>
+                                <select 
+                                    id="category" 
+                                    name="category" 
+                                    x-model="filters.category"
+                                    @change="applyFilters()"
+                                    class="w-full px-4 py-2.5 text-body text-text-primary bg-white border border-border rounded-xl transition-all duration-normal focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm focus:shadow-md"
+                                >
+                                    <option value="">All Categories</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category }}" {{ ($filters['category'] ?? '') == $category ? 'selected' : '' }}>
+                                            {{ $category }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Minimum Salary -->
+                            <div>
+                                <label for="salary_min" class="block text-body-sm font-semibold text-text-primary mb-2">
+                                    Min. Salary (€/month)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="salary_min" 
+                                    name="salary_min" 
+                                    x-model="filters.salary_min"
+                                    @input.debounce.500ms="applyFilters()"
+                                    placeholder="e.g. 2000" 
+                                    min="0"
+                                    step="100"
+                                    value="{{ $filters['salary_min'] ?? '' }}"
+                                    class="w-full px-4 py-2.5 text-body text-text-primary bg-white border border-border rounded-xl transition-all duration-normal focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm focus:shadow-md"
+                                />
+                            </div>
+
+                            <!-- Language -->
+                            <div>
+                                <label for="language" class="block text-body-sm font-semibold text-text-primary mb-2">
+                                    Language
+                                </label>
+                                <select 
+                                    id="language" 
+                                    name="language" 
+                                    x-model="filters.language"
+                                    @change="applyFilters()"
+                                    class="w-full px-4 py-2.5 text-body text-text-primary bg-white border border-border rounded-xl transition-all duration-normal focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm focus:shadow-md"
+                                >
+                                    <option value="">Any Language</option>
+                                    @foreach($languages as $code => $name)
+                                        <option value="{{ $code }}" {{ ($filters['language'] ?? '') == $code ? 'selected' : '' }}>
+                                            {{ $name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Accommodation -->
+                            <div>
+                                <label class="flex items-center cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        name="accommodation" 
+                                        value="1"
+                                        x-model="filters.accommodation"
+                                        @change="applyFilters()"
+                                        {{ ($filters['accommodation'] ?? '') == '1' ? 'checked' : '' }}
+                                        class="w-5 h-5 text-primary bg-white border-border rounded-md focus:ring-2 focus:ring-primary/50 transition-all duration-normal"
+                                    />
+                                    <span class="ml-3 text-body text-text-primary group-hover:text-primary transition-colors duration-normal">
+                                        Accommodation provided
+                                    </span>
+                                </label>
+                            </div>
+
+                            <!-- Clear Filters -->
+                            <div class="pt-4 border-t border-border/30">
+                                <button 
+                                    type="button" 
+                                    @click="clearFilters()"
+                                    class="w-full px-4 py-2 rounded-lg text-body text-text-secondary hover:text-primary hover:bg-primary/5 transition-all duration-normal"
+                                >
+                                    Clear all filters
+                                </button>
+                            </div>
+
+                            <!-- Submit for no-JS fallback -->
+                            <noscript>
+                                <x-button type="submit" variant="primary" class="w-full">
+                                    Apply Filters
+                                </x-button>
+                            </noscript>
+                        </form>
                     </div>
-                @endforeach
-            </div>
+                </aside>
 
-            <!-- Pagination -->
-            <div class="mt-8">
-                {{ $jobs->links() }}
+                <!-- Results Area -->
+                <main class="lg:col-span-3">
+                    <!-- Loading State -->
+                    <div x-show="loading" x-cloak class="space-y-4">
+                        <x-progress-indicator :show="true" />
+                        @for($i = 0; $i < 6; $i++)
+                            <x-skeleton-loader type="card" />
+                        @endfor
+                    </div>
+
+                    <!-- Results Container -->
+                    <div id="jobs-results" x-show="!loading" class="motion-fade-in">
+                        @include('jobs._results', ['jobs' => $jobs])
+                    </div>
+                </main>
             </div>
-        @else
-            <div class="bg-white rounded-lg shadow-sm p-12 text-center">
-                <p class="text-gray-600 text-lg">No jobs found matching your criteria. Try adjusting your filters.</p>
-            </div>
-        @endif
+        </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center">
-                <p>&copy; {{ date('Y') }} CroWork. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-</body>
-</html>
+    @push('scripts')
+    <script>
+        function jobsFilter() {
+            return {
+                filters: {
+                    q: '{{ $filters["q"] ?? "" }}',
+                    city: '{{ $filters["city"] ?? "" }}',
+                    category: '{{ $filters["category"] ?? "" }}',
+                    salary_min: '{{ $filters["salary_min"] ?? "" }}',
+                    accommodation: {{ ($filters['accommodation'] ?? '') == '1' ? 'true' : 'false' }},
+                    language: '{{ $filters["language"] ?? "" }}'
+                },
+                loading: false,
+                totalJobs: {{ $jobs->total() }},
+                currentPage: 1,
+
+                init() {
+                    // Parse initial filters from URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    this.filters.q = urlParams.get('q') || '';
+                    this.filters.city = urlParams.get('city') || '';
+                    this.filters.category = urlParams.get('category') || '';
+                    this.filters.salary_min = urlParams.get('salary_min') || '';
+                    this.filters.accommodation = urlParams.get('accommodation') === '1';
+                    this.filters.language = urlParams.get('language') || '';
+                    this.currentPage = parseInt(urlParams.get('page')) || 1;
+                },
+
+                async applyFilters(page = 1) {
+                    this.loading = true;
+                    this.currentPage = page;
+
+                    // Build query string
+                    const params = new URLSearchParams();
+                    if (this.filters.q) params.set('q', this.filters.q);
+                    if (this.filters.city) params.set('city', this.filters.city);
+                    if (this.filters.category) params.set('category', this.filters.category);
+                    if (this.filters.salary_min) params.set('salary_min', this.filters.salary_min);
+                    if (this.filters.accommodation) params.set('accommodation', '1');
+                    if (this.filters.language) params.set('language', this.filters.language);
+                    if (page > 1) params.set('page', page);
+
+                    const queryString = params.toString();
+                    const url = `{{ route('jobs.partial') }}${queryString ? '?' + queryString : ''}`;
+
+                    try {
+                        const response = await fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+
+                        if (response.ok) {
+                            const html = await response.text();
+                            document.getElementById('jobs-results').innerHTML = html;
+
+                            // Update browser URL
+                            const newUrl = `{{ route('jobs.index') }}${queryString ? '?' + queryString : ''}`;
+                            window.history.pushState({ filters: this.filters, page: page }, '', newUrl);
+
+                            // Update total count if visible
+                            const totalElement = document.querySelector('[x-text="totalJobs"]');
+                            if (totalElement) {
+                                const match = html.match(/data-total="(\d+)"/);
+                                if (match) {
+                                    this.totalJobs = match[1];
+                                }
+                            }
+
+                            // Scroll to top of results
+                            document.getElementById('jobs-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    } catch (error) {
+                        console.error('Error fetching jobs:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                handlePagination(event) {
+                    const page = event.detail;
+                    this.applyFilters(page);
+                },
+
+                handlePopState(event) {
+                    if (event.state && event.state.filters) {
+                        this.filters = event.state.filters;
+                        this.applyFilters(event.state.page || 1);
+                    } else {
+                        // Reset to initial state
+                        window.location.reload();
+                    }
+                },
+
+                clearFilters() {
+                    this.filters = {
+                        q: '',
+                        city: '',
+                        category: '',
+                        salary_min: '',
+                        accommodation: false,
+                        language: ''
+                    };
+                    this.currentPage = 1;
+                    this.applyFilters(1);
+                }
+            }
+        }
+    </script>
+    @endpush
+</x-app-layout>

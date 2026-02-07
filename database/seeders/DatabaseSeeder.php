@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,20 +11,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create test users
-        User::factory()->create([
-            'name' => 'Worker Demo',
-            'email' => 'worker@example.com',
-            'role' => 'worker',
-        ]);
+        // Seed role-based users
+        $this->call(UserRoleSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Employer Demo',
-            'email' => 'employer@example.com',
-            'role' => 'employer',
-        ]);
+        // Seed default settings
+        $this->call(SettingsSeeder::class);
 
-        // Seed jobs
+        // Seed jobs (legacy)
         $this->call(JobListingSeeder::class);
+        
+        // Seed new job postings
+        $this->call(JobSeeder::class);
     }
 }

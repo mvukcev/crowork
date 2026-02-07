@@ -1,62 +1,158 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+    <x-slot name="title">Create Account</x-slot>
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+    {{-- Acrylic Auth Card --}}
+    <div class="acrylic-surface rounded-3xl shadow-elevation-3 p-8 sm:p-10">
+        {{-- Header --}}
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-semibold text-text-primary mb-2">
+                Create your account
+            </h1>
+            <p class="text-body text-text-secondary">
+                Join CroWork and start your journey in Croatia
+            </p>
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        {{-- Register Form --}}
+        <form method="POST" action="{{ route('register') }}" class="space-y-6">
+            @csrf
+
+            {{-- Name --}}
+            <div>
+                <label for="name" class="block text-body-sm font-semibold text-text-primary mb-2">
+                    Full Name
+                </label>
+                <input 
+                    id="name" 
+                    type="text" 
+                    name="name" 
+                    value="{{ old('name') }}"
+                    required 
+                    autofocus 
+                    autocomplete="name"
+                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('name') border-danger focus:ring-danger/50 @enderror"
+                    placeholder="John Doe"
+                >
+                @error('name')
+                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Email Address --}}
+            <div>
+                <label for="email" class="block text-body-sm font-semibold text-text-primary mb-2">
+                    Email Address
+                </label>
+                <input 
+                    id="email" 
+                    type="email" 
+                    name="email" 
+                    value="{{ old('email') }}"
+                    required 
+                    autocomplete="username"
+                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('email') border-danger focus:ring-danger/50 @enderror"
+                    placeholder="your@email.com"
+                >
+                @error('email')
+                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Role Selection --}}
+            <div>
+                <label for="role" class="block text-body-sm font-semibold text-text-primary mb-2">
+                    I am a
+                </label>
+                <select 
+                    id="role" 
+                    name="role" 
+                    required
+                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('role') border-danger focus:ring-danger/50 @enderror"
+                >
+                    <option value="worker" {{ old('role', 'worker') == 'worker' ? 'selected' : '' }}>
+                        Worker – Looking for jobs in Croatia
+                    </option>
+                    <option value="employer" {{ old('role') == 'employer' ? 'selected' : '' }}>
+                        Employer – Hiring international talent
+                    </option>
+                </select>
+                @error('role')
+                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
+                @enderror
+                <p class="mt-2 text-caption text-text-tertiary">
+                    Choose the option that best describes you. You can't change this later.
+                </p>
+            </div>
+
+            {{-- Password --}}
+            <div>
+                <label for="password" class="block text-body-sm font-semibold text-text-primary mb-2">
+                    Password
+                </label>
+                <input 
+                    id="password" 
+                    type="password" 
+                    name="password" 
+                    required 
+                    autocomplete="new-password"
+                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('password') border-danger focus:ring-danger/50 @enderror"
+                    placeholder="At least 8 characters"
+                >
+                @error('password')
+                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Confirm Password --}}
+            <div>
+                <label for="password_confirmation" class="block text-body-sm font-semibold text-text-primary mb-2">
+                    Confirm Password
+                </label>
+                <input 
+                    id="password_confirmation" 
+                    type="password" 
+                    name="password_confirmation" 
+                    required 
+                    autocomplete="new-password"
+                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                    placeholder="Re-enter your password"
+                >
+            </div>
+
+            {{-- Submit Button --}}
+            <button 
+                type="submit" 
+                class="w-full px-6 py-3.5 text-base font-semibold text-white bg-primary hover:bg-primary-700 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 shadow-md hover:shadow-lg"
+            >
+                Create Account
+            </button>
+        </form>
+
+        {{-- Divider --}}
+        <div class="relative my-8">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-divider"></div>
+            </div>
+            <div class="relative flex justify-center text-body-sm">
+                <span class="px-4 bg-white/80 text-text-secondary">Already have an account?</span>
+            </div>
         </div>
 
-        <!-- Role -->
-        <div class="mt-4">
-            <x-input-label for="role" :value="__('I am a')" />
-            <select id="role" name="role" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
-                <option value="worker" {{ old('role') == 'worker' ? 'selected' : '' }}>Worker (Looking for jobs)</option>
-                <option value="employer" {{ old('role') == 'employer' ? 'selected' : '' }}>Employer (Posting jobs)</option>
-            </select>
-            <x-input-error :messages="$errors->get('role')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
+        {{-- Sign In Link --}}
+        <div class="text-center">
+            <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-text-primary bg-white/50 hover:bg-white/80 border border-border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 shadow-sm">
+                Sign In Instead
             </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
         </div>
-    </form>
+    </div>
+
+    {{-- Help Text --}}
+    <div class="mt-6 text-center">
+        <p class="text-body-sm text-white/70">
+            By creating an account, you agree to our 
+            <a href="{{ url('/terms') }}" class="text-white font-medium hover:text-white/90 underline underline-offset-2 transition-colors">Terms of Service</a> 
+            and 
+            <a href="{{ url('/privacy') }}" class="text-white font-medium hover:text-white/90 underline underline-offset-2 transition-colors">Privacy Policy</a>.
+        </p>
+    </div>
 </x-guest-layout>

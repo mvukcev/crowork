@@ -100,8 +100,9 @@ php artisan db:seed
 ```
 
 This will create:
-- Demo worker account: `worker@example.com` / `password`
-- Demo employer account: `employer@example.com` / `password`
+- Admin account: `admin@crowork.com` / `password` (role: admin)
+- Employer account: `employer@crowork.com` / `password` (role: employer, approved)
+- Worker account: `worker@crowork.com` / `password` (role: worker with profile)
 - 5 sample job listings
 
 ### 8. Build Frontend Assets
@@ -124,42 +125,106 @@ php artisan serve
 
 The application will be available at `http://localhost:8000`
 
-## Usage
+## Admin & Employer Panels
 
-### Public Pages
+### Admin Panel
 
-- **Home**: `/` - Featured jobs and search
-- **Browse Jobs**: `/jobs` - All jobs with filters
-- **Job Details**: `/jobs/{slug}` - Individual job page
+**Access**: `http://localhost:8000/admin`
 
-### Authentication
+**Login**: 
+- Email: `admin@crowork.com`
+- Password: `password`
 
-- **Register**: `/register` - Create account (Worker or Employer)
-- **Login**: `/login` - Sign in
+**Allowed Roles**: Admin, Moderator
 
-### Employer Dashboard
+**Features**:
+- **Jobs**: View all jobs, approve/publish/delist, filter by status/city/category
+- **Employers**: Approve employer accounts, set approval dates
+- **Job Applications**: List and filter applications, view worker profile snapshots
+- **Educations**: Manage education listings with publish/delist actions
+- **Education Applications**: View and manage education program applications
 
-After logging in as an employer, access:
-- **My Jobs**: `/employer/jobs` - Manage your job postings
-- **Post Job**: `/employer/jobs/create` - Create new job listing
-- **Edit Job**: `/employer/jobs/{id}/edit` - Update job details
-- **View Applications**: `/employer/jobs/{id}` - See applicants
+### Employer Panel
+
+**Access**: `http://localhost:8000/employer`
+
+**Login**:
+- Email: `employer@crowork.com`
+- Password: `password`
+
+**Access Requirements**:
+- Must have `role = 'employer'`
+- Must have approved employer profile (`approved_at` is not null)
+
+**Features**:
+- **My Jobs**: Create, edit, publish, and manage own job postings
+- **Applications**: View all applications for your jobs, see worker profiles, update status
 
 ## Database Structure
 
 ### Users Table
 - `id`, `name`, `email`, `password`
-- `role` (enum: 'worker', 'employer')
+- `role` (string: 'worker', 'employer', 'admin', 'mod')
+- `email_verified_at`, `timestamps`
 
-### Jobs Listing Table
-- `id`, `employer_id`, `title`, `slug`
-- `description`, `location`, `job_type`
-- `salary_min`, `salary_max`, `company_name`
-- `is_active`
+### Employers Table
+- `id`, `user_id` (FK, unique)
+- `company_name`, `city`, `approved_at` (nullable)
+- `timestamps`
 
-### Applications Table
-- `id`, `job_id`, `worker_id`
-- `cover_letter`, `status`
+### Worker Profiles Table
+- `id`, `user_id` (FK, unique)
+- `first_name`, `last_name`, `nationality_country_code` (2 chars)
+- `birth_year`, `education_summary`, `work_experience`, `skills` (JSON)
+- `recommendations`, `photo_path`
+- `timestamps`
+
+### Job Postings Table
+- `id`, `employer_id` (FK), `created_by_user_id` (FK)
+- `title`, `slug` (unique), `description`, `location_city`
+- `category`, `languages` (JSON), `contract_type`
+- `salary_min`, `salary_max`, `salary_currency`, `salary_period`
+- `accommodation_provided`, `accommodation_details`
+- `start_date`, `status`, `published_at`, `expires_at`
+- `timestamps`
+
+### Job Applications Table
+- `id`, `job_id` (FK), `worker_id` (FK)
+- `profile_snapshot` (JSON), `message`, `status` (default: 'new')
+- `unique(job_id, worker_id)`
+- `timestamps`
+
+### Educations Table
+- `id`, `created_by_user_id` (FK)
+- `title`, `slug` (unique), `description`
+- `city`, `is_online`, `start_date`
+- `price_cents`, `currency`, `capacity`
+- `status`, `published_at`, `expires_at`
+- `timestamps`
+
+### Education Applications Table
+- `id`, `education_id` (FK), `worker_id` (FK)
+- `profile_snapshot` (JSON), `message`, `status` (default: 'new')
+- `unique(education_id, worker_id)`
+- `timestamps`
+
+## Access Control
+
+### Admin Panel Middleware
+- Requires authentication
+- Requires `isAdmin()` or `isMod()` role check
+- Denies access with 403 error if role is insufficient
+
+### Employer Panel Middleware
+- Requires authentication
+- Requires `isEmployer()` role check
+- Requires non-null `employer.approved_at` (account must be approved)
+- Denies access with 403 error if conditions not met
+
+### Worker Profile Snapshots
+- Snapshot is captured at time of application using `WorkerProfile::toSnapshot()`
+- Includes: first_name, last_name, nationality_country_code, birth_year, education_summary, work_experience, skills, recommendations, photo_path
+- Stored as JSON in `profile_snapshot` column for historical reference
 
 ## Testing
 
@@ -180,6 +245,16 @@ For production deployment:
 5. Build assets: `npm run build`
 6. Optimize: `php artisan optimize`
 7. Set up a web server (Nginx/Apache) with proper configuration
+
+## Technology Stack
+
+- **Framework**: Laravel 11
+- **Admin UI**: Filament v3 (Livewire + Alpine.js)
+- **Frontend**: Blade Templates, Tailwind CSS
+- **Authentication**: Laravel Breeze
+- **Database**: SQLite (dev), MySQL/PostgreSQL (prod ready)
+- **Build**: Vite
+- **Package Manager**: Composer, NPM
 
 ## License
 

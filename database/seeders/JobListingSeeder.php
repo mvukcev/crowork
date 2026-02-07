@@ -78,7 +78,10 @@ class JobListingSeeder extends Seeder
         ];
 
         foreach ($jobs as $jobData) {
-            JobListing::create(array_merge($jobData, ['employer_id' => $employer->id]));
+            JobListing::updateOrCreate(
+                ['title' => $jobData['title'], 'employer_id' => $employer->id],
+                array_merge($jobData, ['employer_id' => $employer->id])
+            );
         }
     }
 }
