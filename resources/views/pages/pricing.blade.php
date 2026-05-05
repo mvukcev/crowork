@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Pricing - CroWork for Employers</x-slot>
     <x-slot name="description">Flexible pricing plans for Croatian employers. Choose the plan that fits your hiring needs.</x-slot>
+    <x-slot name="canonical">{{ route('pricing') }}</x-slot>
 
     <!-- Hero Section -->
     <div class="bg-gradient-to-br from-primary-light via-background to-background section-spacing">

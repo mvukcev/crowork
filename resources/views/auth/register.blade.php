@@ -2,10 +2,10 @@
     <x-slot name="title">Create Account</x-slot>
 
     {{-- Acrylic Auth Card --}}
-    <div class="acrylic-surface rounded-3xl shadow-elevation-3 p-8 sm:p-10">
+    <div class="acrylic-surface rounded-3xl shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/70">
         {{-- Header --}}
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-semibold text-text-primary mb-2">
+            <h1 class="text-3xl font-semibold text-text-primary mb-2 text-balance">
                 Create your account
             </h1>
             <p class="text-body text-text-secondary">

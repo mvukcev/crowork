@@ -1,11 +1,12 @@
 <x-app-layout>
     <x-slot name="title">For Employers - Hire International Talent</x-slot>
     <x-slot name="description">Find qualified international workers for your Croatian business. Streamlined hiring process with verified candidates ready to work.</x-slot>
+    <x-slot name="canonical">{{ route('for-employers') }}</x-slot>
 
     <!-- Hero Section with Red Theme -->
-    <x-hero 
-        size="lg" 
-        title="Hire International Talent for Your Croatian Business" 
+    <x-hero
+        size="md"
+        title="Hire International Talent for Your Croatian Business"
         subtitle="Access a pool of qualified, verified international workers ready to contribute to Croatia's workforce. Streamlined hiring with standardized applications and built-in compliance tools."
         theme="employers">
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -22,7 +23,7 @@
     </x-hero>
 
     <!-- Value Proposition -->
-    <div class="section-spacing bg-background">
+    <div class="section-spacing-tight bg-background">
         <div class="container-base">
             <div class="text-center mb-12">
                 <h2 class="text-title-1 font-semibold text-text-primary mb-4">Why Choose CroWork?</h2>
@@ -39,7 +40,7 @@
                     </x-icon-tile>
                     <h3 class="text-subtitle font-semibold text-text-primary mb-3">Verified Candidates</h3>
                     <p class="text-body-sm text-text-secondary leading-relaxed">
-                        All worker profiles are verified with document checks. Access standardized CVs with work permits, 
+                        All worker profiles are verified with document checks. Access standardized CVs with work permits,
                         language skills, and qualifications clearly displayed.
                     </p>
                 </x-surface>
@@ -51,7 +52,7 @@
                     </x-icon-tile>
                     <h3 class="text-subtitle font-semibold text-text-primary mb-3">Streamlined Hiring</h3>
                     <p class="text-body-sm text-text-secondary leading-relaxed">
-                        Post jobs in minutes, receive structured applications, and manage candidates from one dashboard. 
+                        Post jobs in minutes, receive structured applications, and manage candidates from one dashboard.
                         No back-and-forth emails or scattered spreadsheets.
                     </p>
                 </x-surface>
@@ -63,7 +64,7 @@
                     </x-icon-tile>
                     <h3 class="text-subtitle font-semibold text-text-primary mb-3">Compliance Tools</h3>
                     <p class="text-body-sm text-text-secondary leading-relaxed">
-                        Built-in guidance for work permits, labor law compliance, and documentation requirements. 
+                        Built-in guidance for work permits, labor law compliance, and documentation requirements.
                         Stay on the right side of Croatian employment regulations.
                     </p>
                 </x-surface>
@@ -72,10 +73,10 @@
     </div>
 
     <!-- How It Works -->
-    <div class="section-spacing bg-surface-tinted">
+    <div class="section-spacing-tight bg-surface-tinted">
         <div class="container-base">
-            <x-section 
-                title="How It Works" 
+            <x-section
+                title="How It Works"
                 subtitle="From registration to hiring in four simple steps"
                 centered
             />
@@ -85,7 +86,7 @@
                 <div class="relative">
                     <!-- Vertical Rail Line -->
                     <div class="absolute left-6 top-8 bottom-8 w-px bg-border-subtle"></div>
-                    
+
                     <div class="space-y-6">
                         <!-- Step 1 -->
                         <div class="flex gap-6 relative">
@@ -102,7 +103,7 @@
                                     <div>
                                         <h3 class="text-subtitle font-semibold text-text-primary mb-2">Create Your Employer Account</h3>
                                         <p class="text-body-sm text-text-secondary">
-                                            Sign up with your company details. Provide business registration information and wait for approval 
+                                            Sign up with your company details. Provide business registration information and wait for approval
                                             (typically 24-48 hours). We verify all employers to maintain platform trust.
                                         </p>
                                     </div>
@@ -125,7 +126,7 @@
                                     <div>
                                         <h3 class="text-subtitle font-semibold text-text-primary mb-2">Post Your Job Listings</h3>
                                         <p class="text-body-sm text-text-secondary">
-                                            Create detailed job postings with salary ranges, requirements, and benefits. Specify language needs, 
+                                            Create detailed job postings with salary ranges, requirements, and benefits. Specify language needs,
                                             work permits, and whether accommodation is provided. Jobs are reviewed before going live.
                                         </p>
                                     </div>
@@ -148,7 +149,7 @@
                                     <div>
                                         <h3 class="text-subtitle font-semibold text-text-primary mb-2">Review Applications</h3>
                                         <p class="text-body-sm text-text-secondary">
-                                            Receive structured applications with standardized CVs. Filter by qualifications, language skills, 
+                                            Receive structured applications with standardized CVs. Filter by qualifications, language skills,
                                             and work permit status. Contact candidates directly through the platform.
                                         </p>
                                     </div>
@@ -171,7 +172,7 @@
                                     <div>
                                         <h3 class="text-subtitle font-semibold text-text-primary mb-2">Hire with Confidence</h3>
                                         <p class="text-body-sm text-text-secondary">
-                                            Make your hiring decision with access to verified credentials and work history. 
+                                            Make your hiring decision with access to verified credentials and work history.
                                             Use our resources to navigate employment contracts and work permit processes.
                                         </p>
                                     </div>
@@ -185,7 +186,7 @@
     </div>
 
     <!-- Trust & Safety -->
-    <div class="section-spacing bg-background">
+    <div class="section-spacing-tight bg-background">
         <div class="container-base">
             <div class="max-w-4xl mx-auto">
                 <x-surface variant="base" elevation="2" class="border-success/20 bg-gradient-to-br from-success-50 to-surface-base">
@@ -199,15 +200,15 @@
                             <h3 class="text-title-2 font-semibold text-success-text mb-3">Trust & Safety First</h3>
                             <div class="text-body-sm text-success-text space-y-2">
                                 <p>
-                                    <strong>All employers are verified</strong> before posting jobs. We check business registration, 
+                                    <strong>All employers are verified</strong> before posting jobs. We check business registration,
                                     tax ID, and company legitimacy to protect workers from scams.
                                 </p>
                                 <p>
-                                    <strong>Abuse reporting</strong> is built into every job and profile. Suspicious activity is 
+                                    <strong>Abuse reporting</strong> is built into every job and profile. Suspicious activity is
                                     reviewed by our moderation team, and problematic accounts are removed.
                                 </p>
                                 <p>
-                                    <strong>Your data is protected.</strong> We comply with GDPR and Croatian data protection laws. 
+                                    <strong>Your data is protected.</strong> We comply with GDPR and Croatian data protection laws.
                                     Candidate information is only shared with approved employers.
                                 </p>
                             </div>
@@ -340,8 +341,8 @@
     <!-- CTA Section -->
     <div class="section-spacing">
         <div class="container-base">
-            <x-cta-panel 
-                title="Ready to Find Your Next Team Member?" 
+            <x-cta-panel
+                title="Ready to Find Your Next Team Member?"
                 subtitle="Join Croatian businesses already hiring through CroWork"
                 centered
             >

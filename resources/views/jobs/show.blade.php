@@ -27,28 +27,84 @@
     // Determine if user can apply
     $canApply = auth()->check() && auth()->user()->isWorker();
     $shouldShowDisabled = auth()->check() && !auth()->user()->isWorker();
+
+    $employmentType = match (strtolower((string) $job->contract_type)) {
+        'full-time', 'full time', 'full_time' => 'FULL_TIME',
+        'part-time', 'part time', 'part_time' => 'PART_TIME',
+        'temporary', 'seasonal', 'fixed-term', 'fixed term' => 'TEMPORARY',
+        'contract', 'contractor' => 'CONTRACTOR',
+        'internship' => 'INTERN',
+        default => null,
+    };
+
+    $jobPostingSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'JobPosting',
+        'title' => $job->title,
+        'description' => trim(strip_tags($job->description)),
+        'datePosted' => optional($job->published_at ?? $job->created_at)->toAtomString(),
+        'validThrough' => optional($job->expires_at)->toAtomString(),
+        'employmentType' => $employmentType,
+        'hiringOrganization' => [
+            '@type' => 'Organization',
+            'name' => $job->employer?->company_name ?? config('app.name', 'CroWork'),
+            'sameAs' => url('/'),
+        ],
+        'jobLocation' => [
+            '@type' => 'Place',
+            'address' => [
+                '@type' => 'PostalAddress',
+                'addressLocality' => $job->location_city,
+                'addressCountry' => 'HR',
+            ],
+        ],
+        'identifier' => [
+            '@type' => 'PropertyValue',
+            'name' => config('app.name', 'CroWork'),
+            'value' => (string) $job->id,
+        ],
+        'url' => route('jobs.show', $job),
+    ];
+
+    if ($job->salary_min || $job->salary_max) {
+        $jobPostingSchema['baseSalary'] = [
+            '@type' => 'MonetaryAmount',
+            'currency' => $job->salary_currency ?? 'EUR',
+            'value' => [
+                '@type' => 'QuantitativeValue',
+                'minValue' => $job->salary_min,
+                'maxValue' => $job->salary_max,
+                'unitText' => $job->salary_period === 'hour' ? 'HOUR' : 'MONTH',
+            ],
+        ];
+    }
+
+    $jobPostingSchema = array_filter($jobPostingSchema, fn ($value) => filled($value));
 @endphp
 
-@push('styles')
-    <meta name="canonical" href="{{ route('jobs.show', $job) }}">
+@section('canonical', route('jobs.show', $job))
+
+@push('head')
+    <script type="application/ld+json">{!! json_encode($jobPostingSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}</script>
 @endpush
 
 <!-- Hero Section -->
 <x-hero 
     size="sm" 
     :title="$job->title" 
-    :subtitle="$job->employer->company_name . ' • ' . $job->location_city">
+    :subtitle="$job->employer->company_name . ' • ' . $job->location_city"
+    theme="jobs">
 </x-hero>
 
-<main class="min-h-screen flex flex-col section-spacing">
+<main class="min-h-screen flex flex-col section-spacing-tight">
     <div class="container-base">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Main Content Area -->
             <div class="lg:col-span-2">
                 <!-- Hero Content Card -->
-                <x-surface variant="base" elevation="1" rounded="card" padding="6" class="mb-6">
+                <x-surface variant="base" elevation="1" rounded="card" padding="5" class="mb-5">
                     <!-- Breadcrumb -->
-                    <nav class="flex items-center text-body-sm text-text-secondary mb-6 pb-6 border-b border-border">
+                    <nav class="flex items-center text-body-sm text-text-secondary mb-4 pb-4 border-b border-border">
                         <a href="{{ route('home') }}" class="hover:text-primary transition-colors duration-normal">Home</a>
                         <svg class="w-4 h-4 mx-2 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -61,12 +117,12 @@
                         </nav>
 
                         <!-- Job Title -->
-                        <h1 class="text-display-md font-semibold text-text-primary mb-4">
+                        <h1 class="text-title-1 md:text-display font-semibold text-text-primary mb-3 text-balance">
                             {{ $job->title }}
                         </h1>
 
                         <!-- Company and Location -->
-                        <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+                        <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
                             <div class="flex items-center text-title-2 text-text-secondary">
                                 @if($job->employer)
                                     <span class="font-medium text-text-primary">{{ $job->employer->company_name }}</span>
@@ -83,7 +139,7 @@
                         </div>
 
                         <!-- Salary Highlight -->
-                        <x-surface variant="tinted" elevation="0" rounded="control" padding="4" class="mb-6 border-primary/20">
+                        <x-surface variant="tinted" elevation="0" rounded="control" padding="4" class="mb-4 border-primary/20">
                             <div class="flex items-baseline">
                                 <svg class="w-6 h-6 text-primary mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -93,7 +149,7 @@
                         </x-surface>
 
                         <!-- Badges Row -->
-                        <div class="flex flex-wrap gap-2 mb-4">
+                        <div class="flex flex-wrap gap-2">
                             @if($job->accommodation_provided)
                                 <x-chip tone="success" size="md">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,17 +260,17 @@
     </div>
 
     <!-- Content Section -->
-    <div class="flex-1 py-12 bg-background">
+    <div class="flex-1 py-8 md:py-10 bg-background">
         <div class="container-base">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Main Content -->
-                <div class="lg:col-span-2 space-y-8">
+                <div class="lg:col-span-2 space-y-6">
                     <!-- Job Description -->
                     <section class="scroll-mt-24" id="description">
                         <x-section-header 
                             title="About This Job"
                             subtitle="Detailed role description and responsibilities"
-                            class="mb-6"
+                            class="mb-4"
                         />
                         <x-card class="prose prose-sm max-w-none">
                             <div class="text-body text-text-primary leading-relaxed whitespace-pre-wrap">
@@ -228,10 +284,10 @@
                         <x-section-header 
                             title="Key Details"
                             subtitle="Important information about the position"
-                            class="mb-6"
+                            class="mb-4"
                         />
                         <x-card>
-                            <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <dl class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <!-- Location -->
                                 <div class="border-b md:border-b-0 pb-4 md:pb-0">
                                     <dt class="text-body-xs text-text-tertiary uppercase tracking-wide font-semibold mb-2">Location</dt>
@@ -307,7 +363,7 @@
                 <div class="hidden lg:block">
                     <!-- Company Info Card -->
                     @if($job->employer)
-                        <x-card class="mb-6 sticky top-24">
+                        <x-card class="mb-5 sticky top-24">
                             <h3 class="text-title-1 font-semibold text-text-primary mb-4">About the Employer</h3>
                             <div class="space-y-3">
                                 <div>

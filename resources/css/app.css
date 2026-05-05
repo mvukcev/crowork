@@ -96,7 +96,11 @@
 
     /* Section spacing - airy and comfortable */
     .section-spacing {
-        @apply py-12 md:py-16 lg:py-24;
+        @apply py-10 md:py-14 lg:py-20;
+    }
+
+    .section-spacing-tight {
+        @apply py-8 md:py-10 lg:py-12;
     }
 
     /* Acrylic/Glass Effects - use sparingly */
@@ -115,10 +119,61 @@
     }
 
     .glass-header {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border-bottom: 1px solid rgba(225, 223, 221, 0.3);
+        background:
+            linear-gradient(90deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.66)),
+            radial-gradient(circle at 12% 0%, rgba(52, 106, 240, 0.12), transparent 28%),
+            radial-gradient(circle at 78% 0%, rgba(16, 185, 129, 0.10), transparent 26%);
+        backdrop-filter: blur(28px) saturate(185%);
+        -webkit-backdrop-filter: blur(28px) saturate(185%);
+        border-bottom: 1px solid rgba(225, 223, 221, 0.55);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .fluent-hero-home {
+        background:
+            radial-gradient(circle at 16% 18%, rgba(52, 106, 240, 0.26), transparent 31%),
+            radial-gradient(circle at 84% 20%, rgba(0, 178, 148, 0.22), transparent 29%),
+            radial-gradient(circle at 50% 102%, rgba(139, 92, 246, 0.18), transparent 38%),
+            linear-gradient(145deg, #EBF3FF 0%, #F5F8FF 34%, #FFFFFF 72%, #FAFAFA 100%);
+    }
+
+    .fluent-hero-jobs {
+        background:
+            radial-gradient(circle at 20% 18%, rgba(139, 92, 246, 0.20), transparent 32%),
+            radial-gradient(circle at 80% 28%, rgba(52, 106, 240, 0.14), transparent 30%),
+            linear-gradient(145deg, #F3EBFF 0%, #F9F5FF 34%, #FFFFFF 72%, #FAFAFA 100%);
+    }
+
+    .fluent-hero-education {
+        background:
+            radial-gradient(circle at 20% 18%, rgba(16, 185, 129, 0.20), transparent 32%),
+            radial-gradient(circle at 80% 28%, rgba(0, 130, 114, 0.14), transparent 30%),
+            linear-gradient(145deg, #ECFDF5 0%, #F0FDF9 34%, #FFFFFF 72%, #FAFAFA 100%);
+    }
+
+    .fluent-hero-employers {
+        background:
+            radial-gradient(circle at 18% 18%, rgba(239, 68, 68, 0.18), transparent 32%),
+            radial-gradient(circle at 82% 24%, rgba(255, 185, 0, 0.16), transparent 30%),
+            linear-gradient(145deg, #FEF2F2 0%, #FEF7F7 34%, #FFFFFF 72%, #FAFAFA 100%);
+    }
+
+    .filter-control {
+        @apply w-full px-3 py-2 text-body-sm text-text-primary bg-white/90 border border-border rounded-xl transition-all duration-normal shadow-sm;
+        @apply focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:shadow-md;
+    }
+
+    .filter-label {
+        @apply block text-caption font-semibold uppercase tracking-[0.08em] text-text-tertiary mb-1.5;
+    }
+
+    .auth-gradient-orb {
+        position: absolute;
+        border-radius: 9999px;
+        filter: blur(48px);
+        opacity: 0.52;
+        transform: translateZ(0);
+        animation: authOrbFloat 18s ease-in-out infinite alternate;
     }
 }
 
@@ -131,6 +186,10 @@
     /* Interaction states - Fluent style */
     .interactive {
         @apply transition-all duration-normal hover:shadow-hover;
+    }
+
+    .button-readable-hover {
+        @apply hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm;
     }
 
     /* Subtle depth */
@@ -179,4 +238,9 @@
     [x-cloak] {
         display: none !important;
     }
+}
+
+@keyframes authOrbFloat {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(22px, -18px, 0) scale(1.08); }
 }

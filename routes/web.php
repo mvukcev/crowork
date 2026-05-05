@@ -4,13 +4,19 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\EducationsController;
+use App\Http\Controllers\EducationApplicationController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WorkerProfileController;
+use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
 use App\Http\Controllers\Auth\EmployerRegisterController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Models\Job;
 use Illuminate\Support\Facades\Route;
+
+// SEO routes
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -41,6 +47,8 @@ Route::get('/cookie-policy', [PagesController::class, 'cookies'])->name('cookie-
 Route::middleware('auth')->group(function () {
     Route::get('/jobs/{job}/apply', [JobApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job}/apply', [JobApplicationController::class, 'store'])->name('jobs.apply.store');
+    Route::get('/educations/{education:slug}/apply', [EducationApplicationController::class, 'create'])->name('educations.apply');
+    Route::post('/educations/{education:slug}/apply', [EducationApplicationController::class, 'store'])->name('educations.apply.store');
 });
 
 // Authenticated routes
@@ -59,6 +67,8 @@ Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () 
     Route::get('/profile', [WorkerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [WorkerProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/photo', [WorkerProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
+    Route::get('/applications', [WorkerApplicationController::class, 'jobApplications'])->name('applications.index');
+    Route::get('/education-applications', [WorkerApplicationController::class, 'educationApplications'])->name('education-applications.index');
 });
 
 // Employer routes (must be verified and approved)

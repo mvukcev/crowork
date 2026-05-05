@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Privacy Policy</x-slot>
     <x-slot name="description">CroWork Privacy Policy. Learn how we collect, use, and protect your personal information.</x-slot>
+    <x-slot name="canonical">{{ route('privacy') }}</x-slot>
 
     <!-- Hero Section -->
     <x-hero 

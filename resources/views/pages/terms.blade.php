@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Terms of Service</x-slot>
     <x-slot name="description">CroWork Terms of Service. Read our terms and conditions for using the platform.</x-slot>
+    <x-slot name="canonical">{{ route('terms') }}</x-slot>
 
     <!-- Hero Section -->
     <x-hero 
