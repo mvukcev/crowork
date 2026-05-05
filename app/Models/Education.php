@@ -35,6 +35,11 @@ class Education extends Model
         ];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     protected static function booted(): void
     {
         static::creating(function ($education) {

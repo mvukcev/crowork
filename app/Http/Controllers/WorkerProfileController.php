@@ -9,29 +9,21 @@ use Illuminate\Validation\Rule;
 
 class WorkerProfileController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth']);
-        $this->middleware(function ($request, $next) {
-            if (!auth()->user()->isWorker()) {
-                abort(403, 'Only workers can access profile management.');
-            }
-            return $next($request);
-        });
-    }
 
     /**
      * Show the profile edit form
      */
     public function edit()
     {
+        $this->ensureWorker();
+
         $profile = WorkerProfile::firstOrCreate(
             ['user_id' => auth()->id()],
             [
                 'first_name' => '',
                 'last_name' => '',
                 'nationality_country_code' => '',
-                'birth_year' => null,
+                'birth_year' => 1940,
                 'education_summary' => null,
                 'work_experience' => null,
                 'skills' => [],
@@ -48,7 +40,18 @@ class WorkerProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $profile = WorkerProfile::firstOrCreate(['user_id' => auth()->id()]);
+        $this->ensureWorker();
+
+        $profile = WorkerProfile::firstOrCreate(
+            ['user_id' => auth()->id()],
+            [
+                'first_name' => '',
+                'last_name' => '',
+                'nationality_country_code' => '',
+                'birth_year' => 1940,
+                'skills' => [],
+            ]
+        );
 
         $currentYear = now()->year;
         $minBirthYear = 1940;
@@ -91,11 +94,20 @@ class WorkerProfileController extends Controller
             ->with('success', 'Profile updated successfully!');
     }
 
+    private function ensureWorker(): void
+    {
+        if (!auth()->user()->isWorker()) {
+            abort(403, 'Only workers can access profile management.');
+        }
+    }
+
     /**
      * Delete photo
      */
     public function deletePhoto()
     {
+        $this->ensureWorker();
+
         $profile = WorkerProfile::where('user_id', auth()->id())->first();
 
         if ($profile && $profile->photo_path) {

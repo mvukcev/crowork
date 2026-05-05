@@ -1,17 +1,18 @@
 <x-app-layout>
     <x-slot name="title">About Us</x-slot>
     <x-slot name="description">Learn about CroWork's mission to connect international talent with Croatian employers and build a thriving community.</x-slot>
+    <x-slot name="canonical">{{ route('about') }}</x-slot>
 
     <!-- Hero Section with Red Theme -->
-    <x-hero 
-        size="md" 
-        title="About CroWork" 
-        subtitle="Connecting international talent with Croatian opportunities"
+    <x-hero
+        size="sm"
+        title="About CroWork"
+        subtitle="A human-centered platform shaped around trust, clarity, and opportunity."
         theme="employers"
     />
 
-    <div class="section-spacing">
-        <div class="container-base max-w-4xl">
+    <div class="section-spacing-tight">
+        <div class="container-base max-w-5xl">
             <!-- Content Sections -->
             <div class="prose prose-neutral max-w-none space-y-6">
                 <!-- Our Mission -->

@@ -143,7 +143,7 @@
                         <x-card class="border border-border shadow-md">
                             <!-- CTA Button -->
                             <x-button 
-                                href="{{ route('educations.show', $education->slug) }}/apply"
+                                href="{{ route('educations.apply', $education) }}"
                                 variant="primary" 
                                 class="w-full mb-6 py-3 text-base font-semibold"
                             >
@@ -342,7 +342,7 @@
                 
                 <!-- CTA -->
                 <x-button 
-                    href="{{ route('educations.show', $education->slug) }}/apply"
+                    href="{{ route('educations.apply', $education) }}"
                     variant="primary" 
                     size="sm"
                     class="flex-shrink-0"

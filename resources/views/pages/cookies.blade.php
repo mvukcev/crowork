@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Cookie Policy</x-slot>
     <x-slot name="description">CroWork Cookie Policy. Learn about how we use cookies and similar technologies on our platform.</x-slot>
+    <x-slot name="canonical">{{ route('cookies') }}</x-slot>
 
     <!-- Hero Section -->
     <x-hero 

@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Contact Us</x-slot>
     <x-slot name="description">Get in touch with the CroWork team. We're here to help with any questions about jobs, education, or our platform.</x-slot>
+    <x-slot name="canonical">{{ route('contact') }}</x-slot>
 
     <!-- Hero Section -->
     <x-hero 

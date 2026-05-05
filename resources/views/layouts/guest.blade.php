@@ -11,18 +11,18 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="h-full antialiased overflow-x-hidden">
-        <!-- Dynamic Gradient Background -->
-        <div class="fixed inset-0 -z-10" style="background: linear-gradient(135deg, #346AF0 0%, #8B5CF6 50%, #10B981 100%);">
-            <!-- Animated gradient overlay -->
-            <div class="absolute inset-0 opacity-60" style="background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.4) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.4) 0%, transparent 50%); animation: gradientShift 20s ease-in-out infinite alternate;"></div>
-            <!-- Soft shapes -->
-            <div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" style="animation: float1 25s ease-in-out infinite;"></div>
-            <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/10 rounded-full blur-3xl" style="animation: float2 30s ease-in-out infinite;"></div>
+        <!-- Dynamic Fluent Gradient Background -->
+        <div class="fixed inset-0 -z-10 overflow-hidden" style="background: linear-gradient(135deg, #174EA6 0%, #346AF0 34%, #8B5CF6 66%, #00B294 100%);">
+            <div class="absolute inset-0 opacity-90" style="background: radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.30) 0%, transparent 28%), radial-gradient(circle at 84% 22%, rgba(255, 185, 0, 0.22) 0%, transparent 30%), radial-gradient(circle at 50% 82%, rgba(16, 185, 129, 0.30) 0%, transparent 34%); animation: gradientShift 18s ease-in-out infinite alternate;"></div>
+            <div class="auth-gradient-orb top-10 left-[8%] w-72 h-72 bg-white/25"></div>
+            <div class="auth-gradient-orb top-[20%] right-[10%] w-96 h-96 bg-fuchsia-300/30" style="animation-delay: 2s;"></div>
+            <div class="auth-gradient-orb bottom-[8%] left-[22%] w-80 h-80 bg-emerald-200/30" style="animation-delay: 4s;"></div>
+            <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:44px_44px] opacity-25"></div>
         </div>
         
         <div class="min-h-full flex flex-col relative z-10">
             {{-- Header with Logo - Acrylic style --}}
-            <header class="backdrop-blur-md bg-white/10 border-b border-white/20">
+            <header class="backdrop-blur-2xl bg-white/10 border-b border-white/20 shadow-sm">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <a href="{{ url('/') }}" class="flex items-center space-x-2 group w-fit">
                         <div class="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white transition-all duration-normal shadow-sm">
@@ -34,7 +34,7 @@
             </header>
 
             {{-- Main Content --}}
-            <main class="flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+            <main class="flex-1 flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
                 <div class="w-full max-w-md">
                     {{ $slot }}
                 </div>

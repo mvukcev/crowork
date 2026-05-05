@@ -5,18 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\WorkerProfile;
+use App\Notifications\JobApplicationSubmitted;
+use App\Notifications\NewJobApplicationReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class JobApplicationController extends Controller
 {
-    /**
-     * Constructor - Apply authentication middleware
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
      * Show the application form
@@ -100,13 +95,17 @@ class JobApplicationController extends Controller
         ]);
 
         // Create job application with profile snapshot
-        JobApplication::create([
+        $application = JobApplication::create([
             'job_id' => $job->id,
             'worker_id' => Auth::id(),
             'profile_snapshot' => $profile->toSnapshot(),
             'message' => $validated['message'] ?? null,
             'status' => 'new',
         ]);
+
+        $application->loadMissing('job.employer.user', 'worker');
+        $application->worker?->notify(new JobApplicationSubmitted($application));
+        $application->job?->employer?->user?->notify(new NewJobApplicationReceived($application));
 
         // Redirect to job detail with success message
         return redirect()

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center bg-background py-12 px-4">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-theme-employers-light via-white to-background py-10 px-4">
     <div class="w-full max-w-md">
         <!-- Header -->
         <div class="text-center mb-8">
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Registration Form Card -->
-        <x-card class="border border-border">
+        <x-card class="border border-border/70 shadow-elevation-2">
             <form method="POST" action="{{ route('employer.register') }}" class="space-y-6">
                 @csrf
 

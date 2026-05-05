@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center bg-background py-12 px-4">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-theme-employers-light via-white to-background py-10 px-4">
     <div class="w-full max-w-md">
         <!-- Card -->
-        <x-card class="border border-border text-center">
+        <x-card class="border border-border/70 shadow-elevation-2 text-center">
             <!-- Icon -->
             <div class="w-16 h-16 rounded-full bg-primary-light border border-primary-border mx-auto mb-6 flex items-center justify-center">
                 <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

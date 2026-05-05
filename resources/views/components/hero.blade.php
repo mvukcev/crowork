@@ -9,9 +9,9 @@
 
 @php
     $sizeClasses = [
-        'lg' => 'py-24 md:py-32 lg:py-40',
-        'md' => 'py-20 md:py-24 lg:py-28',
-        'sm' => 'py-16 md:py-18 lg:py-20',
+        'lg' => 'py-20 md:py-28 lg:py-32',
+        'md' => 'py-14 md:py-16 lg:py-20',
+        'sm' => 'py-10 md:py-12 lg:py-14',
     ];
     
     $alignClasses = [
@@ -19,12 +19,12 @@
         'center' => 'text-center',
     ];
     
-    // Page-specific gradients
-    $themeGradients = [
-        'home' => 'background: linear-gradient(145deg, #EBF3FF 0%, #F5F8FF 25%, #FFFFFF 60%, #FAFAFA 100%);',
-        'jobs' => 'background: linear-gradient(145deg, #F3EBFF 0%, #F9F5FF 25%, #FFFFFF 60%, #FAFAFA 100%);',
-        'education' => 'background: linear-gradient(145deg, #ECFDF5 0%, #F0FDF9 25%, #FFFFFF 60%, #FAFAFA 100%);',
-        'employers' => 'background: linear-gradient(145deg, #FEF2F2 0%, #FEF7F7 25%, #FFFFFF 60%, #FAFAFA 100%);',
+    // Page-specific Fluent 2 hero backgrounds
+    $themeClasses = [
+        'home' => 'fluent-hero-home',
+        'jobs' => 'fluent-hero-jobs',
+        'education' => 'fluent-hero-education',
+        'employers' => 'fluent-hero-employers',
     ];
     
     // Theme-specific shape colors
@@ -36,13 +36,12 @@
     ];
     
     $containerClasses = $alignClasses[$align] ?? 'text-center';
-    $gradientStyle = $themeGradients[$theme] ?? $themeGradients['home'];
+    $themeClass = $themeClasses[$theme] ?? $themeClasses['home'];
     $shapes = $themeShapes[$theme] ?? $themeShapes['home'];
 @endphp
 
 <!-- Fluent 2 Hero Section - Calm Acrylic Style with Page-Specific Theme -->
-<div class="relative overflow-hidden {{ $sizeClasses[$size] ?? $sizeClasses['md'] }}" 
-     style="{{ $gradientStyle }}">
+<div class="relative overflow-hidden {{ $themeClass }} {{ $sizeClasses[$size] ?? $sizeClasses['md'] }}">
     
     <!-- Soft Abstract Shapes (Fluent style - oversized, blurred, partially off-screen) -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -66,13 +65,13 @@
     <div class="container-base relative z-10">
         <div class="max-w-4xl {{ $align === 'left' ? '' : 'mx-auto' }}">
             @if($title)
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold text-text-primary mb-6 motion-fade-in" style="letter-spacing: -0.02em;">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-semibold text-text-primary mb-5 motion-fade-in text-balance" style="letter-spacing: -0.035em;">
                     {{ $title }}
                 </h1>
             @endif
             
             @if($subtitle)
-                <p class="text-xl md:text-2xl text-text-secondary mb-10 leading-relaxed motion-fade-in max-w-3xl {{ $align === 'left' ? '' : 'mx-auto' }}" style="animation-delay: 80ms;">
+                <p class="text-lg md:text-xl text-text-secondary mb-8 leading-relaxed motion-fade-in max-w-3xl {{ $align === 'left' ? '' : 'mx-auto' }}" style="animation-delay: 80ms;">
                     {{ $subtitle }}
                 </p>
             @endif

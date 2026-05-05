@@ -7,10 +7,36 @@
 
     <title>{{ $title ?? config('app.name', 'CroWork') }} - Find Your Career in Croatia</title>
     <meta name="description" content="{{ $description ?? 'CroWork connects international talent with Croatian employers. Find jobs, education opportunities, and build your career in Croatia.' }}">
+    <link rel="canonical" href="{{ trim($__env->yieldContent('canonical')) ?: ($canonical ?? url()->current()) }}">
+
+    @php
+        $organizationSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => config('app.name', 'CroWork'),
+            'url' => url('/'),
+            'logo' => asset('favicon.ico'),
+        ];
+
+        $websiteSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => config('app.name', 'CroWork'),
+            'url' => url('/'),
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => url('/jobs').'?q={search_term_string}',
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    @stack('head')
     @stack('styles')
 </head>
 <body class="h-full flex flex-col antialiased" style="background-color: #FAFAFA;" x-data>

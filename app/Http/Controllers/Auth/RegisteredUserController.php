@@ -54,6 +54,11 @@ class RegisteredUserController extends Controller
         } elseif ($user->role === 'worker') {
             WorkerProfile::create([
                 'user_id' => $user->id,
+                'first_name' => '',
+                'last_name' => '',
+                'nationality_country_code' => '',
+                'birth_year' => 1940,
+                'skills' => [],
             ]);
         }
 

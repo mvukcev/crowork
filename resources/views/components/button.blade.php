@@ -7,18 +7,18 @@
 ])
 
 @php
-    $baseClasses = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
+    $baseClasses = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] button-readable-hover';
     
     $variantClasses = [
-        'primary' => 'bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed shadow-sm hover:shadow-md',
-        'secondary' => 'bg-secondary text-white hover:bg-secondary-hover active:bg-secondary-pressed shadow-sm hover:shadow-md',
-        'accent' => 'bg-accent text-white hover:bg-accent-hover active:bg-accent-pressed shadow-sm hover:shadow-md',
-        'success' => 'bg-success text-white hover:bg-success-hover active:bg-success-pressed shadow-sm hover:shadow-md',
+        'primary' => 'bg-primary text-white hover:text-white hover:bg-primary-hover active:bg-primary-pressed shadow-sm hover:shadow-md',
+        'secondary' => 'bg-secondary text-white hover:text-white hover:bg-secondary-hover active:bg-secondary-pressed shadow-sm hover:shadow-md',
+        'accent' => 'bg-accent text-white hover:text-white hover:bg-accent-hover active:bg-accent-pressed shadow-sm hover:shadow-md',
+        'success' => 'bg-success text-white hover:text-white hover:bg-success-hover active:bg-success-pressed shadow-sm hover:shadow-md',
         'warning' => 'bg-warning text-text-primary hover:bg-warning-hover active:bg-warning-pressed shadow-sm hover:shadow-md',
-        'danger' => 'bg-danger text-white hover:bg-danger-hover active:bg-danger-pressed shadow-sm hover:shadow-md',
+        'danger' => 'bg-danger text-white hover:text-white hover:bg-danger-hover active:bg-danger-pressed shadow-sm hover:shadow-md',
         'subtle' => 'bg-control-fill text-text-primary hover:bg-control-fill-hover active:bg-control-fill-pressed border border-border/50 hover:border-border',
         'ghost' => 'bg-transparent text-text-primary hover:bg-control-fill/80 active:bg-control-fill-hover',
-        'outline' => 'bg-transparent border-2 border-primary text-primary hover:bg-primary/10 hover:border-primary-hover active:bg-primary/15 active:scale-[0.98]',
+        'outline' => 'bg-white/70 border border-primary/70 text-primary hover:bg-primary hover:text-white hover:border-primary-hover active:bg-primary-pressed active:scale-[0.98] shadow-sm',
     ];
     
     $sizeClasses = [
