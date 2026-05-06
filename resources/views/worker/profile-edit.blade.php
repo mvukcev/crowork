@@ -2,14 +2,38 @@
 
 @section('content')
 
+@php
+    $rawSkills = old('skills', $profile->skills ?? []);
+
+    if (is_string($rawSkills)) {
+        $decodedSkills = json_decode($rawSkills, true);
+        $rawSkills = json_last_error() === JSON_ERROR_NONE ? $decodedSkills : preg_split('/\s*,\s*/', $rawSkills, -1, PREG_SPLIT_NO_EMPTY);
+    }
+
+    if (is_null($rawSkills)) {
+        $rawSkills = [];
+    }
+
+    if (!is_array($rawSkills)) {
+        $rawSkills = [$rawSkills];
+    }
+
+    $initialSkills = array_values(array_filter(array_map(static function ($skill) {
+        return is_scalar($skill) ? trim((string) $skill) : '';
+    }, $rawSkills), static fn ($skill) => $skill !== ''));
+@endphp
+
 <div class="py-8 md:py-12 bg-background min-h-screen">
     <div class="container-base">
         <!-- Page Header -->
-        <div class="mb-8">
-            <h1 class="text-display-md font-semibold text-text-primary mb-2">Worker Profile</h1>
-            <p class="text-body text-text-secondary">
-                Create your standardized CV for job applications. No PDFs needed – all information is stored digitally.
-            </p>
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+                <h1 class="text-display-md font-semibold text-text-primary mb-2">Worker Profile</h1>
+                <p class="text-body text-text-secondary mb-0">
+                    Create your standardized CV for job applications. No PDFs needed – all information is stored digitally.
+                </p>
+            </div>
+            <x-button href="{{ route('worker.settings.edit') }}" variant="outline">Settings</x-button>
         </div>
 
         <!-- Success Message -->
@@ -146,7 +170,7 @@
                         />
 
                         <div 
-                            x-data="skillsManager({{ json_encode(old('skills', $profile->skills ?? [])) }})"
+                            x-data='skillsManager(@json($initialSkills))'
                             class="space-y-4"
                         >
                             <!-- Skills Display -->
@@ -188,14 +212,14 @@
                                         class="flex-1 px-3 py-2 border border-border rounded-md text-body text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-normal"
                                         :disabled="skills.length >= 30"
                                     />
-                                    <x-button 
+                                    <button
                                         type="button"
-                                        variant="secondary"
                                         @click="addSkill()"
                                         :disabled="skills.length >= 30"
+                                        class="inline-flex items-center justify-center rounded-md border border-border bg-surface px-4 py-2 text-body-sm font-medium text-text-primary transition-colors duration-normal hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         Add
-                                    </x-button>
+                                    </button>
                                 </div>
                                 <p class="text-caption text-text-tertiary mt-2">
                                     <span x-text="skills.length"></span> / 30 skills added. Press Enter or click Add to include a skill.

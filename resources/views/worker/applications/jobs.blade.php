@@ -10,9 +10,10 @@
                     <h1 class="text-title-1 font-semibold text-text-primary mb-2">My Job Applications</h1>
                     <p class="text-body text-text-secondary mb-0">Review jobs you have applied to and follow their current status.</p>
                 </div>
-                <x-button href="{{ route('worker.education-applications.index') }}" variant="outline">
-                    Education Applications
-                </x-button>
+                <div class="flex flex-wrap gap-2">
+                    <x-button href="{{ route('worker.settings.edit') }}" variant="outline">Settings</x-button>
+                    <x-button href="{{ route('worker.education-applications.index') }}" variant="outline">Education Applications</x-button>
+                </div>
             </div>
 
             <x-card class="border border-border/70 shadow-elevation-1">

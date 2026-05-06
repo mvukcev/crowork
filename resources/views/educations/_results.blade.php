@@ -22,7 +22,6 @@
                 :currency="$education->currency ?? 'EUR'"
                 :posted_at="$education->published_at ?? $education->created_at"
                 :href="route('educations.show', $education->slug)"
-                class="hover:scale-[1.01] transition-transform duration-normal"
             />
         @endforeach
     </div>
@@ -32,14 +31,14 @@
         <div class="flex items-center justify-center space-x-2" x-data>
             {{-- Previous Page Link --}}
             @if ($educations->onFirstPage())
-                <span class="px-3 py-2 text-body-sm text-text-disabled bg-surface border border-border rounded-md cursor-not-allowed">
+                <span class="px-3 py-2 text-body-sm text-text-disabled bg-white/70 border border-border rounded-xl cursor-not-allowed">
                     Previous
                 </span>
             @else
                 <button 
                     type="button"
                     @click="$dispatch('paginate', {{ $educations->currentPage() - 1 }})"
-                    class="px-3 py-2 text-body-sm text-text-primary bg-background border border-border rounded-md hover:bg-surface hover:border-primary transition-colors duration-normal"
+                    class="px-3 py-2 text-body-sm text-text-primary bg-white/75 border border-border rounded-xl hover:bg-white hover:border-primary transition-colors duration-normal"
                 >
                     Previous
                 </button>
@@ -48,14 +47,14 @@
             {{-- Page Numbers --}}
             @foreach(range(1, $educations->lastPage()) as $page)
                 @if($page == $educations->currentPage())
-                    <span class="px-3 py-2 text-body-sm font-semibold text-white bg-primary border border-primary rounded-md">
+                    <span class="px-3 py-2 text-body-sm font-semibold text-white bg-primary border border-primary rounded-xl">
                         {{ $page }}
                     </span>
                 @elseif($page == 1 || $page == $educations->lastPage() || abs($page - $educations->currentPage()) <= 2)
                     <button 
                         type="button"
                         @click="$dispatch('paginate', {{ $page }})"
-                        class="px-3 py-2 text-body-sm text-text-primary bg-background border border-border rounded-md hover:bg-surface hover:border-primary transition-colors duration-normal"
+                        class="px-3 py-2 text-body-sm text-text-primary bg-white/75 border border-border rounded-xl hover:bg-white hover:border-primary transition-colors duration-normal"
                     >
                         {{ $page }}
                     </button>
@@ -69,12 +68,12 @@
                 <button 
                     type="button"
                     @click="$dispatch('paginate', {{ $educations->currentPage() + 1 }})"
-                    class="px-3 py-2 text-body-sm text-text-primary bg-background border border-border rounded-md hover:bg-surface hover:border-primary transition-colors duration-normal"
+                    class="px-3 py-2 text-body-sm text-text-primary bg-white/75 border border-border rounded-xl hover:bg-white hover:border-primary transition-colors duration-normal"
                 >
                     Next
                 </button>
             @else
-                <span class="px-3 py-2 text-body-sm text-text-disabled bg-surface border border-border rounded-md cursor-not-allowed">
+                <span class="px-3 py-2 text-body-sm text-text-disabled bg-white/70 border border-border rounded-xl cursor-not-allowed">
                     Next
                 </span>
             @endif

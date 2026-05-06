@@ -20,20 +20,20 @@
         class="section-spacing-tight"
     >
         <div class="container-base">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Filters Sidebar -->
-                <aside class="lg:col-span-1">
-                    <div class="bg-white/95 rounded-2xl shadow-elevation-1 p-4 sticky top-24 border border-border/60">
+                <aside class="lg:col-span-4 xl:col-span-3">
+                    <div class="premium-glass rounded-3xl p-5 sticky top-28 border border-white/75">
                         <div class="flex items-center justify-between mb-4">
-                            <h2 class="text-subtitle font-semibold text-text-primary mb-0">Filters</h2>
-                            <span class="text-caption text-text-tertiary">Live</span>
+                            <h2 class="text-title-2 font-semibold text-text-primary mb-0">Filters</h2>
+                            <span class="text-caption text-text-tertiary">Live update</span>
                         </div>
 
                         <form
                             action="{{ route('educations.index') }}"
                             method="GET"
                             @submit.prevent="applyFilters()"
-                            class="space-y-3"
+                            class="space-y-3.5"
                         >
                             <!-- Search -->
                             <div>
@@ -149,7 +149,7 @@
                 </aside>
 
                 <!-- Results Area -->
-                <main class="lg:col-span-3">
+                <main class="lg:col-span-8 xl:col-span-9">
                     <!-- Loading State -->
                     <div x-show="loading" x-cloak class="space-y-4">
                         <x-progress-indicator :show="true" />

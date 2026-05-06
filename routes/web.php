@@ -7,16 +7,60 @@ use App\Http\Controllers\EducationsController;
 use App\Http\Controllers\EducationApplicationController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WorkerProfileController;
+use App\Http\Controllers\WorkerSettingsController;
 use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
 use App\Http\Controllers\Auth\EmployerRegisterController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Models\Job;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 // SEO routes
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
+
+// Shared-hosting production update helper (disabled by default via env)
+Route::get('/_update-crowork', function (Request $request) {
+    if (
+        app()->environment() !== 'production' ||
+        !filter_var(env('UPDATE_HELPER_ENABLED', false), FILTER_VALIDATE_BOOL) ||
+        empty(env('UPDATE_TOKEN'))
+    ) {
+        abort(404);
+    }
+
+    $providedToken = (string) $request->query('token', '');
+    $expectedToken = (string) env('UPDATE_TOKEN');
+
+    if ($providedToken === '' || !hash_equals($expectedToken, $providedToken)) {
+        abort(404);
+    }
+
+    $output = [];
+
+    // Safe production update steps only; no destructive migration commands.
+    $migrateExit = Artisan::call('migrate', ['--force' => true]);
+    $output[] = "migrate: exit {$migrateExit}";
+
+    $clearExit = Artisan::call('optimize:clear');
+    $output[] = "optimize:clear: exit {$clearExit}";
+
+    $optimizeExit = Artisan::call('optimize');
+    $output[] = "optimize: exit {$optimizeExit}";
+
+    if ((string) $request->query('seed') === '1') {
+        $seedExit = Artisan::call('db:seed', ['--force' => true]);
+        $output[] = "db:seed: exit {$seedExit}";
+    }
+
+    return response()->json([
+        'ok' => true,
+        'ran' => $output,
+    ]);
+});
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -34,6 +78,10 @@ Route::get('/about', [PagesController::class, 'about'])->name('about');
 Route::get('/for-employers', [PagesController::class, 'forEmployers'])->name('for-employers');
 Route::get('/pricing', [PagesController::class, 'pricing'])->name('pricing');
 Route::get('/contact', [PagesController::class, 'contact'])->name('contact');
+Route::get('/coming-soon/{feature?}', [PagesController::class, 'comingSoon'])->name('coming-soon');
+
+Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
+Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
 
 // Legal pages (with aliases)
 Route::get('/privacy', [PagesController::class, 'privacy'])->name('privacy');
@@ -67,6 +115,9 @@ Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () 
     Route::get('/profile', [WorkerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [WorkerProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/photo', [WorkerProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
+    Route::get('/settings', [WorkerSettingsController::class, 'edit'])->name('settings.edit');
+    Route::patch('/settings/profile', [WorkerSettingsController::class, 'updateProfile'])->name('settings.profile');
+    Route::patch('/settings/password', [WorkerSettingsController::class, 'updatePassword'])->name('settings.password');
     Route::get('/applications', [WorkerApplicationController::class, 'jobApplications'])->name('applications.index');
     Route::get('/education-applications', [WorkerApplicationController::class, 'educationApplications'])->name('education-applications.index');
 });

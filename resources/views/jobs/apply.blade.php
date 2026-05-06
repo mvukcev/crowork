@@ -3,6 +3,16 @@
 @section('title', "Apply to {$job->title} – CroWork")
 
 @section('content')
+@php
+    $rawSkills = $profile->skills;
+    if (is_string($rawSkills)) {
+        $profileSkills = array_values(array_filter(array_map('trim', explode(',', $rawSkills))));
+    } elseif (is_array($rawSkills)) {
+        $profileSkills = array_values(array_filter(array_map(static fn ($skill) => is_string($skill) ? trim($skill) : '', $rawSkills)));
+    } else {
+        $profileSkills = [];
+    }
+@endphp
 <div class="min-h-screen bg-neutral-50 py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -185,11 +195,11 @@
                         @endif
 
                         {{-- Skills --}}
-                        @if($profile->skills && count($profile->skills) > 0)
+                        @if(!empty($profileSkills))
                             <div>
                                 <h5 class="text-sm font-semibold text-neutral-900 mb-2 uppercase tracking-wide">Skills</h5>
                                 <div class="flex flex-wrap gap-2">
-                                    @foreach($profile->skills as $skill)
+                                    @foreach($profileSkills as $skill)
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700 border border-primary-200">
                                             {{ $skill }}
                                         </span>

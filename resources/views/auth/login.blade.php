@@ -1,11 +1,10 @@
 <x-guest-layout>
     <x-slot name="title">Sign In</x-slot>
 
-    {{-- Acrylic Auth Card --}}
-    <div class="acrylic-surface rounded-3xl shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/70">
+    <div class="premium-glass rounded-[1.75rem] shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/75">
         {{-- Header --}}
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-semibold text-text-primary mb-2 text-balance">
+            <h1 class="text-4xl font-semibold text-text-primary mb-2 text-balance">
                 Sign in to CroWork
             </h1>
             <p class="text-body text-text-secondary">
@@ -100,7 +99,7 @@
                 <div class="w-full border-t border-border/30"></div>
             </div>
             <div class="relative flex justify-center text-body-sm">
-                <span class="px-4 bg-white/90 backdrop-blur-sm text-text-secondary">New to CroWork?</span>
+                <span class="px-4 bg-white/85 backdrop-blur-sm text-text-secondary">New to CroWork?</span>
             </div>
         </div>
 

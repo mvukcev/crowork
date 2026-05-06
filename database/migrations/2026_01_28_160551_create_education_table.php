@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('created_by_user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('title');
-            $table->string('slug')->unique();
+            $table->string('slug', 191)->unique();
             $table->longText('description');
             $table->string('city')->nullable();
             $table->boolean('is_online')->default(false);

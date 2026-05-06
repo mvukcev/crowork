@@ -39,12 +39,12 @@
     @stack('head')
     @stack('styles')
 </head>
-<body class="h-full flex flex-col antialiased" style="background-color: #FAFAFA;" x-data>
+<body class="h-full flex flex-col antialiased premium-page" x-data>
     <!-- Glass Header on Scroll -->
     <x-site-header />
 
     <!-- Main Content -->
-    <main class="flex-1 pt-16">
+    <main class="flex-1 pt-24">
         {{-- Flash Messages --}}
         @if(session('success'))
             <div class="bg-success-50 border-l-4 border-success-600 p-4 mb-6 mx-auto max-w-7xl mt-6" role="alert">
@@ -96,58 +96,67 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-border/50 mt-auto">
-        <div class="container-base py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
-                <!-- Brand -->
-                <div class="col-span-1">
-                    <div class="flex items-center space-x-2 mb-4">
-                        <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-                            <span class="text-white font-bold text-xl">C</span>
+    <footer class="premium-footer-shell mt-auto relative z-10">
+        <div class="container-base py-14 md:py-16">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
+                <div class="md:col-span-4">
+                    <div class="flex items-center gap-2.5 mb-4">
+                        <div class="w-11 h-11 rounded-2xl bg-white shadow-sm border border-white/80 flex items-center justify-center">
+                            <span class="text-primary font-extrabold text-xl">C</span>
                         </div>
-                        <span class="text-xl font-semibold text-text-primary">CroWork</span>
+                        <div>
+                            <p class="text-xl font-semibold text-text-primary mb-0">CroWork</p>
+                            <p class="text-caption uppercase tracking-[0.11em] text-text-tertiary mb-0">Work in Croatia</p>
+                        </div>
                     </div>
-                    <p class="text-body text-text-secondary leading-relaxed">
-                        Connecting international talent with Croatian opportunities.
+                    <p class="text-body text-text-secondary mb-5 max-w-md">
+                        A premium platform for international workers and trusted Croatian employers, designed for clarity, confidence, and real opportunity.
                     </p>
+                    <a href="{{ url('/jobs') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 border border-white text-body-sm font-semibold text-text-primary hover:bg-white transition-all duration-normal">
+                        Explore Jobs
+                        <span aria-hidden="true">→</span>
+                    </a>
                 </div>
 
-                <!-- For Job Seekers -->
-                <div>
-                    <h3 class="text-body-lg font-semibold text-text-primary mb-4">For Job Seekers</h3>
-                    <ul class="space-y-3">
-                        <li><a href="{{ url('/jobs') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Browse Jobs</a></li>
-                        <li><a href="{{ url('/educations') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Education Programs</a></li>
-                        <li><a href="{{ url('/profile') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Create Profile</a></li>
+                <div class="md:col-span-2">
+                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Workers</h3>
+                    <ul class="space-y-2.5">
+                        <li><a href="{{ url('/jobs') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Browse Jobs</a></li>
+                        <li><a href="{{ url('/educations') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Education</a></li>
+                        <li><a href="{{ url('/profile') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Create Profile</a></li>
                     </ul>
                 </div>
 
-                <!-- For Employers -->
-                <div>
-                    <h3 class="text-body-lg font-semibold text-text-primary mb-4">For Employers</h3>
-                    <ul class="space-y-3">
-                        <li><a href="{{ url('/for-employers') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Why CroWork</a></li>
-                        <li><a href="{{ url('/employer/register') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Create Account</a></li>
+                <div class="md:col-span-2">
+                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Employers</h3>
+                    <ul class="space-y-2.5">
+                        <li><a href="{{ url('/for-employers') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Why CroWork</a></li>
+                        <li><a href="{{ url('/employer/register') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Create Account</a></li>
                     </ul>
                 </div>
 
-                <!-- Company -->
-                <div>
-                    <h3 class="text-body-lg font-semibold text-text-primary mb-4">Company</h3>
-                    <ul class="space-y-3">
-                        <li><a href="{{ url('/about') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">About Us</a></li>
-                        <li><a href="{{ url('/contact') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Contact</a></li>
-                        <li><a href="{{ url('/privacy') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Privacy Policy</a></li>
-                        <li><a href="{{ url('/terms') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Terms of Service</a></li>
-                        <li><a href="{{ url('/cookies') }}" class="text-body text-text-secondary hover:text-primary transition-colors duration-normal">Cookie Policy</a></li>
+                <div class="md:col-span-2">
+                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Company</h3>
+                    <ul class="space-y-2.5">
+                        <li><a href="{{ url('/about') }}" class="text-body-sm text-text-secondary hover:text-text-primary">About</a></li>
+                        <li><a href="{{ url('/contact') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Contact</a></li>
+                        <li><a href="{{ url('/pricing') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Pricing</a></li>
+                    </ul>
+                </div>
+
+                <div class="md:col-span-2">
+                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Legal</h3>
+                    <ul class="space-y-2.5">
+                        <li><a href="{{ url('/privacy') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Privacy</a></li>
+                        <li><a href="{{ url('/terms') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Terms</a></li>
+                        <li><a href="{{ url('/cookies') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Cookies</a></li>
                     </ul>
                 </div>
             </div>
 
-            <div class="border-t border-border/50 mt-10 pt-8">
-                <p class="text-body-sm text-text-tertiary text-center">
-                    &copy; {{ date('Y') }} CroWork. All rights reserved.
-                </p>
+            <div class="mt-10 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <p class="text-body-sm text-text-tertiary mb-0">© {{ date('Y') }} CroWork. All rights reserved.</p>
+                <p class="text-caption text-text-tertiary mb-0">Built for global talent, designed with clarity.</p>
             </div>
         </div>
     </footer>

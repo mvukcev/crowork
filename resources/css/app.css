@@ -1,5 +1,6 @@
 /* Import Fluent 2 motion utilities */
 @import './motion.css';
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,6 +13,14 @@
  */
 
 @layer base {
+    :root {
+        --mesh-blue: rgba(88, 134, 255, 0.28);
+        --mesh-violet: rgba(144, 114, 255, 0.22);
+        --mesh-teal: rgba(39, 191, 177, 0.2);
+        --mesh-pink: rgba(245, 133, 176, 0.14);
+        --surface-glass: rgba(255, 255, 255, 0.68);
+    }
+
     /* Reset and base styles */
     * {
         @apply antialiased;
@@ -20,31 +29,45 @@
     html {
         @apply text-text-primary;
         background-color: #FAFAFA; /* Subtle neutral background */
+        font-family: 'Manrope', 'Segoe UI', sans-serif;
         font-feature-settings: 'kern' 1, 'liga' 1;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overflow-x: clip;
     }
 
     body {
         @apply text-body leading-relaxed;
-        background-color: #FAFAFA;
+        background:
+            radial-gradient(circle at 8% 12%, rgba(120, 160, 255, 0.08), transparent 30%),
+            radial-gradient(circle at 92% 8%, rgba(146, 126, 250, 0.08), transparent 32%),
+            radial-gradient(circle at 48% 102%, rgba(38, 182, 170, 0.06), transparent 34%),
+            #f8faff;
+        line-height: 1.62;
+        overflow-x: clip;
     }
 
     /* Fluent 2 Typography Hierarchy */
     h1 {
-        @apply text-title-1 text-text-primary font-semibold mb-4;
+        @apply text-4xl md:text-5xl lg:text-6xl text-text-primary font-semibold mb-4;
+        letter-spacing: -0.035em;
+        line-height: 1.06;
     }
 
     h2 {
-        @apply text-title-2 text-text-primary font-semibold mb-3;
+        @apply text-3xl md:text-4xl text-text-primary font-semibold mb-3;
+        letter-spacing: -0.028em;
     }
 
     h3 {
-        @apply text-title-3 text-text-primary font-semibold mb-3;
+        @apply text-2xl md:text-3xl text-text-primary font-semibold mb-3;
+        letter-spacing: -0.022em;
+        line-height: 1.18;
     }
 
     h4 {
-        @apply text-subtitle text-text-primary font-semibold mb-2;
+        @apply text-xl md:text-2xl text-text-primary font-semibold mb-2;
+        line-height: 1.24;
     }
 
     h5 {
@@ -57,6 +80,18 @@
 
     p {
         @apply text-body text-text-secondary mb-4;
+        max-width: 68ch;
+        line-height: 1.68;
+    }
+
+    .text-body-sm {
+        line-height: 1.58;
+    }
+
+    .text-caption,
+    .text-body-xs {
+        line-height: 1.45;
+        letter-spacing: 0.01em;
     }
 
     a {
@@ -81,7 +116,7 @@
     }
 
     .container-base {
-        @apply max-w-7xl mx-auto px-4 md:px-6 lg:px-8;
+        @apply max-w-7xl mx-auto px-4 sm:px-5 md:px-6 lg:px-8;
     }
 
     /* Fluent 2 Card - floating surface with soft elevation */
@@ -96,11 +131,121 @@
 
     /* Section spacing - airy and comfortable */
     .section-spacing {
-        @apply py-10 md:py-14 lg:py-20;
+        @apply py-12 md:py-16 lg:py-24;
     }
 
     .section-spacing-tight {
-        @apply py-8 md:py-10 lg:py-12;
+        @apply py-8 md:py-10 lg:py-14;
+    }
+
+    .premium-page {
+        @apply relative;
+    }
+
+    .premium-page::before {
+        content: '';
+        position: fixed;
+        inset: -18% -10% auto;
+        height: 52vh;
+        pointer-events: none;
+        z-index: -1;
+        background:
+            radial-gradient(circle at 12% 20%, var(--mesh-blue), transparent 34%),
+            radial-gradient(circle at 82% 18%, var(--mesh-violet), transparent 38%),
+            radial-gradient(circle at 54% 68%, var(--mesh-teal), transparent 36%),
+            radial-gradient(circle at 68% 38%, var(--mesh-pink), transparent 38%);
+        filter: blur(16px);
+    }
+
+    .premium-glass {
+        background: var(--surface-glass);
+        backdrop-filter: blur(24px) saturate(165%);
+        -webkit-backdrop-filter: blur(24px) saturate(165%);
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        box-shadow:
+            0 18px 46px rgba(58, 70, 92, 0.09),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .premium-header-shell {
+        @apply premium-glass rounded-2xl;
+        background:
+            linear-gradient(120deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.62));
+    }
+
+    .premium-footer-shell {
+        position: relative;
+        z-index: 10;
+        isolation: isolate;
+        overflow: visible;
+        border-top: 1px solid rgba(207, 216, 230, 0.8);
+        background-color: #f6f9ff;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(252, 253, 255, 0.98)),
+            radial-gradient(circle at 12% 0%, rgba(129, 152, 255, 0.12), transparent 34%),
+            radial-gradient(circle at 86% 8%, rgba(56, 189, 160, 0.08), transparent 30%);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .premium-footer-shell a {
+        color: #2d3f63;
+    }
+
+    .premium-footer-shell a:hover {
+        color: #2144d0;
+    }
+
+    .premium-hero {
+        position: relative;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at 14% 22%, rgba(98, 145, 255, 0.34), transparent 32%),
+            radial-gradient(circle at 86% 18%, rgba(150, 118, 250, 0.3), transparent 34%),
+            radial-gradient(circle at 53% 82%, rgba(52, 188, 177, 0.24), transparent 36%),
+            radial-gradient(circle at 74% 76%, rgba(239, 150, 188, 0.16), transparent 38%),
+            linear-gradient(165deg, #eaf1ff 0%, #eef3ff 34%, #f5faff 64%, #ffffff 100%);
+        background-size: 155% 155%;
+        animation: meshDrift 24s ease-in-out infinite alternate;
+    }
+
+    .premium-hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
+    }
+
+    .hero-command {
+        @apply premium-glass rounded-3xl;
+        padding: 0.55rem;
+        border-color: rgba(255, 255, 255, 0.86);
+        box-shadow:
+            0 20px 45px rgba(44, 63, 93, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    .hero-command-input {
+        @apply w-full rounded-2xl border-0 bg-white/60 px-4 py-3.5 text-base text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/25;
+    }
+
+    .premium-job-card {
+        @apply block rounded-2xl border border-white/70 bg-white p-5 transition-all duration-normal;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 12px 28px rgba(24, 34, 56, 0.08);
+    }
+
+    .premium-job-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 34px rgba(23, 34, 56, 0.12);
+    }
+
+    .premium-chip {
+        @apply inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-white px-2.5 py-1 text-caption font-medium text-text-secondary;
+        background: rgba(255, 255, 255, 0.72);
     }
 
     /* Acrylic/Glass Effects - use sparingly */
@@ -243,4 +388,38 @@
 @keyframes authOrbFloat {
     0% { transform: translate3d(0, 0, 0) scale(1); }
     100% { transform: translate3d(22px, -18px, 0) scale(1.08); }
+}
+
+@keyframes meshDrift {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 100% 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-gradient-orb {
+        animation: none !important;
+    }
+
+    .premium-hero {
+        animation: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+    button,
+    a[role='button'],
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+    }
+
+    .prose {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
 }

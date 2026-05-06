@@ -1,11 +1,10 @@
 <x-guest-layout>
     <x-slot name="title">Create Account</x-slot>
 
-    {{-- Acrylic Auth Card --}}
-    <div class="acrylic-surface rounded-3xl shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/70">
+    <div class="premium-glass rounded-[1.75rem] shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/75">
         {{-- Header --}}
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-semibold text-text-primary mb-2 text-balance">
+            <h1 class="text-4xl font-semibold text-text-primary mb-2 text-balance">
                 Create your account
             </h1>
             <p class="text-body text-text-secondary">
@@ -134,7 +133,7 @@
                 <div class="w-full border-t border-divider"></div>
             </div>
             <div class="relative flex justify-center text-body-sm">
-                <span class="px-4 bg-white/80 text-text-secondary">Already have an account?</span>
+                <span class="px-4 bg-white/80 backdrop-blur-sm text-text-secondary">Already have an account?</span>
             </div>
         </div>
 

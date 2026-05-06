@@ -3,54 +3,63 @@
     <x-slot name="description">Find your dream job in Croatia. Browse thousands of job opportunities from top employers.</x-slot>
     <x-slot name="canonical">{{ route('home') }}</x-slot>
 
-    <!-- Hero Section with Acrylic Search -->
+    <!-- Immersive Hero -->
     <x-hero
         size="lg"
         title="Work, learn, and thrive in Croatia"
-        subtitle="CroWork brings verified jobs, education pathways, and employer support into one calm, modern marketplace for international talent.">
-        <div class="max-w-3xl mx-auto">
-            <!-- Acrylic Search Bar -->
+        subtitle="A premium platform connecting international workers with verified Croatian employers, clear pathways, and real relocation confidence.">
+        <div class="max-w-4xl mx-auto">
             <form action="{{ route('jobs.index') }}" method="GET" class="relative">
-                <div class="acrylic-surface rounded-3xl shadow-elevation-3 p-2.5 md:p-3 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center motion-fade-in ring-1 ring-white/70" style="animation-delay: 140ms;">
-                    <div class="flex-1 flex items-center px-4 min-h-[52px] bg-white/55 rounded-2xl">
+                <div class="hero-command flex flex-col sm:flex-row gap-2 items-stretch sm:items-center motion-fade-in" style="animation-delay: 140ms;">
+                    <div class="flex-1 flex items-center px-2">
                         <svg class="w-5 h-5 text-text-tertiary mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         <input
                             type="text"
                             name="search"
-                            placeholder="Job title, keywords, or company"
-                            class="flex-1 py-3 text-body-lg bg-transparent border-0 focus:outline-none focus:ring-0 text-text-primary placeholder:text-text-tertiary"
+                            placeholder="Search roles, employers, or keywords"
+                            class="hero-command-input"
                             value="{{ request('search') }}"
                         >
                     </div>
-                    <x-button type="submit" variant="primary" size="lg" class="shadow-md hover:shadow-lg rounded-2xl whitespace-nowrap">
+                    <x-button type="submit" variant="primary" size="lg" class="rounded-2xl whitespace-nowrap px-7">
                         Search Jobs
                     </x-button>
                 </div>
             </form>
 
-            <!-- Quick Links -->
-            <div class="flex flex-wrap items-center justify-center gap-2 mt-5 motion-fade-in" style="animation-delay: 180ms;">
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-6 motion-fade-in" style="animation-delay: 180ms;">
                 <span class="text-body-sm text-text-secondary">Popular:</span>
-                <a href="{{ route('jobs.index', ['category' => 'Hospitality']) }}" class="text-body-sm text-primary hover:text-primary-hover transition-colors">Hospitality</a>
-                <span class="text-text-tertiary">·</span>
-                <a href="{{ route('jobs.index', ['category' => 'Tourism']) }}" class="text-body-sm text-primary hover:text-primary-hover transition-colors">Tourism</a>
-                <span class="text-text-tertiary">·</span>
-                <a href="{{ route('jobs.index', ['city' => 'Zagreb']) }}" class="text-body-sm text-primary hover:text-primary-hover transition-colors">Zagreb</a>
-                <span class="text-text-tertiary">·</span>
-                <a href="{{ route('jobs.index', ['city' => 'Split']) }}" class="text-body-sm text-primary hover:text-primary-hover transition-colors">Split</a>
+                <a href="{{ route('jobs.index', ['category' => 'Hospitality']) }}" class="premium-chip">Hospitality</a>
+                <a href="{{ route('jobs.index', ['category' => 'Tourism']) }}" class="premium-chip">Tourism</a>
+                <a href="{{ route('jobs.index', ['city' => 'Zagreb']) }}" class="premium-chip">Zagreb</a>
+                <a href="{{ route('jobs.index', ['city' => 'Split']) }}" class="premium-chip">Split</a>
+            </div>
+
+            <div class="mt-10 md:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 max-w-3xl mx-auto">
+                <div class="premium-glass rounded-2xl p-4 text-left">
+                    <p class="text-caption uppercase tracking-[0.1em] text-text-tertiary mb-1">Verified Employers</p>
+                    <p class="text-title-2 font-semibold text-text-primary mb-0">Trusted companies only</p>
+                </div>
+                <div class="premium-glass rounded-2xl p-4 text-left">
+                    <p class="text-caption uppercase tracking-[0.1em] text-text-tertiary mb-1">Smart Matching</p>
+                    <p class="text-title-2 font-semibold text-text-primary mb-0">Clarity before applying</p>
+                </div>
+                <div class="premium-glass rounded-2xl p-4 text-left">
+                    <p class="text-caption uppercase tracking-[0.1em] text-text-tertiary mb-1">Built for Relocation</p>
+                    <p class="text-title-2 font-semibold text-text-primary mb-0">Jobs and education together</p>
+                </div>
             </div>
         </div>
     </x-hero>
 
-    <!-- Featured Jobs -->
-    <section class="section-spacing bg-white scroll-fade-in">
+    <section class="section-spacing scroll-fade-in">
         <div class="container-base">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-semibold text-text-primary mb-4">Featured Jobs</h2>
-                <p class="text-body-lg text-text-secondary max-w-2xl mx-auto">
-                    Hand-picked opportunities for international talent seeking careers in Croatia
+            <div class="text-center mb-14 md:mb-16">
+                <h2 class="text-text-primary mb-4">Featured Jobs</h2>
+                <p class="text-body-lg text-text-secondary max-w-2xl mx-auto mb-0">
+                    Curated openings from verified employers, designed for fast comparison and confident decisions.
                 </p>
             </div>
 
@@ -100,25 +109,21 @@
         </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section class="section-spacing scroll-fade-in" style="background: linear-gradient(180deg, #FAFAFA 0%, #FFFFFF 100%);">
+    <section class="section-spacing scroll-fade-in">
         <div class="container-base">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-semibold text-text-primary mb-4">How It Works</h2>
-                <p class="text-body-lg text-text-secondary max-w-2xl mx-auto">
+                <h2 class="text-text-primary mb-4">How It Works</h2>
+                <p class="text-body-lg text-text-secondary max-w-2xl mx-auto mb-0">
                     Three simple steps to your career in Croatia
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 stagger-children">
-                <!-- Step 1 -->
-                <div class="text-center group">
+                <div class="premium-glass rounded-3xl p-6 md:p-7 text-center group">
                     <div class="relative inline-flex items-center justify-center mb-6">
-                        <!-- Step number -->
-                        <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/15 group-hover:scale-105">
+                        <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/15">
                             <span class="text-2xl font-semibold text-primary">1</span>
                         </div>
-                        <!-- Icon -->
                         <div class="absolute -bottom-1 -right-1 w-10 h-10 rounded-xl bg-white shadow-elevation-2 flex items-center justify-center">
                             <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -131,14 +136,11 @@
                     </p>
                 </div>
 
-                <!-- Step 2 -->
-                <div class="text-center group">
+                <div class="premium-glass rounded-3xl p-6 md:p-7 text-center group">
                     <div class="relative inline-flex items-center justify-center mb-6">
-                        <!-- Step number -->
-                        <div class="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center transition-all duration-300 group-hover:bg-accent/15 group-hover:scale-105">
+                        <div class="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center transition-all duration-300 group-hover:bg-accent/15">
                             <span class="text-2xl font-semibold text-accent">2</span>
                         </div>
-                        <!-- Icon -->
                         <div class="absolute -bottom-1 -right-1 w-10 h-10 rounded-xl bg-white shadow-elevation-2 flex items-center justify-center">
                             <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -151,14 +153,11 @@
                     </p>
                 </div>
 
-                <!-- Step 3 -->
-                <div class="text-center group">
+                <div class="premium-glass rounded-3xl p-6 md:p-7 text-center group">
                     <div class="relative inline-flex items-center justify-center mb-6">
-                        <!-- Step number -->
-                        <div class="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center transition-all duration-300 group-hover:bg-success/15 group-hover:scale-105">
+                        <div class="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center transition-all duration-300 group-hover:bg-success/15">
                             <span class="text-2xl font-semibold text-success">3</span>
                         </div>
-                        <!-- Icon -->
                         <div class="absolute -bottom-1 -right-1 w-10 h-10 rounded-xl bg-white shadow-elevation-2 flex items-center justify-center">
                             <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -174,17 +173,14 @@
         </div>
     </section>
 
-    <!-- Call to Action -->
-    <section class="section-spacing bg-white scroll-fade-in">
+    <section class="section-spacing scroll-fade-in">
         <div class="container-base">
-            <div class="relative rounded-3xl overflow-hidden" style="background: linear-gradient(135deg, #EBF3FF 0%, #E6F5F3 100%);">
-                <!-- Subtle shape -->
-                <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full"
-                     style="background: linear-gradient(135deg, #346AF0 0%, #00B294 100%); filter: blur(60px); opacity: 0.1;">
-                </div>
+            <div class="relative premium-glass rounded-[2rem] overflow-hidden px-8 py-12 md:px-12 md:py-16 text-center">
+                <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-[70px] opacity-60" style="background: rgba(95, 141, 255, 0.25);"></div>
+                <div class="absolute -bottom-16 -left-16 w-64 h-64 rounded-full blur-[74px] opacity-55" style="background: rgba(43, 193, 176, 0.2);"></div>
 
-                <div class="relative z-10 px-8 py-12 md:px-12 md:py-16 text-center">
-                    <h2 class="text-3xl md:text-4xl font-semibold text-text-primary mb-4">
+                <div class="relative z-10">
+                    <h2 class="text-text-primary mb-4">
                         Ready to Start Your Career in Croatia?
                     </h2>
                     <p class="text-body-lg text-text-secondary max-w-2xl mx-auto mb-8">

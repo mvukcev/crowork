@@ -8,9 +8,9 @@
 
 @php
     $variantClasses = [
-        'base' => 'bg-surface-base',
-        'surface' => 'bg-surface-secondary',
-        'tinted' => 'bg-surface-tinted',
+        'base' => 'bg-white/80',
+        'surface' => 'bg-white/70',
+        'tinted' => 'bg-primary/5',
     ];
     
     $elevationClasses = [
@@ -20,7 +20,7 @@
         '3' => 'shadow-elevation-3',
     ];
     
-    $paddingClass = $padding === true ? 'p-6' : ($padding === false ? '' : "p-{$padding}");
+    $paddingClass = $padding === true ? 'p-6 md:p-7' : ($padding === false ? '' : "p-{$padding}");
     $roundedClass = "rounded-{$rounded}";
     
     $baseClasses = [
@@ -28,8 +28,9 @@
         $elevationClasses[$elevation] ?? $elevationClasses['1'],
         $paddingClass,
         $roundedClass,
-        'border border-border-subtle',
-        'transition-all duration-200',
+        'border border-white/80',
+        'backdrop-blur-xl',
+        'transition-all duration-normal',
     ];
     
     $combinedClasses = implode(' ', array_filter($baseClasses)) . ' ' . $class;

@@ -3,84 +3,65 @@
     <x-slot name="description">Learn about CroWork's mission to connect international talent with Croatian employers and build a thriving community.</x-slot>
     <x-slot name="canonical">{{ route('about') }}</x-slot>
 
-    <!-- Hero Section with Red Theme -->
     <x-hero
         size="sm"
         title="About CroWork"
-        subtitle="A human-centered platform shaped around trust, clarity, and opportunity."
+        subtitle="A premium platform built around trust, clarity, and opportunity for international talent in Croatia."
         theme="employers"
     />
 
     <div class="section-spacing-tight">
-        <div class="container-base max-w-5xl">
-            <!-- Content Sections -->
-            <div class="prose prose-neutral max-w-none space-y-6">
-                <!-- Our Mission -->
-                <x-surface variant="base" elevation="1" padding="8">
-                    <h2 class="text-title-2 font-semibold text-text-primary mb-4">Our Mission</h2>
-                    <p class="text-body text-text-secondary leading-relaxed">
-                        CroWork is dedicated to bridging the gap between talented international professionals and innovative Croatian employers. We believe in creating meaningful connections that drive economic growth and cultural exchange throughout Croatia.
-                    </p>
+        <div class="container-base max-w-6xl space-y-6 md:space-y-8">
+            <x-surface variant="base" elevation="1" rounded="3xl" class="premium-glass">
+                <x-section-header
+                    title="Our Mission"
+                    subtitle="Bridge global talent and Croatian employers through a calmer, clearer, and more trusted hiring experience."
+                    class="mb-5"
+                />
+                <p class="text-body-lg text-text-secondary mb-0 max-w-4xl">
+                    CroWork helps international professionals discover meaningful opportunities in Croatia while giving employers confidence through verified profiles, structured applications, and high-trust platform standards.
+                </p>
+            </x-surface>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <x-surface variant="base" elevation="1" rounded="3xl" class="premium-glass">
+                    <h2 class="text-title-1 font-semibold text-text-primary mb-4">What We Build</h2>
+                    <ul class="space-y-3 text-body text-text-secondary mb-0">
+                        <li>Verified jobs and employers for safer decision making.</li>
+                        <li>Structured profiles and applications with less friction.</li>
+                        <li>Education pathways to support long-term success in Croatia.</li>
+                        <li>Guidance for relocation and practical onboarding.</li>
+                    </ul>
                 </x-surface>
 
-                <!-- What We Do -->
-                <x-surface variant="base" elevation="1" padding="8">
-                    <h2 class="text-title-2 font-semibold text-text-primary mb-4">What We Do</h2>
-                    <div class="space-y-4">
-                        <p class="text-body text-text-secondary leading-relaxed">
-                            We provide a comprehensive platform that simplifies the job search and hiring process for both workers and employers:
-                        </p>
-                        <ul class="list-disc list-inside space-y-2 text-body text-text-secondary">
-                            <li>Connect skilled international workers with Croatian companies</li>
-                            <li>Offer education and training program opportunities</li>
-                            <li>Streamline the application and hiring process</li>
-                            <li>Provide resources and support for relocation and integration</li>
-                            <li>Foster a diverse and inclusive workforce in Croatia</li>
-                        </ul>
-                    </div>
-                </x-surface>
-
-                <!-- Our Values -->
-                <x-surface variant="base" elevation="1" padding="8">
-                    <h2 class="text-title-2 font-semibold text-text-primary mb-4">Our Values</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="text-subtitle font-semibold text-text-primary mb-2">Transparency</h3>
-                            <p class="text-body-sm text-text-secondary">
-                                Clear communication and honest relationships between all parties.
-                            </p>
+                <x-surface variant="base" elevation="1" rounded="3xl" class="premium-glass">
+                    <h2 class="text-title-1 font-semibold text-text-primary mb-4">Our Values</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="rounded-2xl bg-white/70 border border-white/80 p-4">
+                            <h3 class="text-subtitle font-semibold text-text-primary mb-1">Transparency</h3>
+                            <p class="text-body-sm text-text-secondary mb-0">Clear communication and honest expectations.</p>
                         </div>
-                        <div>
-                            <h3 class="text-subtitle font-semibold text-text-primary mb-2">Quality</h3>
-                            <p class="text-body-sm text-text-secondary">
-                                Verified employers and curated opportunities for the best matches.
-                            </p>
+                        <div class="rounded-2xl bg-white/70 border border-white/80 p-4">
+                            <h3 class="text-subtitle font-semibold text-text-primary mb-1">Quality</h3>
+                            <p class="text-body-sm text-text-secondary mb-0">Curated opportunities and verified participants.</p>
                         </div>
-                        <div>
-                            <h3 class="text-subtitle font-semibold text-text-primary mb-2">Diversity</h3>
-                            <p class="text-body-sm text-text-secondary">
-                                Celebrating different cultures and backgrounds in the Croatian workforce.
-                            </p>
+                        <div class="rounded-2xl bg-white/70 border border-white/80 p-4">
+                            <h3 class="text-subtitle font-semibold text-text-primary mb-1">Diversity</h3>
+                            <p class="text-body-sm text-text-secondary mb-0">A workforce enriched by global perspectives.</p>
                         </div>
-                        <div>
-                            <h3 class="text-subtitle font-semibold text-text-primary mb-2">Support</h3>
-                            <p class="text-body-sm text-text-secondary">
-                                Dedicated assistance throughout the entire employment journey.
-                            </p>
+                        <div class="rounded-2xl bg-white/70 border border-white/80 p-4">
+                            <h3 class="text-subtitle font-semibold text-text-primary mb-1">Support</h3>
+                            <p class="text-body-sm text-text-secondary mb-0">Hands-on help through every hiring step.</p>
                         </div>
                     </div>
                 </x-surface>
-
-                <!-- Get in Touch -->
-                <x-cta-panel title="Want to Learn More?" subtitle="We'd love to hear from you. Get in touch with our team to learn more about how CroWork can help you.">
-                    <x-slot name="actions">
-                        <x-button href="{{ route('contact') }}" variant="primary">
-                            Contact Us
-                        </x-button>
-                    </x-slot>
-                </x-cta-panel>
-                </section>
             </div>
+
+            <x-cta-panel title="Want to Learn More?" subtitle="Our team can walk you through CroWork and help you choose the right path.">
+                <x-slot name="actions">
+                    <x-button href="{{ route('contact') }}" variant="primary" size="lg">Contact Us</x-button>
+                </x-slot>
+            </x-cta-panel>
         </div>
     </div>
 </x-app-layout>

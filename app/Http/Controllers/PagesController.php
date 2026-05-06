@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class PagesController extends Controller
 {
     /**
@@ -60,5 +58,21 @@ class PagesController extends Controller
     public function cookies()
     {
         return view('pages.cookies');
+    }
+
+    /**
+     * Generic coming soon page for unfinished features.
+     */
+    public function comingSoon(?string $feature = null)
+    {
+        $title = 'Coming Soon';
+        $description = 'This feature is being prepared and will be available soon.';
+
+        if ($feature === 'company-profile') {
+            $title = 'Company Profile Coming Soon';
+            $description = 'Public company profile pages are currently in development.';
+        }
+
+        return view('pages.coming-soon', compact('title', 'description'));
     }
 }

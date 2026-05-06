@@ -6,7 +6,7 @@
 ])
 
 @php
-    $classes = 'bg-background border border-border rounded-lg overflow-hidden transition-all duration-200';
+    $classes = 'premium-glass rounded-2xl overflow-hidden border border-white/80 transition-all duration-normal';
     
     if ($elevated) {
         $classes .= ' shadow-card';
@@ -20,22 +20,22 @@
 @if($href)
     <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }}>
         @if($title)
-            <div class="px-4 py-3 border-b border-border bg-surface">
+            <div class="px-5 py-4 border-b border-border/60 bg-white/55">
                 <h3 class="text-subtitle font-semibold text-text-primary">{{ $title }}</h3>
             </div>
         @endif
-        <div class="p-4">
+        <div class="p-5 md:p-6">
             {{ $slot }}
         </div>
     </a>
 @else
     <div {{ $attributes->merge(['class' => $classes]) }}>
         @if($title)
-            <div class="px-4 py-3 border-b border-border bg-surface">
+            <div class="px-5 py-4 border-b border-border/60 bg-white/55">
                 <h3 class="text-subtitle font-semibold text-text-primary">{{ $title }}</h3>
             </div>
         @endif
-        <div class="p-4">
+        <div class="p-5 md:p-6">
             {{ $slot }}
         </div>
     </div>

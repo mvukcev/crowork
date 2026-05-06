@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('employer_id')->nullable()->constrained('employers')->onDelete('set null');
             $table->foreignId('created_by_user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('title');
-            $table->string('slug')->unique();
+            $table->string('slug', 191)->unique();
             $table->integer('salary_min')->nullable();
             $table->integer('salary_max')->nullable();
             $table->string('salary_currency', 3)->default('EUR');

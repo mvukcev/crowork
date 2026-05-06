@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('employer_id')->constrained('users')->onDelete('cascade');
             $table->string('title');
-            $table->string('slug')->unique();
+            $table->string('slug', 191)->unique();
             $table->text('description');
             $table->string('location')->nullable();
             $table->string('job_type')->nullable(); // full-time, part-time, contract
