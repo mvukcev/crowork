@@ -6,6 +6,7 @@ use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\EducationsController;
 use App\Http\Controllers\EducationApplicationController;
 use App\Http\Controllers\PagesController;
+use App\Http\Controllers\ComingSoonPreviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SeoController;
@@ -21,6 +22,11 @@ use Illuminate\Support\Facades\Route;
 
 // SEO routes
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
+
+// Coming soon preview access
+Route::get('/coming-soon-preview', [ComingSoonPreviewController::class, 'show'])->name('coming-soon-preview.show');
+Route::post('/coming-soon-preview', [ComingSoonPreviewController::class, 'login'])->name('coming-soon-preview.login');
+Route::post('/coming-soon-preview/logout', [ComingSoonPreviewController::class, 'logout'])->name('coming-soon-preview.logout');
 
 // Shared-hosting production update helper (disabled by default via env)
 Route::get('/_update-crowork', function (Request $request) {
