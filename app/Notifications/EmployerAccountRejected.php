@@ -4,11 +4,13 @@ namespace App\Notifications;
 
 use App\Models\Employer;
 use App\Services\EmailTemplateService;
+use App\Services\NotificationPreferenceService;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class EmployerAccountRejected extends Notification
+class EmployerAccountRejected extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -19,7 +21,11 @@ class EmployerAccountRejected extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return app(NotificationPreferenceService::class)->channelsFor(
+            $notifiable,
+            NotificationPreferenceService::CATEGORY_ADMIN_MODERATION,
+            ['mail', 'database']
+        );
     }
 
     public function toMail(object $notifiable): MailMessage

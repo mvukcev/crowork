@@ -94,4 +94,21 @@ class Education extends Model
     {
         return $this->hasMany(EducationApplication::class);
     }
+
+    protected $searchable = [
+        'title',
+        'description',
+        'city',
+    ];
+
+    public function scopeSearch($query, $term)
+    {
+        $columns = implode(',', $this->searchable);
+        return $query->whereRaw("MATCH ({$columns}) AGAINST (? IN BOOLEAN MODE)", [$term]);
+    }
+
+    public function scopeRelevanceSort($query, $term)
+    {
+        return $query->orderByRaw("MATCH (title, description, city) AGAINST (?) DESC", [$term]);
+    }
 }

@@ -6,6 +6,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -79,6 +80,11 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return $this->hasMany(JobApplication::class, 'worker_id');
     }
 
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
     public function educationApplications()
     {
         return $this->hasMany(EducationApplication::class, 'worker_id');
@@ -111,5 +117,19 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
             'employer' => $this->isEmployer(),
             default => false,
         };
+    }
+
+    public function anonymize(): void
+    {
+        $this->update([
+            'name' => 'Anonymous',
+            'email' => 'anonymous_' . $this->id . '@example.com',
+            'password' => bcrypt(str_random(40)),
+        ]);
+    }
+
+    public function deactivate(): void
+    {
+        $this->update(['is_active' => false]);
     }
 }

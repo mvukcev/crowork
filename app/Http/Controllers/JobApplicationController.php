@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendMetaCapiEvent;
 use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\WorkerProfile;
@@ -118,6 +119,7 @@ class JobApplicationController extends Controller
         $application->loadMissing('job.employer.user', 'worker');
         $application->worker?->notify(new JobApplicationSubmitted($application));
         $application->job?->employer?->user?->notify(new NewJobApplicationReceived($application));
+        SendMetaCapiEvent::dispatch('application_submitted', $application->id);
 
         // Redirect to job detail with success message
         return redirect()

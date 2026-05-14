@@ -225,6 +225,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/preferences', [NotificationCenterController::class, 'editPreferences'])->name('notifications.preferences');
+    Route::patch('/notifications/preferences', [NotificationCenterController::class, 'updatePreferences'])->name('notifications.preferences.update');
     Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllRead'])->name('notifications.read-all');
     Route::post('/notifications/{notificationId}/read', [NotificationCenterController::class, 'markRead'])->name('notifications.read');
     Route::get('/notifications/{notificationId}/open', [NotificationCenterController::class, 'open'])->name('notifications.open');
@@ -292,3 +294,14 @@ Route::get('cookies', [\App\Http\Controllers\ContentPageController::class, 'show
 Route::middleware(['auth', 'admin.access'])->get('content/{slug}/preview/{locale}', [\App\Http\Controllers\ContentPageController::class, 'preview'])->name('content.preview');
 
 require __DIR__.'/auth.php';
+
+Route::get('/export-candidates', function () {
+    return Excel::download(new CandidateExport, 'candidates.xlsx');
+})->name('export.candidates');
+
+Route::get('/user/export', [UserDataExportController::class, 'export'])->middleware('auth')->name('user.export');
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/privacy-requests', [AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
+    Route::put('/privacy-requests/{deletionRequest}', [AdminPrivacyRequestController::class, 'update'])->name('admin.privacy_requests.update');
+});

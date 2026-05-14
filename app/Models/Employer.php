@@ -98,4 +98,22 @@ class Employer extends Model
 
         return (int) round(($completed / count($checks)) * 100);
     }
+
+    protected $searchable = [
+        'company_name',
+        'city',
+        'industry',
+        'description',
+    ];
+
+    public function scopeSearch($query, $term)
+    {
+        $columns = implode(',', $this->searchable);
+        return $query->whereRaw("MATCH ({$columns}) AGAINST (? IN BOOLEAN MODE)", [$term]);
+    }
+
+    public function scopeRelevanceSort($query, $term)
+    {
+        return $query->orderByRaw("MATCH (company_name, city, industry, description) AGAINST (?) DESC", [$term]);
+    }
 }

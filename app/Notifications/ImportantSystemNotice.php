@@ -2,11 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Services\NotificationPreferenceService;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ImportantSystemNotice extends Notification
+class ImportantSystemNotice extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -28,7 +30,11 @@ class ImportantSystemNotice extends Notification
             $channels[] = 'mail';
         }
 
-        return $channels;
+        return app(NotificationPreferenceService::class)->channelsFor(
+            $notifiable,
+            NotificationPreferenceService::CATEGORY_SYSTEM_NOTICES,
+            $channels
+        );
     }
 
     public function toMail(object $notifiable): MailMessage

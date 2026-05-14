@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Employer;
 
+use App\Jobs\SendMetaCapiEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Job;
 use App\Models\JobApplication;
@@ -265,6 +266,7 @@ class ApplicationController extends Controller
         if ($oldStatus !== $validated['status']) {
             $application->loadMissing('worker', 'job.employer');
             $application->worker?->notify(new JobApplicationStatusChanged($application, $oldStatus));
+            SendMetaCapiEvent::dispatch('application_status_changed', $application->id, $validated['status']);
         }
 
         return response()->json(['success' => true, 'status' => $validated['status']]);

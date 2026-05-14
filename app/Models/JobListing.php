@@ -31,6 +31,13 @@ class JobListing extends Model
         'salary_max' => 'decimal:2',
     ];
 
+    protected $searchable = [
+        'title',
+        'description',
+        'location',
+        'company_name',
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -55,5 +62,16 @@ class JobListing extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function scopeSearch($query, $term)
+    {
+        $columns = implode(',', $this->searchable);
+        return $query->whereRaw("MATCH ({$columns}) AGAINST (? IN BOOLEAN MODE)", [$term]);
+    }
+
+    public function scopeRelevanceSort($query, $term)
+    {
+        return $query->orderByRaw("MATCH (title, description, location, company_name) AGAINST (?) DESC", [$term]);
     }
 }

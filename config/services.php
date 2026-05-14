@@ -31,4 +31,12 @@ return [
         ],
     ],
 
+    // Optional error monitoring placeholders.
+    // Add Sentry package separately when enabling runtime integration.
+    'sentry' => [
+        'dsn' => env('SENTRY_LARAVEL_DSN'),
+        'traces_sample_rate' => env('SENTRY_TRACES_SAMPLE_RATE'),
+        'environment' => env('SENTRY_ENVIRONMENT', env('APP_ENV')),
+    ],
+
 ];

@@ -29,15 +29,13 @@ class JobApplication extends Model
         'status_updated_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'profile_snapshot' => 'array',
-            'job_snapshot' => 'array',
-            'interview_at' => 'datetime',
-            'status_updated_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'profile_snapshot' => 'array',
+        'job_snapshot' => 'array',
+        'interview_at' => 'datetime',
+        'status_updated_at' => 'datetime',
+        'candidate_tags' => 'array',
+    ];
 
     public static function statusOptions(): array
     {

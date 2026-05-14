@@ -89,6 +89,40 @@ class EmailTemplateResource extends Resource
                             ->columnSpanFull()
                             ->helperText('Optional sample values used when previewing or test-sending this template.'),
 
+                        Forms\Components\Placeholder::make('preview_subject')
+                            ->label('Preview Subject')
+                            ->content(function (Forms\Get $get): string {
+                                $key = (string) $get('key');
+                                $locale = (string) ($get('locale') ?: app()->getLocale());
+                                $variables = $get('variables_preview');
+
+                                if (! is_array($variables)) {
+                                    $variables = [];
+                                }
+
+                                $rendered = app(EmailTemplateService::class)->render($key, $locale, $variables);
+
+                                return (string) $rendered['subject'];
+                            })
+                            ->columnSpanFull(),
+
+                        Forms\Components\Placeholder::make('preview_body')
+                            ->label('Preview Body')
+                            ->content(function (Forms\Get $get): string {
+                                $key = (string) $get('key');
+                                $locale = (string) ($get('locale') ?: app()->getLocale());
+                                $variables = $get('variables_preview');
+
+                                if (! is_array($variables)) {
+                                    $variables = [];
+                                }
+
+                                $rendered = app(EmailTemplateService::class)->render($key, $locale, $variables);
+
+                                return (string) $rendered['body'];
+                            })
+                            ->columnSpanFull(),
+
                         Forms\Components\Placeholder::make('available_variables')
                             ->label('Available Variables')
                             ->content(function (Forms\Get $get) use ($definitions): string {

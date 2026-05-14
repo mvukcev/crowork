@@ -13,6 +13,7 @@
                     @csrf
                     <button type="submit" class="cw-button-secondary">Mark all as read</button>
                 </form>
+                <a href="{{ route('notifications.preferences') }}" class="cw-button-secondary">Preferences</a>
             </div>
 
             <div class="flex gap-2 mb-4">

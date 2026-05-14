@@ -3,12 +3,14 @@
 namespace App\Notifications;
 
 use App\Models\JobApplication;
+use App\Services\NotificationPreferenceService;
 use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewJobApplicationReceived extends Notification
+class NewJobApplicationReceived extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -31,7 +33,11 @@ class NewJobApplicationReceived extends Notification
             return []; // Skip notification if duplicate
         }
 
-        return ['mail', 'database'];
+        return app(NotificationPreferenceService::class)->channelsFor(
+            $notifiable,
+            NotificationPreferenceService::CATEGORY_EMPLOYER_NEW_APPLICATION,
+            ['mail', 'database']
+        );
     }
 
     public function toMail(object $notifiable): MailMessage
