@@ -13,6 +13,7 @@ use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WorkerProfileController;
 use App\Http\Controllers\WorkerSettingsController;
 use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
+use App\Http\Controllers\Auth\AccessController;
 use App\Http\Controllers\Auth\EmployerRegisterController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Models\Job;
@@ -70,6 +71,15 @@ Route::get('/_update-crowork', function (Request $request) {
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::middleware('guest')->group(function () {
+    Route::get('/access', [AccessController::class, 'show'])->name('access.show');
+    Route::post('/access/email', [AccessController::class, 'checkEmail'])->name('access.email');
+    Route::post('/access/verify-code', [AccessController::class, 'verifyCode'])->name('access.verify-code');
+    Route::post('/access/resend-code', [AccessController::class, 'resendCode'])->name('access.resend-code');
+    Route::post('/access/login', [AccessController::class, 'login'])->name('access.login');
+    Route::post('/access/register', [AccessController::class, 'register'])->name('access.register');
+});
+
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/partial', [JobController::class, 'partial'])->name('jobs.partial');
 Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
@@ -135,7 +145,7 @@ Route::middleware(['auth', 'employer.approved'])->prefix('employer')->name('empl
 
 // Employer registration (guest only)
 Route::middleware('guest')->prefix('employer')->name('employer.')->group(function () {
-    Route::get('register', [EmployerRegisterController::class, 'create'])->name('register');
+    Route::get('register', fn () => redirect()->route('access.show', ['type' => 'employer']))->name('register');
     Route::post('register', [EmployerRegisterController::class, 'store']);
 });
 

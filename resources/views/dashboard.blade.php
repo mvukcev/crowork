@@ -1,17 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+    <x-slot name="title">Dashboard</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
+    <section class="cw-section">
+        <div class="cw-container max-w-4xl">
+            <p class="cw-kicker mb-2">Dashboard</p>
+            <h1 class="cw-display text-4xl md:text-6xl mb-4">Welcome back.</h1>
+            <div class="cw-surface p-6">
+                <p class="text-slate-700">You are signed in. Use the navigation to continue your workflow.</p>
             </div>
         </div>
-    </div>
+    </section>
 </x-app-layout>

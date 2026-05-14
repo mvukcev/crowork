@@ -1,15 +1,11 @@
-/* Fluent 2 Motion & Micro-interactions */
-
-/* Motion duration tokens */
 :root {
-    --motion-duration-120: 120ms;
-    --motion-duration-160: 160ms;
-    --motion-duration-200: 200ms;
-    --motion-easing-enter: cubic-bezier(0.0, 0.0, 0.2, 1.0);
-    --motion-easing-exit: cubic-bezier(0.4, 0.0, 1.0, 1.0);
+    --cw-motion-fast: 160ms;
+    --cw-motion-base: 300ms;
+    --cw-motion-slow: 520ms;
+    --cw-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --cw-ease-in: cubic-bezier(0.4, 0, 1, 1);
 }
 
-/* Reduced motion: disable animations & transforms */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -19,39 +15,36 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
-    
-    /* Disable hover lifts for reduced motion */
-    .btn-elevated:hover:not(:disabled),
-    .card-interactive:hover:not(:disabled),
-    .fluent-hover-lift:hover {
-        transform: none !important;
-    }
-    
-    /* Keep press feedback for tactile feel */
-    .btn-elevated:active:not(:disabled),
-    .card-interactive:active:not(:disabled),
-    .fluent-press:active {
-        transform: scale(0.98) !important;
-    }
 }
 
-/* Fluent Motion Utilities */
-
-/* Page enter animation */
-.fluent-enter {
-    animation: fluentEnter 150ms var(--motion-easing-enter) forwards;
+.cw-fade-in {
+    animation: cwFadeIn var(--cw-motion-base) var(--cw-ease-out) forwards;
 }
 
-/* Fade in animation */
-.fluent-fade-in {
-    animation: fluentFadeIn var(--motion-duration-160) var(--motion-easing-enter) forwards;
+.cw-enter-up {
+    animation: cwEnterUp var(--cw-motion-base) var(--cw-ease-out) forwards;
 }
 
-/* Scroll fade-in animation (requires JS) */
+.cw-hover-lift {
+    transition: transform var(--cw-motion-fast) var(--cw-ease-out), box-shadow var(--cw-motion-fast) var(--cw-ease-out);
+}
+
+.cw-hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+.cw-press {
+    transition: transform var(--cw-motion-fast) var(--cw-ease-in);
+}
+
+.cw-press:active {
+    transform: scale(0.995);
+}
+
 .scroll-fade-in {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 400ms ease-out, transform 400ms ease-out;
+    transform: translateY(10px);
+    transition: opacity var(--cw-motion-slow) var(--cw-ease-out), transform var(--cw-motion-slow) var(--cw-ease-out);
 }
 
 .scroll-fade-in.visible {
@@ -59,250 +52,27 @@
     transform: translateY(0);
 }
 
-/* Stagger children for sequential animations */
-.stagger-children > * {
-    opacity: 0;
-    transform: translateY(10px);
-    animation: staggerFadeIn 400ms ease-out forwards;
-}
-
-.stagger-children > *:nth-child(1) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 250ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
-
-@keyframes staggerFadeIn {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Hover lift for cards and tiles */
-.fluent-hover-lift {
-    transition: transform var(--motion-duration-160) var(--motion-easing-enter),
-                box-shadow var(--motion-duration-160) var(--motion-easing-enter);
-}
-
-.fluent-hover-lift:hover {
-    transform: translateY(-2px);
-}
-
-/* Press feedback for buttons */
-.fluent-press {
-    transition: transform var(--motion-duration-120) var(--motion-easing-exit);
-}
-
-.fluent-press:active {
-    transform: scale(0.98);
-}
-
-/* Combined hover + press */
-.fluent-interactive {
-    transition: transform var(--motion-duration-160) var(--motion-easing-enter),
-                box-shadow var(--motion-duration-160) var(--motion-easing-enter);
-}
-
-.fluent-interactive:hover {
-    transform: translateY(-1px);
-}
-
-.fluent-interactive:active {
-    transform: translateY(0) scale(0.98);
-}
-
-@keyframes fluentEnter {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fluentFadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-/* Legacy support (backward compatible) */
-.motion-enter {
-    animation: fluentEnter var(--motion-duration-200) var(--motion-easing-enter) forwards;
-}
-
 .motion-fade-in {
-    animation: fluentFadeIn var(--motion-duration-200) var(--motion-easing-enter) forwards;
+    animation: cwFadeIn var(--cw-motion-base) var(--cw-ease-out) forwards;
 }
 
-.btn-elevated {
-    transition: all var(--motion-duration-160) var(--motion-easing-enter);
-    position: relative;
-    z-index: 0;
+.motion-enter {
+    animation: cwEnterUp var(--cw-motion-base) var(--cw-ease-out) forwards;
 }
 
-.btn-elevated:hover:not(:disabled) {
-    transform: translateY(-2px);
+.motion-window {
+    animation: cw-soft-reveal 560ms var(--cw-ease-out) both;
 }
 
-.btn-elevated:active:not(:disabled) {
-    transform: translateY(0px) scale(0.98);
+.cw-float-subtle {
+    animation: cw-float-subtle 8.5s ease-in-out infinite alternate;
 }
 
-.card-interactive {
-    transition: all var(--motion-duration-200) var(--motion-easing-enter);
+.cw-orb {
+    animation: cw-orb-drift 24s ease-in-out infinite alternate;
 }
 
-.card-interactive:hover:not(:disabled) {
-    transform: translateY(-1px);
-}
-
-.card-interactive:active:not(:disabled) {
-    transform: translateY(0px) scale(0.995);
-}
-
-/* Input focus enhancement */
-.input-enhanced {
-    transition: border-color var(--motion-duration-160) var(--motion-easing-enter),
-                box-shadow var(--motion-duration-160) var(--motion-easing-enter),
-                background-color var(--motion-duration-160) var(--motion-easing-enter);
-}
-
-.input-enhanced:focus {
-    border-color: var(--primary, #0078d4);
-    box-shadow: inset 0 0 0 1px var(--primary, #0078d4), 
-                0 0 0 3px rgba(0, 120, 212, 0.1);
-}
-
-.input-enhanced:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Skeleton shimmer loading animation */
-.skeleton-shimmer {
-    background: linear-gradient(
-        90deg,
-        var(--border-color, #e5e5e5) 0%,
-        var(--surface-color, #f0f0f0) 50%,
-        var(--border-color, #e5e5e5) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .skeleton-shimmer {
-        animation: none;
-        opacity: 0.7;
-    }
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
-}
-
-/* Loading skeleton placeholder */
-.skeleton {
-    background-color: var(--border-color, #e5e5e5);
-    border-radius: 0.375rem;
-}
-
-.skeleton-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .skeleton-pulse {
-        animation: none;
-        opacity: 0.5;
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
-}
-
-/* Soft shadow transitions */
-.shadow-transition {
-    transition: box-shadow var(--motion-duration-160) var(--motion-easing-enter);
-}
-
-/* Focus ring enhancement */
-.focus-ring-fluent:focus-visible {
-    outline: none;
-    box-shadow: inset 0 0 0 1px var(--primary, #0078d4),
-                0 0 0 3px rgba(0, 120, 212, 0.2);
-    border-radius: 0.375rem;
-    transition: box-shadow var(--motion-duration-160) var(--motion-easing-enter);
-}
-
-/* Progress indicator */
-.progress-bar-loading {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 3px;
-    background: linear-gradient(
-        90deg,
-        #0078d4,
-        #50e6ff,
-        #0078d4
-    );
-    background-size: 200% 100%;
-    animation: progressShimmer 1.5s infinite;
-    border-radius: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .progress-bar-loading {
-        animation: none;
-        opacity: 0.7;
-    }
-}
-
-@keyframes progressShimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
-}
-
-/* Soft scale press effect for interactive elements */
-.press-effect {
-    transition: transform var(--motion-duration-120) var(--motion-easing-enter),
-                box-shadow var(--motion-duration-120) var(--motion-easing-enter);
-}
-
-.press-effect:active:not(:disabled) {
-    transform: scale(0.98);
-}
-
-/* Page fade-in entrance */
-.page-enter {
-    animation: pageEnter var(--motion-duration-200) var(--motion-easing-enter) forwards;
-}
-
-@keyframes pageEnter {
+@keyframes cwFadeIn {
     from {
         opacity: 0;
     }
@@ -311,20 +81,53 @@
     }
 }
 
-/* Smooth state changes */
-.transition-smooth {
-    transition: all var(--motion-duration-200) var(--motion-easing-enter);
+@keyframes cwEnterUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Staggered list animations */
-@media (prefers-reduced-motion: no-preference) {
-    .stagger-child {
-        animation: motionEnter var(--motion-duration-200) var(--motion-easing-enter) backwards;
+@keyframes cwWindowReveal {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
     }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-    .stagger-child:nth-child(1) { animation-delay: 0ms; }
-    .stagger-child:nth-child(2) { animation-delay: 40ms; }
-    .stagger-child:nth-child(3) { animation-delay: 80ms; }
-    .stagger-child:nth-child(4) { animation-delay: 120ms; }
-    .stagger-child:nth-child(n+5) { animation-delay: 160ms; }
+@keyframes cw-orb-drift {
+    from {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+        transform: translate3d(8px, -10px, 0) scale(1.02);
+    }
+}
+
+@keyframes cw-soft-reveal {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes cw-float-subtle {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        transform: translate3d(0, -6px, 0);
+    }
 }

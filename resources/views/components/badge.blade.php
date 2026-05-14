@@ -1,56 +1,20 @@
 @props([
     'tone' => 'neutral',
-    'variant' => null, // Legacy support
-    'size' => 'md',
-    'icon' => null,
 ])
 
 @php
-    // Map old variant to new tone for backwards compatibility
-    if ($variant && !$tone) {
-        $toneMap = [
-            'default' => 'neutral',
-            'primary' => 'info',
-            'info' => 'info',
-        ];
-        $tone = $toneMap[$variant] ?? $variant;
-    }
-    
     $toneClasses = [
-        'neutral' => 'bg-surface-secondary text-text-secondary border-border-subtle',
-        'info' => 'bg-info-50 text-info-600 border-info-100',
-        'success' => 'bg-success-50 text-success-600 border-success-100',
-        'warning' => 'bg-warning-50 text-warning-600 border-warning-100',
-        'danger' => 'bg-danger-50 text-danger-600 border-danger-100',
-        'primary' => 'bg-primary-light text-primary border-primary',
-        'secondary' => 'bg-secondary-light text-secondary border-secondary',
-        'accent' => 'bg-accent-light text-accent border-accent',
+        'neutral' => 'cw-chip',
+        'info' => 'cw-chip text-blue-700 bg-blue-50 border-blue-200',
+        'success' => 'cw-chip text-emerald-700 bg-emerald-50 border-emerald-200',
+        'warning' => 'cw-chip text-amber-700 bg-amber-50 border-amber-200',
+        'danger' => 'cw-chip text-red-700 bg-red-50 border-red-200',
+        'primary' => 'cw-chip text-slate-900 bg-slate-100 border-slate-200',
+        'secondary' => 'cw-chip',
+        'accent' => 'cw-chip text-amber-800 bg-amber-50 border-amber-200',
     ];
-    
-    $sizeClasses = [
-        'sm' => 'px-2 py-0.5 text-caption',
-        'md' => 'px-2.5 py-1 text-body-sm',
-        'lg' => 'px-3 py-1.5 text-body',
-    ];
-    
-    $baseClasses = [
-        'inline-flex items-center gap-1',
-        'rounded-md',
-        'border',
-        'font-medium',
-        'transition-colors duration-120',
-        $toneClasses[$tone] ?? $toneClasses['neutral'],
-        $sizeClasses[$size] ?? $sizeClasses['md'],
-    ];
-    
-    $combinedClasses = implode(' ', $baseClasses);
 @endphp
 
-<span {{ $attributes->merge(['class' => $combinedClasses]) }}>
-    @if($icon)
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {!! $icon !!}
-        </svg>
-    @endif
+<span {{ $attributes->merge(['class' => $toneClasses[$tone] ?? $toneClasses['neutral']]) }}>
     {{ $slot }}
 </span>

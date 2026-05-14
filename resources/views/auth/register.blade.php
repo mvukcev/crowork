@@ -1,157 +1,75 @@
 <x-guest-layout>
-    <x-slot name="title">Create Account</x-slot>
+    <div class="cw-surface p-6 md:p-8">
+        <p class="cw-kicker mb-2">Create worker account</p>
+        <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 mb-2">Join CroWork</h1>
+        <p class="text-sm text-slate-600 mb-6">Set up your account in two short steps.</p>
 
-    <div class="premium-glass rounded-[1.75rem] shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/75">
-        {{-- Header --}}
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-semibold text-text-primary mb-2 text-balance">
-                Create your account
-            </h1>
-            <p class="text-body text-text-secondary">
-                Join CroWork and start your journey in Croatia
-            </p>
-        </div>
-
-        {{-- Register Form --}}
-        <form method="POST" action="{{ route('register') }}" class="space-y-6">
+        <form method="POST" action="{{ route('register') }}" class="space-y-4" x-data="{ step: {{ ($errors->has('password') || $errors->has('password_confirmation') || $errors->has('accept_terms') || $errors->has('accept_privacy')) ? 2 : 1 }} }">
             @csrf
 
-            {{-- Name --}}
-            <div>
-                <label for="name" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Full Name
-                </label>
-                <input 
-                    id="name" 
-                    type="text" 
-                    name="name" 
-                    value="{{ old('name') }}"
-                    required 
-                    autofocus 
-                    autocomplete="name"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('name') border-danger focus:ring-danger/50 @enderror"
-                    placeholder="John Doe"
-                >
-                @error('name')
-                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                @enderror
+            <div class="flex items-center justify-between text-xs uppercase tracking-[0.08em] text-slate-500">
+                <span :class="step === 1 ? 'text-slate-900 font-semibold' : ''">Step 1 · Profile</span>
+                <span :class="step === 2 ? 'text-slate-900 font-semibold' : ''">Step 2 · Security</span>
             </div>
 
-            {{-- Email Address --}}
-            <div>
-                <label for="email" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Email Address
-                </label>
-                <input 
-                    id="email" 
-                    type="email" 
-                    name="email" 
-                    value="{{ old('email') }}"
-                    required 
-                    autocomplete="username"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('email') border-danger focus:ring-danger/50 @enderror"
-                    placeholder="your@email.com"
-                >
-                @error('email')
-                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                @enderror
+            <div x-show="step === 1" x-transition.opacity.duration.150ms>
+                <div>
+                    <label class="cw-label" for="name">Name</label>
+                    <input id="name" class="cw-field" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Your full name">
+                    @error('name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="mt-4">
+                    <label class="cw-label" for="email">Email</label>
+                    <input id="email" class="cw-field" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="alex@example.com">
+                    @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="mt-4">
+                    <label class="cw-label" for="role">Account type</label>
+                    <select id="role" name="role" class="cw-field" required>
+                        <option value="worker" @selected(old('role', 'worker') === 'worker')>Worker</option>
+                        <option value="employer" @selected(old('role') === 'employer')>Employer</option>
+                    </select>
+                    @error('role')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <button type="button" class="cw-button-primary mt-4" @click="step = 2">Continue</button>
             </div>
 
-            {{-- Role Selection --}}
-            <div>
-                <label for="role" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    I am a
-                </label>
-                <select 
-                    id="role" 
-                    name="role" 
-                    required
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('role') border-danger focus:ring-danger/50 @enderror"
-                >
-                    <option value="worker" {{ old('role', 'worker') == 'worker' ? 'selected' : '' }}>
-                        Worker – Looking for jobs in Croatia
-                    </option>
-                    <option value="employer" {{ old('role') == 'employer' ? 'selected' : '' }}>
-                        Employer – Hiring international talent
-                    </option>
-                </select>
-                @error('role')
-                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                @enderror
-                <p class="mt-2 text-caption text-text-tertiary">
-                    Choose the option that best describes you. You can't change this later.
-                </p>
-            </div>
+            <div x-show="step === 2" x-transition.opacity.duration.150ms x-cloak>
+                <div>
+                    <label class="cw-label" for="password">Password</label>
+                    <input id="password" class="cw-field" type="password" name="password" required autocomplete="new-password">
+                    @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
 
-            {{-- Password --}}
-            <div>
-                <label for="password" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Password
-                </label>
-                <input 
-                    id="password" 
-                    type="password" 
-                    name="password" 
-                    required 
-                    autocomplete="new-password"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('password') border-danger focus:ring-danger/50 @enderror"
-                    placeholder="At least 8 characters"
-                >
-                @error('password')
-                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                @enderror
-            </div>
+                <div class="mt-4">
+                    <label class="cw-label" for="password_confirmation">Confirm password</label>
+                    <input id="password_confirmation" class="cw-field" type="password" name="password_confirmation" required autocomplete="new-password">
+                </div>
 
-            {{-- Confirm Password --}}
-            <div>
-                <label for="password_confirmation" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Confirm Password
-                </label>
-                <input 
-                    id="password_confirmation" 
-                    type="password" 
-                    name="password_confirmation" 
-                    required 
-                    autocomplete="new-password"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                    placeholder="Re-enter your password"
-                >
-            </div>
+                <div class="mt-4 space-y-2">
+                    <label class="inline-flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" name="accept_terms" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_terms')) required>
+                        <span>I agree to the <a href="{{ route('terms') }}" class="font-medium text-slate-900 underline">Terms of Use</a>.</span>
+                    </label>
+                    @error('accept_terms')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
 
-            {{-- Submit Button --}}
-            <button 
-                type="submit" 
-                class="w-full px-6 py-3.5 text-base font-semibold text-white bg-primary hover:bg-primary-700 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 shadow-md hover:shadow-lg"
-            >
-                Create Account
-            </button>
+                    <label class="inline-flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" name="accept_privacy" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_privacy')) required>
+                        <span>I agree to the <a href="{{ route('privacy') }}" class="font-medium text-slate-900 underline">Privacy Policy</a>.</span>
+                    </label>
+                    @error('accept_privacy')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="flex items-center gap-2 mt-4">
+                    <button type="button" class="cw-button-secondary" @click="step = 1">Back</button>
+                    <button type="submit" class="cw-button-primary">Create account</button>
+                </div>
+            </div>
         </form>
 
-        {{-- Divider --}}
-        <div class="relative my-8">
-            <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-divider"></div>
-            </div>
-            <div class="relative flex justify-center text-body-sm">
-                <span class="px-4 bg-white/80 backdrop-blur-sm text-text-secondary">Already have an account?</span>
-            </div>
-        </div>
-
-        {{-- Sign In Link --}}
-        <div class="text-center">
-            <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-text-primary bg-white/50 hover:bg-white/80 border border-border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 shadow-sm">
-                Sign In Instead
-            </a>
-        </div>
-    </div>
-
-    {{-- Help Text --}}
-    <div class="mt-6 text-center">
-        <p class="text-body-sm text-white/70">
-            By creating an account, you agree to our 
-            <a href="{{ url('/terms') }}" class="text-white font-medium hover:text-white/90 underline underline-offset-2 transition-colors">Terms of Service</a> 
-            and 
-            <a href="{{ url('/privacy') }}" class="text-white font-medium hover:text-white/90 underline underline-offset-2 transition-colors">Privacy Policy</a>.
-        </p>
+        <p class="text-sm text-slate-600 mt-5">Already registered? <a href="{{ route('login') }}" class="text-slate-900 font-medium">Sign in</a></p>
     </div>
 </x-guest-layout>

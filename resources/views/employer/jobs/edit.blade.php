@@ -1,86 +1,60 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Edit Job') }}
-        </h2>
-    </x-slot>
+    <x-slot name="title">Edit Job</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <form action="{{ route('employer.jobs.update', $job->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
+    <section class="cw-section">
+        <div class="cw-container max-w-4xl">
+            <h1 class="cw-display text-4xl md:text-6xl mb-6">Edit job listing</h1>
 
-                        <div class="mb-4">
-                            <x-input-label for="title" :value="__('Job Title')" />
-                            <x-text-input id="title" class="block mt-1 w-full" type="text" name="title" :value="old('title', $job->title)" required />
-                            <x-input-error :messages="$errors->get('title')" class="mt-2" />
-                        </div>
+            <form method="POST" action="{{ route('employer.jobs.update', $job->id) }}" class="cw-surface p-6 space-y-4">
+                @csrf
+                @method('PUT')
 
-                        <div class="mb-4">
-                            <x-input-label for="company_name" :value="__('Company Name')" />
-                            <x-text-input id="company_name" class="block mt-1 w-full" type="text" name="company_name" :value="old('company_name', $job->company_name)" />
-                            <x-input-error :messages="$errors->get('company_name')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="description" :value="__('Job Description')" />
-                            <textarea id="description" name="description" rows="8" required
-                                      class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('description', $job->description) }}</textarea>
-                            <x-input-error :messages="$errors->get('description')" class="mt-2" />
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <x-input-label for="location" :value="__('Location')" />
-                                <x-text-input id="location" class="block mt-1 w-full" type="text" name="location" :value="old('location', $job->location)" />
-                                <x-input-error :messages="$errors->get('location')" class="mt-2" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="job_type" :value="__('Job Type')" />
-                                <select id="job_type" name="job_type" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    <option value="">Select Type</option>
-                                    <option value="full-time" {{ old('job_type', $job->job_type) == 'full-time' ? 'selected' : '' }}>Full-time</option>
-                                    <option value="part-time" {{ old('job_type', $job->job_type) == 'part-time' ? 'selected' : '' }}>Part-time</option>
-                                    <option value="contract" {{ old('job_type', $job->job_type) == 'contract' ? 'selected' : '' }}>Contract</option>
-                                </select>
-                                <x-input-error :messages="$errors->get('job_type')" class="mt-2" />
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <x-input-label for="salary_min" :value="__('Minimum Salary (€)')" />
-                                <x-text-input id="salary_min" class="block mt-1 w-full" type="number" name="salary_min" :value="old('salary_min', $job->salary_min)" step="0.01" />
-                                <x-input-error :messages="$errors->get('salary_min')" class="mt-2" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="salary_max" :value="__('Maximum Salary (€)')" />
-                                <x-text-input id="salary_max" class="block mt-1 w-full" type="number" name="salary_max" :value="old('salary_max', $job->salary_max)" step="0.01" />
-                                <x-input-error :messages="$errors->get('salary_max')" class="mt-2" />
-                            </div>
-                        </div>
-
-                        <div class="mb-6">
-                            <label class="flex items-center">
-                                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $job->is_active) ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <span class="ml-2 text-sm text-gray-600">Active (visible to job seekers)</span>
-                            </label>
-                        </div>
-
-                        <div class="flex items-center justify-end space-x-4">
-                            <a href="{{ route('employer.jobs.index') }}" class="text-gray-600 hover:text-gray-900">Cancel</a>
-                            <x-primary-button>
-                                {{ __('Update Job') }}
-                            </x-primary-button>
-                        </div>
-                    </form>
+                <div>
+                    <label class="cw-label" for="title">Job title</label>
+                    <input id="title" name="title" class="cw-field" value="{{ old('title', $job->title) }}" required>
                 </div>
-            </div>
+
+                <div>
+                    <label class="cw-label" for="company_name">Company name</label>
+                    <input id="company_name" name="company_name" class="cw-field" value="{{ old('company_name', $job->company_name) }}" required>
+                </div>
+
+                <div>
+                    <label class="cw-label" for="description">Description</label>
+                    <textarea id="description" name="description" rows="7" class="cw-field" required>{{ old('description', $job->description) }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="cw-label" for="location">Location</label>
+                        <input id="location" name="location" class="cw-field" value="{{ old('location', $job->location) }}" required>
+                    </div>
+                    <div>
+                        <label class="cw-label" for="job_type">Job type</label>
+                        <select id="job_type" name="job_type" class="cw-field" required>
+                            <option value="full_time" @selected(old('job_type', $job->job_type) === 'full_time')>Full-time</option>
+                            <option value="part_time" @selected(old('job_type', $job->job_type) === 'part_time')>Part-time</option>
+                            <option value="contract" @selected(old('job_type', $job->job_type) === 'contract')>Contract</option>
+                            <option value="seasonal" @selected(old('job_type', $job->job_type) === 'seasonal')>Seasonal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="cw-label" for="salary_min">Minimum salary</label><input id="salary_min" type="number" name="salary_min" class="cw-field" value="{{ old('salary_min', $job->salary_min) }}"></div>
+                    <div><label class="cw-label" for="salary_max">Maximum salary</label><input id="salary_max" type="number" name="salary_max" class="cw-field" value="{{ old('salary_max', $job->salary_max) }}"></div>
+                </div>
+
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" name="is_active" value="1" class="rounded border-slate-300" @checked(old('is_active', $job->is_active))>
+                    Job is active
+                </label>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="cw-button-primary">Save changes</button>
+                    <a href="{{ route('employer.jobs.index') }}" class="cw-button-secondary">Cancel</a>
+                </div>
+            </form>
         </div>
-    </div>
+    </section>
 </x-app-layout>

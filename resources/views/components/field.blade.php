@@ -5,61 +5,48 @@
     'required' => false,
     'error' => null,
     'hint' => null,
-    'icon' => null,
 ])
 
 @php
 $hasError = !empty($error) || $errors->has($name);
 $errorMessage = $error ?? ($errors->has($name) ? $errors->first($name) : null);
-
-$inputClasses = $hasError 
-    ? 'border-danger focus:border-danger focus:ring-danger'
-    : 'border-stroke-default focus:border-control-border-focus focus:ring-control-border-focus';
 @endphp
 
 <div {{ $attributes->merge(['class' => 'space-y-1.5']) }}>
     @if($label)
-        <label for="{{ $name }}" class="block text-body-sm font-medium text-text-primary">
+        <label for="{{ $name }}" class="cw-label">
             {{ $label }}
             @if($required)
-                <span class="text-danger">*</span>
+                <span class="text-red-600">*</span>
             @endif
         </label>
     @endif
-    
-    <div class="relative">
-        @if($icon)
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
-                {!! $icon !!}
-            </div>
-        @endif
-        
-        @if($type === 'textarea')
-            <textarea
-                id="{{ $name }}"
-                name="{{ $name }}"
-                rows="4"
-                {{ $required ? 'required' : '' }}
-                class="block w-full rounded-control border {{ $inputClasses }} bg-surface-base text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors duration-120 text-body px-3 py-2 {{ $icon ? 'pl-10' : '' }}"
-                {{ $attributes->except(['class', 'label', 'error', 'hint', 'icon']) }}
-            >{{ $slot }}</textarea>
-        @else
-            <input
-                id="{{ $name }}"
-                name="{{ $name }}"
-                type="{{ $type }}"
-                {{ $required ? 'required' : '' }}
-                class="block w-full rounded-control border {{ $inputClasses }} bg-surface-base text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors duration-120 text-body px-3 py-2 h-10 {{ $icon ? 'pl-10' : '' }}"
-                {{ $attributes->except(['class', 'label', 'error', 'hint', 'icon']) }}
-            />
-        @endif
-    </div>
-    
-    @if($hint && !$hasError)
-        <p class="text-caption text-text-tertiary">{{ $hint }}</p>
+
+    @if($type === 'textarea')
+        <textarea
+            id="{{ $name }}"
+            name="{{ $name }}"
+            rows="4"
+            {{ $required ? 'required' : '' }}
+            class="cw-field {{ $hasError ? 'border-red-400 focus:border-red-500 focus:shadow-none' : '' }}"
+            {{ $attributes->except(['class', 'label', 'error', 'hint']) }}
+        >{{ $slot }}</textarea>
+    @else
+        <input
+            id="{{ $name }}"
+            name="{{ $name }}"
+            type="{{ $type }}"
+            {{ $required ? 'required' : '' }}
+            class="cw-field {{ $hasError ? 'border-red-400 focus:border-red-500 focus:shadow-none' : '' }}"
+            {{ $attributes->except(['class', 'label', 'error', 'hint']) }}
+        />
     @endif
-    
+
+    @if($hint && !$hasError)
+        <p class="text-xs text-slate-500">{{ $hint }}</p>
+    @endif
+
     @if($hasError)
-        <p class="text-caption text-danger">{{ $errorMessage }}</p>
+        <p class="text-xs text-red-600">{{ $errorMessage }}</p>
     @endif
 </div>

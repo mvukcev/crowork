@@ -1,192 +1,82 @@
 <x-guest-layout>
-    <x-slot name="title">Create Employer Account</x-slot>
+    <div class="cw-surface p-6 md:p-8">
+        <p class="cw-kicker mb-2">Employer signup</p>
+        <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 mb-2">Create employer account</h1>
+        <p class="text-sm text-slate-600 mb-6">Set up your company profile in two short steps.</p>
 
-    {{-- Acrylic Auth Card --}}
-    <div class="acrylic-surface rounded-3xl shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/70">
-
-        {{-- Header --}}
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-semibold text-text-primary mb-2 text-balance">
-                Create Employer Account
-            </h1>
-            <p class="text-body text-text-secondary m-0">
-                Post jobs and find verified international workers
-            </p>
-        </div>
-
-        {{-- Session status --}}
-        @if (session('status'))
-            <div class="mb-6 bg-success/10 backdrop-blur-sm border border-success/20 p-4 rounded-xl">
-                <p class="text-body-sm text-success m-0">{{ session('status') }}</p>
-            </div>
+        @if(session('status'))
+            <div class="mb-4 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl p-3">{{ session('status') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('employer.register') }}" class="space-y-5">
+        <form method="POST" action="{{ route('employer.register') }}" class="space-y-4" x-data="{ step: {{ ($errors->has('password') || $errors->has('password_confirmation') || $errors->has('accept_terms') || $errors->has('accept_privacy')) ? 2 : 1 }} }">
             @csrf
 
-            {{-- Company Name --}}
-            <div>
-                <label for="company_name" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Company Name
-                </label>
-                <input
-                    id="company_name"
-                    type="text"
-                    name="company_name"
-                    value="{{ old('company_name') }}"
-                    required
-                    autofocus
-                    autocomplete="organization"
-                    placeholder="Your company name"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('company_name') border-danger focus:ring-danger/50 @enderror"
-                >
-                @error('company_name')
-                    <p class="mt-2 text-body-sm text-danger m-0">{{ $message }}</p>
-                @enderror
+            <div class="flex items-center justify-between text-xs uppercase tracking-[0.08em] text-slate-500">
+                <span :class="step === 1 ? 'text-slate-900 font-semibold' : ''">Step 1 · Company</span>
+                <span :class="step === 2 ? 'text-slate-900 font-semibold' : ''">Step 2 · Access</span>
             </div>
 
-            {{-- Contact Name (optional) --}}
-            <div>
-                <label for="contact_name" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Your Name <span class="font-normal text-text-tertiary">(Optional)</span>
-                </label>
-                <input
-                    id="contact_name"
-                    type="text"
-                    name="contact_name"
-                    value="{{ old('contact_name') }}"
-                    autocomplete="name"
-                    placeholder="Your full name"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('contact_name') border-danger focus:ring-danger/50 @enderror"
-                >
-                @error('contact_name')
-                    <p class="mt-2 text-body-sm text-danger m-0">{{ $message }}</p>
-                @enderror
+            <div x-show="step === 1" x-transition.opacity.duration.150ms>
+                <div>
+                    <label class="cw-label" for="company_name">Company name</label>
+                    <input id="company_name" name="company_name" class="cw-field" value="{{ old('company_name') }}" required>
+                    @error('company_name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="mt-4">
+                    <label class="cw-label" for="contact_name">Contact name</label>
+                    <input id="contact_name" name="contact_name" class="cw-field" value="{{ old('contact_name') }}" required>
+                    @error('contact_name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="mt-4">
+                    <label class="cw-label" for="email">Work email</label>
+                    <input id="email" type="email" name="email" class="cw-field" value="{{ old('email') }}" required>
+                    @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="mt-4">
+                    <label class="cw-label" for="city">City</label>
+                    <input id="city" name="city" class="cw-field" value="{{ old('city') }}" required>
+                    @error('city')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <button type="button" class="cw-button-primary mt-4" @click="step = 2">Continue</button>
             </div>
 
-            {{-- Email Address --}}
-            <div>
-                <label for="email" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Email Address
-                </label>
-                <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    value="{{ old('email') }}"
-                    required
-                    autocomplete="email"
-                    placeholder="hello@company.com"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('email') border-danger focus:ring-danger/50 @enderror"
-                >
-                @error('email')
-                    <p class="mt-2 text-body-sm text-danger m-0">{{ $message }}</p>
-                @enderror
-            </div>
+            <div x-show="step === 2" x-transition.opacity.duration.150ms x-cloak>
+                <div>
+                    <label class="cw-label" for="password">Password</label>
+                    <input id="password" type="password" name="password" class="cw-field" required>
+                    @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
 
-            {{-- City (optional) --}}
-            <div>
-                <label for="city" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    City <span class="font-normal text-text-tertiary">(Optional)</span>
-                </label>
-                <input
-                    id="city"
-                    type="text"
-                    name="city"
-                    value="{{ old('city') }}"
-                    placeholder="Zagreb"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('city') border-danger focus:ring-danger/50 @enderror"
-                >
-                @error('city')
-                    <p class="mt-2 text-body-sm text-danger m-0">{{ $message }}</p>
-                @enderror
-            </div>
+                <div class="mt-4">
+                    <label class="cw-label" for="password_confirmation">Confirm password</label>
+                    <input id="password_confirmation" type="password" name="password_confirmation" class="cw-field" required>
+                </div>
 
-            {{-- Password --}}
-            <div>
-                <label for="password" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Password
-                </label>
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    autocomplete="new-password"
-                    placeholder="••••••••"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('password') border-danger focus:ring-danger/50 @enderror"
-                >
-                <p class="mt-2 text-caption text-text-tertiary m-0">
-                    At least 8 characters, mix of uppercase, lowercase, numbers, and symbols.
-                </p>
-                @error('password')
-                    <p class="mt-1 text-body-sm text-danger m-0">{{ $message }}</p>
-                @enderror
-            </div>
+                <div class="mt-4 space-y-2">
+                    <label class="inline-flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" name="accept_terms" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_terms')) required>
+                        <span>I agree to the <a href="{{ route('terms') }}" class="font-medium text-slate-900 underline">Terms of Use</a>.</span>
+                    </label>
+                    @error('accept_terms')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
 
-            {{-- Confirm Password --}}
-            <div>
-                <label for="password_confirmation" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Confirm Password
-                </label>
-                <input
-                    id="password_confirmation"
-                    type="password"
-                    name="password_confirmation"
-                    required
-                    autocomplete="new-password"
-                    placeholder="••••••••"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('password_confirmation') border-danger focus:ring-danger/50 @enderror"
-                >
-                @error('password_confirmation')
-                    <p class="mt-2 text-body-sm text-danger m-0">{{ $message }}</p>
-                @enderror
-            </div>
+                    <label class="inline-flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" name="accept_privacy" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_privacy')) required>
+                        <span>I agree to the <a href="{{ route('privacy') }}" class="font-medium text-slate-900 underline">Privacy Policy</a>.</span>
+                    </label>
+                    @error('accept_privacy')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
 
-            {{-- Terms notice --}}
-            <div class="bg-white/40 backdrop-blur-sm rounded-xl border border-white/60 p-4 text-body-sm text-text-secondary">
-                By creating an account you agree to our
-                <a href="{{ url('/terms') }}"   class="font-medium text-primary hover:text-primary-hover transition-colors">Terms of Service</a>
-                and
-                <a href="{{ url('/privacy') }}" class="font-medium text-primary hover:text-primary-hover transition-colors">Privacy Policy</a>.
+                <div class="flex items-center gap-2 mt-4">
+                    <button type="button" class="cw-button-secondary" @click="step = 1">Back</button>
+                    <button type="submit" class="cw-button-primary">Create employer account</button>
+                </div>
             </div>
-
-            {{-- Submit --}}
-            <button
-                type="submit"
-                class="w-full py-3 px-6 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-normal shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-transparent"
-            >
-                Create Employer Account
-            </button>
         </form>
 
-        {{-- Divider --}}
-        <div class="relative my-6">
-            <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-black/10"></div>
-            </div>
-            <div class="relative flex justify-center text-body-sm">
-                <span class="px-3 bg-white/60 backdrop-blur-sm rounded-full text-text-tertiary">
-                    Already have an account?
-                </span>
-            </div>
-        </div>
-
-        <a href="{{ route('login') }}"
-           class="block text-center text-body-sm font-semibold text-primary hover:text-primary-hover transition-colors focus:outline-none focus:underline">
-            Sign in to your account
-        </a>
+        <p class="text-sm text-slate-600 mt-5">Already have an account? <a href="{{ route('login') }}" class="text-slate-900 font-medium">Sign in</a></p>
     </div>
-
-    {{-- Below-card help text --}}
-    <div class="mt-6 text-center text-body-sm text-text-primary/80 space-y-1">
-        <p class="m-0">
-            Questions? <a href="{{ url('/contact') }}" class="text-primary font-semibold hover:text-primary-hover transition-colors">Contact us</a>
-        </p>
-        <p class="m-0">
-            Looking to apply for jobs?
-            <a href="{{ route('register') }}" class="text-primary font-semibold hover:text-primary-hover transition-colors">Create a worker account</a>
-        </p>
-    </div>
-
 </x-guest-layout>

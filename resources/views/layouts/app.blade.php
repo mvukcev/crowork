@@ -39,127 +39,120 @@
     @stack('head')
     @stack('styles')
 </head>
-<body class="h-full flex flex-col antialiased premium-page" x-data>
-    <!-- Glass Header on Scroll -->
+<body class="h-full cw-page" x-data>
+    @php($isHome = request()->routeIs('home'))
+    <div class="min-h-screen flex flex-col">
     <x-site-header />
 
     <!-- Main Content -->
-    <main class="flex-1 pt-24">
+    <main @class([
+        'flex-1' => true,
+        'pt-0' => $isHome,
+        'pt-16 md:pt-[72px]' => ! $isHome,
+    ])>
         {{-- Flash Messages --}}
         @if(session('success'))
-            <div class="bg-success-50 border-l-4 border-success-600 p-4 mb-6 mx-auto max-w-7xl mt-6" role="alert">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p class="text-sm text-success-800">{{ session('success') }}</p>
+            <div class="cw-container mt-6 mb-6">
+                <div class="cw-surface p-4 border-emerald-200 bg-emerald-50" role="alert">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-emerald-700 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-sm text-emerald-700">{{ session('success') }}</p>
+                    </div>
                 </div>
             </div>
         @endif
 
         @if(session('error'))
-            <div class="bg-danger-50 border-l-4 border-danger-600 p-4 mb-6 mx-auto max-w-7xl mt-6" role="alert">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p class="text-sm text-danger-800">{{ session('error') }}</p>
+            <div class="cw-container mt-6 mb-6">
+                <div class="cw-surface p-4 border-red-200 bg-red-50" role="alert">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-sm text-red-700">{{ session('error') }}</p>
+                    </div>
                 </div>
             </div>
         @endif
 
         @if(session('warning'))
-            <div class="bg-warning-50 border-l-4 border-warning-600 p-4 mb-6 mx-auto max-w-7xl mt-6" role="alert">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <p class="text-sm text-warning-800">{{ session('warning') }}</p>
+            <div class="cw-container mt-6 mb-6">
+                <div class="cw-surface p-4 border-amber-200 bg-amber-50" role="alert">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <p class="text-sm text-amber-700">{{ session('warning') }}</p>
+                    </div>
                 </div>
             </div>
         @endif
 
         @if(session('info'))
-            <div class="bg-primary-50 border-l-4 border-primary-600 p-4 mb-6 mx-auto max-w-7xl mt-6" role="alert">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p class="text-sm text-primary-800">{{ session('info') }}</p>
+            <div class="cw-container mt-6 mb-6">
+                <div class="cw-surface p-4 bg-slate-50" role="alert">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-sm text-slate-600">{{ session('info') }}</p>
+                    </div>
                 </div>
             </div>
         @endif
 
-        <div class="fluent-enter">
+        <div>
             @yield('content', $slot ?? '')
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="premium-footer-shell mt-auto relative z-10">
-        <div class="container-base py-14 md:py-16">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
-                <div class="md:col-span-4">
-                    <div class="flex items-center gap-2.5 mb-4">
-                        <div class="w-11 h-11 rounded-2xl bg-white shadow-sm border border-white/80 flex items-center justify-center">
-                            <span class="text-primary font-extrabold text-xl">C</span>
-                        </div>
-                        <div>
-                            <p class="text-xl font-semibold text-text-primary mb-0">CroWork</p>
-                            <p class="text-caption uppercase tracking-[0.11em] text-text-tertiary mb-0">Work in Croatia</p>
-                        </div>
+    <footer class="cw-footer mt-auto">
+        <div class="cw-orb cw-orb-violet hidden md:block" style="width: 360px; height: 360px; right: -120px; bottom: -170px;"></div>
+        <div class="cw-container py-8 md:py-10">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-5 border-b border-slate-200">
+                <a href="{{ route('home') }}" class="flex items-center gap-2.5">
+                    <div class="h-9 w-9 rounded-xl border border-slate-200 bg-white grid place-items-center">
+                        <span class="text-sm font-semibold text-slate-900">C</span>
                     </div>
-                    <p class="text-body text-text-secondary mb-5 max-w-md">
-                        A premium platform for international workers and trusted Croatian employers, designed for clarity, confidence, and real opportunity.
-                    </p>
-                    <a href="{{ url('/jobs') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 border border-white text-body-sm font-semibold text-text-primary hover:bg-white transition-all duration-normal">
-                        Explore Jobs
-                        <span aria-hidden="true">→</span>
-                    </a>
-                </div>
-
-                <div class="md:col-span-2">
-                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Workers</h3>
-                    <ul class="space-y-2.5">
-                        <li><a href="{{ url('/jobs') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Browse Jobs</a></li>
-                        <li><a href="{{ url('/educations') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Education</a></li>
-                        <li><a href="{{ url('/profile') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Create Profile</a></li>
-                    </ul>
-                </div>
-
-                <div class="md:col-span-2">
-                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Employers</h3>
-                    <ul class="space-y-2.5">
-                        <li><a href="{{ url('/for-employers') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Why CroWork</a></li>
-                        <li><a href="{{ url('/employer/register') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Create Account</a></li>
-                    </ul>
-                </div>
-
-                <div class="md:col-span-2">
-                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Company</h3>
-                    <ul class="space-y-2.5">
-                        <li><a href="{{ url('/about') }}" class="text-body-sm text-text-secondary hover:text-text-primary">About</a></li>
-                        <li><a href="{{ url('/contact') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Contact</a></li>
-                        <li><a href="{{ url('/pricing') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Pricing</a></li>
-                    </ul>
-                </div>
-
-                <div class="md:col-span-2">
-                    <h3 class="text-body-sm uppercase tracking-[0.11em] font-semibold text-text-tertiary mb-4">Legal</h3>
-                    <ul class="space-y-2.5">
-                        <li><a href="{{ url('/privacy') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Privacy</a></li>
-                        <li><a href="{{ url('/terms') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Terms</a></li>
-                        <li><a href="{{ url('/cookies') }}" class="text-body-sm text-text-secondary hover:text-text-primary">Cookies</a></li>
-                    </ul>
+                    <div>
+                        <p class="text-lg font-semibold text-slate-900 mb-0">CroWork</p>
+                        <p class="text-xs uppercase tracking-[0.08em] text-slate-500 mb-0">Migration platform</p>
+                    </div>
+                </a>
+                <div class="flex flex-wrap items-center gap-4 md:gap-5">
+                    <a href="{{ route('jobs.index') }}" class="cw-footer-link">Jobs</a>
+                    <a href="{{ route('educations.index') }}" class="cw-footer-link">Educations</a>
+                    <a href="{{ route('for-employers') }}" class="cw-footer-link">For Employers</a>
+                    <a href="{{ route('about') }}" class="cw-footer-link">About</a>
+                    <a href="{{ route('privacy') }}" class="cw-footer-link">Privacy</a>
+                    <a href="{{ route('terms') }}" class="cw-footer-link">Terms</a>
                 </div>
             </div>
-
-            <div class="mt-10 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <p class="text-body-sm text-text-tertiary mb-0">© {{ date('Y') }} CroWork. All rights reserved.</p>
-                <p class="text-caption text-text-tertiary mb-0">Built for global talent, designed with clarity.</p>
+            <div class="pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <p class="text-sm text-slate-500 mb-0">© {{ date('Y') }} CroWork. All rights reserved.</p>
+                <p class="text-xs uppercase tracking-[0.08em] text-slate-500 mb-0">Clear paths for work in Croatia</p>
             </div>
         </div>
     </footer>
+
+    <section class="cw-cookie-banner cw-soft-reveal" data-cw-cookie-banner hidden>
+        <div class="cw-cookie-inner">
+            <p class="cw-cookie-text">
+                We use cookies to improve your CroWork experience.
+                Read our
+                <a href="{{ route('cookies') }}" class="font-medium text-slate-900 underline">Cookie Statement</a>
+                and choose which cookies you would like to accept.
+            </p>
+            <div class="cw-cookie-actions">
+                <button type="button" class="cw-button-secondary" data-cw-cookie-choice="required">Required only</button>
+                <button type="button" class="cw-button-primary" data-cw-cookie-choice="all">Allow all</button>
+            </div>
+        </div>
+    </section>
+    </div>
 
     @stack('scripts')
     

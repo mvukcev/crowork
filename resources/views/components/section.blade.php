@@ -2,47 +2,26 @@
     'title' => null,
     'subtitle' => null,
     'centered' => false,
-    'spacing' => 'normal',
 ])
 
-@php
-    $spacingClasses = [
-        'tight' => 'mb-6',
-        'normal' => 'mb-8',
-        'relaxed' => 'mb-12',
-    ];
-    
-    $alignClass = $centered ? 'text-center' : '';
-@endphp
-
-<div class="{{ $spacingClasses[$spacing] ?? $spacingClasses['normal'] }}">
+<div class="mb-10">
     @if($title || $subtitle)
-        <div class="{{ $alignClass }}">
+        <div class="{{ $centered ? 'text-center' : '' }} mb-6">
             @if($title)
-                <h2 class="text-title-2 font-semibold text-text-primary mb-3">
-                    {{ $title }}
-                </h2>
+                <h2 class="cw-display text-3xl md:text-5xl">{{ $title }}</h2>
             @endif
-            
+
             @if($subtitle)
-                <p class="text-body text-text-secondary {{ $centered ? 'max-w-3xl mx-auto' : 'max-w-3xl' }}">
-                    {{ $subtitle }}
-                </p>
+                <p class="text-base text-slate-600 mt-3 {{ $centered ? 'max-w-3xl mx-auto' : 'max-w-3xl' }}">{{ $subtitle }}</p>
             @endif
-            
+
             @isset($actions)
-                <div class="mt-4 {{ $centered ? 'flex justify-center gap-3' : 'flex gap-3' }}">
+                <div class="mt-4 flex {{ $centered ? 'justify-center' : '' }} gap-2">
                     {{ $actions }}
                 </div>
             @endisset
         </div>
     @endif
-    
-    @isset($content)
-        <div class="mt-8">
-            {{ $content }}
-        </div>
-    @else
-        {{ $slot }}
-    @endisset
+
+    {{ $slot }}
 </div>

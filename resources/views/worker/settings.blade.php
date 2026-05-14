@@ -1,73 +1,53 @@
 <x-app-layout>
     <x-slot name="title">Worker Settings</x-slot>
-    <x-slot name="description">Manage your account details and password.</x-slot>
 
-    <div class="section-spacing-tight bg-background min-h-screen">
-        <div class="container-base max-w-3xl">
-            <div class="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                <div>
-                    <p class="text-body-sm font-semibold uppercase tracking-wide text-primary mb-2">Worker dashboard</p>
-                    <h1 class="text-title-1 font-semibold text-text-primary mb-1">Settings</h1>
-                    <p class="text-body text-text-secondary mb-0">Update your account name and password.</p>
-                </div>
-                <x-button href="{{ route('worker.profile.edit') }}" variant="outline">Back to Profile</x-button>
+    <section class="cw-section">
+        <div class="cw-container max-w-4xl space-y-5">
+            <p class="cw-kicker mb-2">Worker settings</p>
+
+            <div class="cw-surface p-6">
+                <h2 class="text-xl font-semibold text-slate-900 mb-3">Account details</h2>
+                <form method="POST" action="{{ route('worker.settings.profile') }}" class="space-y-4">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label class="cw-label" for="name">Name</label>
+                        <input id="name" name="name" class="cw-field" value="{{ old('name', $user->name) }}" required>
+                        @error('name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="cw-label" for="email">Email</label>
+                        <input id="email" type="email" name="email" class="cw-field" value="{{ old('email', $user->email) }}" required>
+                        @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <button type="submit" class="cw-button-primary">Save account</button>
+                </form>
             </div>
 
-            <div class="grid grid-cols-1 gap-5">
-                <x-card class="border border-border/70 shadow-elevation-1">
-                    <h2 class="text-subtitle font-semibold text-text-primary mb-4">Account</h2>
-                    <form method="POST" action="{{ route('worker.settings.profile') }}" class="space-y-4">
-                        @csrf
-                        @method('PATCH')
-
-                        <div>
-                            <label class="block text-body-sm font-semibold text-text-primary mb-2">Email</label>
-                            <input type="email" value="{{ $user->email }}" disabled class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-text-secondary">
-                        </div>
-
-                        <div>
-                            <label for="name" class="block text-body-sm font-semibold text-text-primary mb-2">Display Name</label>
-                            <input id="name" name="name" type="text" value="{{ old('name', $user->name) }}" required maxlength="120" class="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
-                            @error('name')
-                                <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <x-button type="submit" variant="primary">Save Account Changes</x-button>
-                    </form>
-                </x-card>
-
-                <x-card class="border border-border/70 shadow-elevation-1">
-                    <h2 class="text-subtitle font-semibold text-text-primary mb-4">Password</h2>
-                    <form method="POST" action="{{ route('worker.settings.password') }}" class="space-y-4">
-                        @csrf
-                        @method('PATCH')
-
-                        <div>
-                            <label for="current_password" class="block text-body-sm font-semibold text-text-primary mb-2">Current Password</label>
-                            <input id="current_password" name="current_password" type="password" required autocomplete="current-password" class="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
-                            @error('current_password')
-                                <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="password" class="block text-body-sm font-semibold text-text-primary mb-2">New Password</label>
-                            <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" class="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
-                            @error('password')
-                                <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="password_confirmation" class="block text-body-sm font-semibold text-text-primary mb-2">Confirm New Password</label>
-                            <input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" class="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
-                        </div>
-
-                        <x-button type="submit" variant="primary">Update Password</x-button>
-                    </form>
-                </x-card>
+            <div class="cw-surface p-6">
+                <h2 class="text-xl font-semibold text-slate-900 mb-3">Password</h2>
+                <form method="POST" action="{{ route('worker.settings.password') }}" class="space-y-4">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label class="cw-label" for="current_password">Current password</label>
+                        <input id="current_password" type="password" name="current_password" class="cw-field" required>
+                        @error('current_password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="cw-label" for="password">New password</label>
+                        <input id="password" type="password" name="password" class="cw-field" required>
+                        @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="cw-label" for="password_confirmation">Confirm password</label>
+                        <input id="password_confirmation" type="password" name="password_confirmation" class="cw-field" required>
+                    </div>
+                    <button type="submit" class="cw-button-primary">Update password</button>
+                </form>
             </div>
+
+            <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">Edit worker profile</a>
         </div>
-    </div>
+    </section>
 </x-app-layout>

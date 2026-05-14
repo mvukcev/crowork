@@ -1,101 +1,71 @@
 @props([
-    'title' => null,
+    'title',
     'company' => null,
     'city' => null,
     'salary_min' => null,
     'salary_max' => null,
     'salary_currency' => 'EUR',
     'salary_period' => 'month',
+    'employment_type' => null,
     'accommodation_provided' => false,
-    'languages' => null,
+    'languages' => [],
     'posted_at' => null,
     'href' => '#',
 ])
 
 @php
-    // Format salary display
     $salaryDisplay = null;
-    $currencySymbol = $salary_currency === 'EUR' ? '€' : $salary_currency;
-    $periodText = $salary_period === 'hour' ? 'hour' : 'month';
-    
-    if ($salary_min && $salary_max) {
-        $salaryDisplay = $currencySymbol . number_format($salary_min, 0, '.', ',') . ' – ' . $currencySymbol . number_format($salary_max, 0, '.', ',') . ' / ' . $periodText;
-    } elseif ($salary_min) {
-        $salaryDisplay = 'From ' . $currencySymbol . number_format($salary_min, 0, '.', ',') . ' / ' . $periodText;
-    } elseif ($salary_max) {
-        $salaryDisplay = 'Up to ' . $currencySymbol . number_format($salary_max, 0, '.', ',') . ' / ' . $periodText;
-    } else {
-        $salaryDisplay = 'Salary: Not specified';
-    }
-    
-    // Format posted time
-    $postedDisplay = null;
-    if ($posted_at) {
-        if ($posted_at instanceof \Carbon\Carbon) {
-            $postedDisplay = $posted_at->diffForHumans();
-        } elseif (is_string($posted_at)) {
-            $postedDisplay = \Carbon\Carbon::parse($posted_at)->diffForHumans();
+    if (!is_null($salary_min) || !is_null($salary_max)) {
+        $currency = strtoupper((string) $salary_currency);
+        $period = strtolower((string) $salary_period) === 'hour' ? 'hour' : 'month';
+
+        if (!is_null($salary_min) && !is_null($salary_max)) {
+            $salaryDisplay = $currency . ' ' . number_format($salary_min) . ' - ' . number_format($salary_max) . ' / ' . $period;
+        } elseif (!is_null($salary_min)) {
+            $salaryDisplay = 'From ' . $currency . ' ' . number_format($salary_min) . ' / ' . $period;
+        } else {
+            $salaryDisplay = 'Up to ' . $currency . ' ' . number_format($salary_max) . ' / ' . $period;
         }
     }
-    
-    // Format languages display
-    $languagesDisplay = null;
-    $languagesArray = is_array($languages) ? $languages : [];
-    if (!empty($languagesArray)) {
-        $displayedLanguages = array_slice($languagesArray, 0, 2);
-        $languagesDisplay = implode(', ', $displayedLanguages);
-        if (count($languagesArray) > 2) {
-            $languagesDisplay .= ' +' . (count($languagesArray) - 2);
-        }
+
+    $languageValues = [];
+    if (is_array($languages)) {
+        $languageValues = $languages;
+    } elseif (is_string($languages) && trim($languages) !== '') {
+        $decoded = json_decode($languages, true);
+        $languageValues = is_array($decoded) ? $decoded : preg_split('/[\n,]+/', $languages);
     }
-    
-    // Combine company and city
-    $locationDisplay = collect([$company, $city])->filter()->implode(' • ');
+
+    $languageValues = array_values(array_filter(array_map(fn ($lang) => trim((string) $lang), $languageValues)));
+    $languageText = count($languageValues) ? implode(', ', array_slice($languageValues, 0, 3)) : null;
+
+    $employmentTypeText = $employment_type ? \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $employment_type)) : null;
 @endphp
 
-<a
-    href="{{ $href }}"
-    {{ $attributes->merge(['class' => 'premium-job-card group']) }}
->
-    <article class="space-y-3.5">
-        <div class="flex items-start justify-between gap-3">
-            <p class="text-title-2 md:text-title-1 font-semibold text-primary leading-tight mb-0">{{ $salaryDisplay }}</p>
-            @if($postedDisplay)
-                <time class="text-caption text-text-tertiary whitespace-nowrap">{{ $postedDisplay }}</time>
-            @endif
+<a href="{{ $href }}" class="cw-surface p-5 block cw-hover-lift">
+    <div class="flex items-start justify-between gap-3 mb-2">
+        <div>
+            <p class="text-xs text-slate-500 mb-1">{{ $company ?: 'Employer' }}{{ $city ? ' · ' . $city : '' }}</p>
+            <h3 class="text-lg font-semibold text-slate-900 leading-tight">{{ $title }}</h3>
         </div>
-
-        <h3 class="text-title-2 font-semibold text-text-primary group-hover:text-primary transition-colors duration-normal mb-0">
-            {{ $title }}
-        </h3>
-
-        @if($company)
-            <p class="text-body-sm font-medium text-text-primary mb-0">{{ $company }}</p>
+        @if($accommodation_provided)
+            <span class="cw-chip text-amber-800 bg-amber-50 border-amber-200">Accommodation</span>
         @endif
+    </div>
 
-        @if($city)
-            <div class="inline-flex items-center gap-1.5 text-body-sm text-text-secondary mb-0">
-                <svg class="w-4 h-4 text-text-tertiary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                {{ $city }}
-            </div>
+    @if($salaryDisplay)
+        <p class="text-sm text-slate-700 mb-2">{{ $salaryDisplay }}</p>
+    @endif
+
+    <div class="flex flex-wrap items-center gap-2 mt-3">
+        @if($employmentTypeText)
+            <span class="cw-chip">{{ $employmentTypeText }}</span>
         @endif
-
-        <div class="flex flex-wrap items-center gap-2 pt-1">
-            @if($accommodation_provided)
-                <span class="premium-chip">Accommodation</span>
-            @endif
-
-            @if($languagesDisplay)
-                <span class="premium-chip">{{ $languagesDisplay }}</span>
-            @endif
-        </div>
-
-        <div class="pt-2 border-t border-border/40 flex items-center justify-between">
-            <span class="text-caption text-text-tertiary">View details</span>
-            <span class="text-body-sm font-semibold text-primary">Open</span>
-        </div>
-    </article>
+        @if($languageText)
+            <span class="cw-chip">{{ $languageText }}</span>
+        @endif
+        @if($posted_at)
+            <span class="cw-chip">Posted {{ \Carbon\Carbon::parse($posted_at)->diffForHumans() }}</span>
+        @endif
+    </div>
 </a>

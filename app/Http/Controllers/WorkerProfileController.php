@@ -32,7 +32,9 @@ class WorkerProfileController extends Controller
             ]
         );
 
-        return view('worker.profile-edit', compact('profile'));
+        $initialSkills = $this->normalizeSkills(old('skills', $profile->skills ?? []));
+
+        return view('worker.profile-edit', compact('profile', 'initialSkills'));
     }
 
     /**
@@ -41,6 +43,10 @@ class WorkerProfileController extends Controller
     public function update(Request $request)
     {
         $this->ensureWorker();
+
+        $request->merge([
+            'skills' => $this->normalizeSkills($request->input('skills', [])),
+        ]);
 
         $profile = WorkerProfile::firstOrCreate(
             ['user_id' => auth()->id()],
@@ -92,6 +98,40 @@ class WorkerProfileController extends Controller
         return redirect()
             ->route('profile.edit')
             ->with('success', 'Profile updated successfully!');
+    }
+
+    /**
+     * Normalize skills from array, JSON string, or comma/newline separated text.
+     */
+    private function normalizeSkills(mixed $skills): array
+    {
+        if (is_null($skills)) {
+            return [];
+        }
+
+        if (is_string($skills)) {
+            $decoded = json_decode($skills, true);
+            if (is_array($decoded)) {
+                $skills = $decoded;
+            } else {
+                $skills = preg_split('/[\n,]+/', $skills) ?: [];
+            }
+        }
+
+        if (!is_array($skills)) {
+            return [];
+        }
+
+        $normalized = array_values(array_filter(array_map(function ($skill) {
+            if (!is_scalar($skill)) {
+                return null;
+            }
+
+            $value = trim((string) $skill);
+            return $value !== '' ? $value : null;
+        }, $skills)));
+
+        return array_values(array_unique($normalized));
     }
 
     private function ensureWorker(): void

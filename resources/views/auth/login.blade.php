@@ -1,126 +1,51 @@
 <x-guest-layout>
-    <x-slot name="title">Sign In</x-slot>
+    <div class="cw-surface p-6 md:p-8">
+        <p class="cw-kicker mb-2">Sign in</p>
+        <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 mb-2">Welcome back</h1>
+        <p class="text-sm text-slate-600 mb-6">Continue your CroWork journey in two calm steps.</p>
 
-    <div class="premium-glass rounded-[1.75rem] shadow-elevation-3 p-7 sm:p-9 ring-1 ring-white/75">
-        {{-- Header --}}
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-semibold text-text-primary mb-2 text-balance">
-                Sign in to CroWork
-            </h1>
-            <p class="text-body text-text-secondary">
-                Access your account and manage your job applications
-            </p>
-        </div>
-
-        {{-- Session Status --}}
         @if (session('status'))
-            <div class="mb-6 bg-success/10 backdrop-blur-sm border border-success/20 p-4 rounded-xl">
-                <p class="text-body-sm text-success">{{ session('status') }}</p>
-            </div>
+            <div class="mb-4 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl p-3">{{ session('status') }}</div>
         @endif
 
-        {{-- Login Form --}}
-        <form method="POST" action="{{ route('login') }}" class="space-y-6">
+        <form method="POST" action="{{ route('login') }}" class="space-y-4" x-data="{ step: {{ $errors->has('password') ? 2 : 1 }} }">
             @csrf
 
-            {{-- Email Address --}}
-            <div>
-                <label for="email" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Email Address
-                </label>
-                <input 
-                    id="email" 
-                    type="email" 
-                    name="email" 
-                    value="{{ old('email') }}"
-                    required 
-                    autofocus 
-                    autocomplete="username"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('email') border-danger focus:ring-danger/50 @enderror"
-                    placeholder="your@email.com"
-                >
-                @error('email')
-                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                @enderror
+            <div class="flex items-center justify-between text-xs uppercase tracking-[0.08em] text-slate-500">
+                <span :class="step === 1 ? 'text-slate-900 font-semibold' : ''">Step 1 · Identity</span>
+                <span :class="step === 2 ? 'text-slate-900 font-semibold' : ''">Step 2 · Access</span>
             </div>
 
-            {{-- Password --}}
-            <div>
-                <label for="password" class="block text-body-sm font-semibold text-text-primary mb-2">
-                    Password
-                </label>
-                <input 
-                    id="password" 
-                    type="password" 
-                    name="password" 
-                    required 
-                    autocomplete="current-password"
-                    class="w-full px-4 py-3 border border-border bg-white/90 backdrop-blur-sm rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm @error('password') border-danger focus:ring-danger/50 @enderror"
-                    placeholder="Enter your password"
-                >
-                @error('password')
-                    <p class="mt-2 text-body-sm text-danger">{{ $message }}</p>
-                @enderror
+            <div x-show="step === 1" x-transition.opacity.duration.150ms>
+                <label for="email" class="cw-label">Email</label>
+                <input id="email" class="cw-field" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="alex@example.com" />
+                @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+
+                <button type="button" class="cw-button-primary mt-4" @click="step = 2">Continue</button>
             </div>
 
-            {{-- Remember Me & Forgot Password --}}
-            <div class="flex items-center justify-between">
-                <label for="remember_me" class="inline-flex items-center cursor-pointer">
-                    <input 
-                        id="remember_me" 
-                        type="checkbox" 
-                        name="remember"
-                        class="w-5 h-5 rounded-md border-border text-primary focus:ring-2 focus:ring-primary/50 focus:ring-offset-0 transition-all cursor-pointer"
-                    >
-                    <span class="ml-2 text-body-sm text-text-secondary">Remember me</span>
+            <div x-show="step === 2" x-transition.opacity.duration.150ms x-cloak>
+                <div class="mb-3 text-xs text-slate-500">Signing in as <span class="font-medium text-slate-700">{{ old('email') ?: 'your account' }}</span></div>
+
+                <label for="password" class="cw-label">Password</label>
+                <input id="password" class="cw-field" type="password" name="password" required autocomplete="current-password" />
+                @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700 mt-3">
+                    <input type="checkbox" name="remember" class="rounded border-slate-300" />
+                    Remember me
                 </label>
 
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-body-sm font-medium text-primary hover:text-primary-hover transition-colors focus:outline-none focus:underline">
-                        Forgot password?
-                    </a>
-                @endif
+                <div class="flex flex-wrap items-center justify-between gap-2 mt-4">
+                    <button type="button" class="cw-button-secondary" @click="step = 1">Back</button>
+                    @if (Route::has('password.request'))
+                        <a class="text-sm text-slate-600 hover:text-slate-900" href="{{ route('password.request') }}">Forgot password?</a>
+                    @endif
+                    <button type="submit" class="cw-button-primary">Sign in</button>
+                </div>
             </div>
-
-            {{-- Submit Button --}}
-            <x-button 
-                type="submit" 
-                variant="primary"
-                size="lg"
-                class="w-full shadow-elevation-2 hover:shadow-elevation-3"
-            >
-                Sign In
-            </x-button>
         </form>
 
-        {{-- Divider --}}
-        <div class="relative my-8">
-            <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-border/30"></div>
-            </div>
-            <div class="relative flex justify-center text-body-sm">
-                <span class="px-4 bg-white/85 backdrop-blur-sm text-text-secondary">New to CroWork?</span>
-            </div>
-        </div>
-
-        {{-- Sign Up Link --}}
-        <div class="text-center">
-            <p class="text-body text-text-secondary">
-                Don't have an account? 
-                <a href="{{ route('register') }}" class="font-semibold text-primary hover:text-primary-hover transition-colors focus:outline-none focus:underline">
-                    Create account
-                </a>
-            </p>
-        </div>
-    </div>
-
-    {{-- Help Text --}}
-    <div class="mt-6 text-center">
-        <p class="text-body-sm text-white/80 drop-shadow-sm">
-            By signing in, you agree to our 
-            <a href="{{ url('/terms') }}" class="text-white hover:text-white/90 underline transition-colors">Terms of Service</a> 
-            and 
-            <a href="{{ url('/privacy') }}" class="text-white hover:text-white/90 underline transition-colors">Privacy Policy</a>.
-        </p>
+        <p class="text-sm text-slate-600 mt-5">No account? <a href="{{ route('register') }}" class="text-slate-900 font-medium">Create one</a></p>
     </div>
 </x-guest-layout>
