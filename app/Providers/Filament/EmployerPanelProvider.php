@@ -2,12 +2,17 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Employer\Pages\Dashboard;
+use App\Filament\Employer\Widgets\EmployerApplicationStatusChart;
+use App\Filament\Employer\Widgets\EmployerApplicationsByJobChart;
+use App\Filament\Employer\Widgets\EmployerJobsByStatusChart;
+use App\Filament\Employer\Widgets\EmployerOverviewStats;
+use App\Filament\Employer\Widgets\ExpiringJobsTable;
 use App\Http\Middleware\EmployerAccessMiddleware;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -33,11 +38,16 @@ class EmployerPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Employer/Resources'), for: 'App\\Filament\\Employer\\Resources')
             ->discoverPages(in: app_path('Filament/Employer/Pages'), for: 'App\\Filament\\Employer\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Employer/Widgets'), for: 'App\\Filament\\Employer\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
+                EmployerOverviewStats::class,
+                EmployerJobsByStatusChart::class,
+                EmployerApplicationStatusChart::class,
+                EmployerApplicationsByJobChart::class,
+                ExpiringJobsTable::class,
             ])
             ->middleware([
                 EncryptCookies::class,

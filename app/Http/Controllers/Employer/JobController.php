@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Employer;
 
 use App\Http\Controllers\Controller;
-use App\Models\JobListing;
+use App\Models\Job;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class JobController extends Controller
 {
@@ -15,12 +13,7 @@ class JobController extends Controller
      */
     public function index()
     {
-        if (!Auth::user()->isEmployer()) {
-            abort(403, 'Access denied. Employer role required.');
-        }
-        
-        $jobs = Auth::user()->jobListings()->latest()->paginate(10);
-        return view('employer.jobs.index', compact('jobs'));
+        return redirect()->route('filament.employer.resources.jobs.index');
     }
 
     /**
@@ -28,11 +21,7 @@ class JobController extends Controller
      */
     public function create()
     {
-        if (!Auth::user()->isEmployer()) {
-            abort(403, 'Access denied. Employer role required.');
-        }
-        
-        return view('employer.jobs.create');
+        return redirect()->route('filament.employer.resources.jobs.create');
     }
 
     /**
@@ -40,86 +29,56 @@ class JobController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::user()->isEmployer()) {
-            abort(403, 'Access denied. Employer role required.');
-        }
-        
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'location' => 'nullable|string|max:255',
-            'job_type' => 'nullable|string|max:255',
-            'salary_min' => 'nullable|numeric|min:0',
-            'salary_max' => 'nullable|numeric|min:0',
-            'company_name' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
-        ]);
-
-        $validated['employer_id'] = Auth::id();
-        $validated['slug'] = Str::slug($validated['title']) . '-' . uniqid();
-
-        JobListing::create($validated);
-
-        return redirect()->route('employer.jobs.index')
-            ->with('success', 'Job posted successfully!');
+        return redirect()->route('filament.employer.resources.jobs.create');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(JobListing $job)
+    public function show(Job $job)
     {
-        $this->authorize('view', $job);
-        
-        $applications = $job->applications()->with('worker')->latest()->get();
-        
-        return view('employer.jobs.show', compact('job', 'applications'));
+        $this->authorizeEmployerJob($job);
+
+        return redirect()->route('filament.employer.resources.jobs.edit', ['record' => $job]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(JobListing $job)
+    public function edit(Job $job)
     {
-        $this->authorize('update', $job);
-        
-        return view('employer.jobs.edit', compact('job'));
+        $this->authorizeEmployerJob($job);
+
+        return redirect()->route('filament.employer.resources.jobs.edit', ['record' => $job]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, JobListing $job)
+    public function update(Request $request, Job $job)
     {
-        $this->authorize('update', $job);
+        $this->authorizeEmployerJob($job);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'location' => 'nullable|string|max:255',
-            'job_type' => 'nullable|string|max:255',
-            'salary_min' => 'nullable|numeric|min:0',
-            'salary_max' => 'nullable|numeric|min:0',
-            'company_name' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
-        ]);
-
-        $job->update($validated);
-
-        return redirect()->route('employer.jobs.index')
-            ->with('success', 'Job updated successfully!');
+        return redirect()->route('filament.employer.resources.jobs.edit', ['record' => $job]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(JobListing $job)
+    public function destroy(Job $job)
     {
-        $this->authorize('delete', $job);
-        
+        $this->authorizeEmployerJob($job);
+
         $job->delete();
 
         return redirect()->route('employer.jobs.index')
-            ->with('success', 'Job deleted successfully!');
+            ->with('success', 'Job deleted successfully.');
+    }
+
+    private function authorizeEmployerJob(Job $job): void
+    {
+        $employerId = auth()->user()?->employer?->id;
+
+        abort_unless((int) $job->employer_id === (int) $employerId, 403);
     }
 }

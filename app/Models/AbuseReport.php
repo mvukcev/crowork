@@ -15,7 +15,18 @@ class AbuseReport extends Model
         'ip_address',
         'user_agent',
         'status',
+        'admin_notes',
     ];
+
+    public function reportedJob()
+    {
+        return $this->belongsTo(Job::class, 'target_id');
+    }
+
+    public function reportedEmployer()
+    {
+        return $this->belongsTo(Employer::class, 'target_id');
+    }
 
     public function user()
     {

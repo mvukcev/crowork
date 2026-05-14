@@ -237,13 +237,31 @@ class JobSeeder extends Seeder
             ],
         ];
 
+        $structuredDefaults = [
+            'responsibilities' => "Deliver role-specific tasks with quality and ownership.\nCollaborate with team members and supervisors.",
+            'requirements' => "Relevant experience for the role.\nProfessional communication and reliability.",
+            'benefits' => "Competitive pay package.\nSupportive onboarding and team environment.",
+            'visa_support' => false,
+            'visa_support_details' => null,
+            'experience_level' => 'mid',
+            'education_required' => 'High school or relevant qualification',
+            'contract_duration' => 'Permanent (unless stated otherwise)',
+            'start_flexibility' => 'Negotiable',
+            'positions_available' => 1,
+            'working_hours' => '40h/week',
+            'shift_details' => null,
+            'application_instructions' => 'Submit your profile and include a brief motivation message.',
+            'is_featured' => false,
+            'is_urgent' => false,
+        ];
+
         foreach ($jobs as $jobData) {
             Job::updateOrCreate(
                 [
                     'title' => $jobData['title'],
                     'employer_id' => $jobData['employer_id'],
                 ],
-                $jobData
+                array_merge($structuredDefaults, $jobData)
             );
         }
 

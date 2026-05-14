@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ApprovalService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,8 +22,12 @@ class EmployerAccessMiddleware
             abort(403, 'Access denied. Employer role required.');
         }
 
-        // Check if employer profile exists and is approved
-        if (!$user->employer || !$user->employer->approved_at) {
+        if (! $user->employer) {
+            abort(403, 'Access denied. Employer profile not found.');
+        }
+
+        $approvalService = app(ApprovalService::class);
+        if ($approvalService->requiresEmployerApproval() && !$user->employer->approved_at) {
             abort(403, 'Access denied. Your employer account is not yet approved.');
         }
 

@@ -3,7 +3,7 @@
 namespace App\Filament\Employer\Resources\JobResource\Pages;
 
 use App\Filament\Employer\Resources\JobResource;
-use App\Services\ApprovalService;
+use App\Models\Setting;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -15,14 +15,16 @@ class CreateJob extends CreateRecord
     {
         // Get the employer from the authenticated user
         $employer = auth()->user()->employer;
+        $user = auth()->user();
 
-        // Use ApprovalService to determine initial status
-        $approvalService = new ApprovalService();
-        $data['status'] = $approvalService->getInitialStatus($employer, 'job');
+        $data['employer_id'] = $employer?->id;
+        $data['created_by_user_id'] = $user?->id;
+        $data['status'] = 'draft';
+        $data['published_at'] = null;
 
-        // Set published_at if auto-publishing
-        if ($data['status'] === 'published' && !isset($data['published_at'])) {
-            $data['published_at'] = now();
+        if (empty($data['expires_at'])) {
+            $defaultExpiryDays = max(1, Setting::getInt('default_job_expiry_days', 30));
+            $data['expires_at'] = now()->addDays($defaultExpiryDays);
         }
 
         return $data;

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ApprovalService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,6 +29,12 @@ class EnsureEmployerIsApproved
         // Check if email is verified
         if (!auth()->user()->hasVerifiedEmail()) {
             return redirect('/email/verify');
+        }
+
+        // Check if employer is approved only when global policy requires it.
+        $approvalService = app(ApprovalService::class);
+        if (! $approvalService->requiresEmployerApproval()) {
+            return $next($request);
         }
 
         // Check if employer is approved

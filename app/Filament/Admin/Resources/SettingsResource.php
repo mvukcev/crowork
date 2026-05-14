@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class SettingsResource extends Resource
 {
@@ -34,63 +35,53 @@ class SettingsResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Approval Requirements')
-                    ->description('Control whether listings require admin approval before publishing')
+                Forms\Components\Section::make('Setting')
+                    ->description('Edit platform behavior for this setting key')
                     ->schema([
-                        Forms\Components\Toggle::make('jobs_require_approval')
-                            ->label('Require Approval for Job Postings')
-                            ->helperText('When enabled, job postings created by employers will be in pending status until approved by admin')
-                            ->default(true)
-                            ->afterStateHydrated(function ($component, $state) {
-                                // Extract boolean value from stored JSON
-                                $component->state($state === true || (is_array($state) && ($state['value'] ?? false)));
-                            })
-                            ->dehydrateStateUsing(fn ($state) => ['value' => (bool) $state]),
-                        Forms\Components\Toggle::make('educations_require_approval')
-                            ->label('Require Approval for Education Programs')
-                            ->helperText('When enabled, education programs created by employers will be in pending status until approved by admin')
-                            ->default(true)
-                            ->afterStateHydrated(function ($component, $state) {
-                                // Extract boolean value from stored JSON
-                                $component->state($state === true || (is_array($state) && ($state['value'] ?? false)));
-                            })
-                            ->dehydrateStateUsing(fn ($state) => ['value' => (bool) $state]),
-                    ]),
-                Forms\Components\Section::make('Application Visibility')
-                    ->description('Control default visibility level for worker applications')
-                    ->schema([
-                        Forms\Components\Select::make('employer_application_visibility')
-                            ->label('Default Application Visibility Level')
-                            ->options([
-                                'FULL' => 'Full (All worker information visible)',
-                                'LIMITED' => 'Limited (Professional info only)',
-                                'ANONYMOUS' => 'Anonymous (No personal identifiers)',
-                            ])
-                            ->default('LIMITED')
-                            ->afterStateHydrated(function ($component, $state) {
-                                // Extract visibility value from stored JSON
-                                $component->state($state['value'] ?? 'LIMITED');
-                            })
-                            ->dehydrateStateUsing(fn ($state) => ['value' => $state]),
-                        Forms\Components\Toggle::make('employer_can_export_applications')
-                            ->label('Allow Employers to Export Applications')
-                            ->helperText('When enabled, employers can export applicant data to CSV (respecting visibility settings)')
+                        Forms\Components\TextInput::make('key')
+                            ->label('Setting Key')
+                            ->disabled(),
+                        Forms\Components\Placeholder::make('setting_label')
+                            ->label('Setting Label')
+                            ->content(fn (?Setting $record) => Setting::definition($record?->key ?? '')['label'] ?? $record?->key ?? '-'),
+                        Forms\Components\Placeholder::make('setting_group')
+                            ->label('Group')
+                            ->content(fn (?Setting $record) => Setting::definition($record?->key ?? '')['group'] ?? 'System'),
+                        Forms\Components\Toggle::make('value_boolean')
+                            ->label('Value')
+                            ->statePath('value')
                             ->default(false)
-                            ->afterStateHydrated(function ($component, $state) {
-                                // Extract boolean value from stored JSON
-                                $component->state($state === true || (is_array($state) && ($state['value'] ?? false)));
-                            })
-                            ->dehydrateStateUsing(fn ($state) => ['value' => (bool) $state]),
-                        Forms\Components\TagsInput::make('employer_visible_fields')
-                            ->label('Visible Fields in Limited View')
-                            ->helperText('Fields that employers can see when visibility is set to Limited')
-                            ->placeholder('Add field names')
-                            ->default(['skills', 'experience', 'education', 'languages'])
-                            ->afterStateHydrated(function ($component, $state) {
-                                // Extract array value from stored JSON
-                                $component->state(is_array($state['value'] ?? null) ? $state['value'] : []);
-                            })
-                            ->dehydrateStateUsing(fn ($state) => ['value' => $state]),
+                            ->visible(fn (?Setting $record) => self::settingType($record) === 'boolean')
+                            ->dehydrateStateUsing(fn ($state) => (bool) $state),
+                        Forms\Components\Select::make('value_select')
+                            ->label('Value')
+                            ->statePath('value')
+                            ->options(fn (?Setting $record) => self::settingOptions($record))
+                            ->native(false)
+                            ->visible(fn (?Setting $record) => self::settingType($record) === 'select'),
+                        Forms\Components\TextInput::make('value_integer')
+                            ->label('Value')
+                            ->statePath('value')
+                            ->numeric()
+                            ->minValue(1)
+                            ->visible(fn (?Setting $record) => self::settingType($record) === 'integer')
+                            ->dehydrateStateUsing(fn ($state) => is_numeric($state) ? (int) $state : null),
+                        Forms\Components\TextInput::make('value_email')
+                            ->label('Value')
+                            ->statePath('value')
+                            ->email()
+                            ->maxLength(255)
+                            ->visible(fn (?Setting $record) => self::settingType($record) === 'email'),
+                        Forms\Components\TagsInput::make('value_array')
+                            ->label('Value')
+                            ->statePath('value')
+                            ->visible(fn (?Setting $record) => self::settingType($record) === 'array')
+                            ->helperText('Used for advanced visibility field control in limited mode.'),
+                        Forms\Components\Textarea::make('value_text')
+                            ->label('Value')
+                            ->statePath('value')
+                            ->rows(4)
+                            ->visible(fn (?Setting $record) => !in_array(self::settingType($record), ['boolean', 'select', 'integer', 'email', 'array'], true)),
                     ]),
             ]);
     }
@@ -100,16 +91,30 @@ class SettingsResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('key')
-                    ->label('Setting Name')
+                    ->label('Setting Key')
                     ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('setting_label')
+                    ->label('Label')
+                    ->getStateUsing(fn (Setting $record) => Setting::definition($record->key)['label'] ?? $record->key)
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('setting_group')
+                    ->label('Group')
+                    ->getStateUsing(fn (Setting $record) => Setting::definition($record->key)['group'] ?? 'System')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('value')
                     ->label('Value')
-                    ->getStateUsing(function ($record) {
-                        $value = $record->value;
-                        if (is_array($value)) {
-                            return json_encode($value, JSON_PRETTY_PRINT);
+                    ->getStateUsing(function (Setting $record) {
+                        $value = Setting::unwrapValue($record->value);
+
+                        if (is_bool($value)) {
+                            return $value ? 'Enabled' : 'Disabled';
                         }
+
+                        if (is_array($value)) {
+                            return implode(', ', $value);
+                        }
+
                         return (string) $value;
                     })
                     ->wrap(),
@@ -133,11 +138,34 @@ class SettingsResource extends Resource
             ->defaultSort('key');
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereIn('key', Setting::adminManagedKeys());
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListSettings::route('/'),
             'edit' => Pages\EditSettings::route('/{record}/edit'),
         ];
+    }
+
+    private static function settingType(?Setting $record): string
+    {
+        if (! $record) {
+            return 'text';
+        }
+
+        return Setting::definition($record->key)['type'] ?? 'text';
+    }
+
+    private static function settingOptions(?Setting $record): array
+    {
+        if (! $record) {
+            return [];
+        }
+
+        return Setting::definition($record->key)['options'] ?? [];
     }
 }

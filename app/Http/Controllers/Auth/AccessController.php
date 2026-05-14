@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\VerificationCodeMail;
+use App\Models\Setting;
 use App\Models\Employer;
 use App\Models\User;
 use App\Models\WorkerProfile;
+use App\Services\ApprovalService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,6 +70,13 @@ class AccessController extends Controller
         if (User::where('email', $email)->exists()) {
             session(['access_stage' => 'login']);
             return redirect()->route('access.show');
+        }
+
+        if (! $this->isRegistrationEnabled($intentType)) {
+            session(['access_stage' => 'email']);
+
+            return redirect()->route('access.show')
+                ->withErrors(['email' => 'New registrations are currently disabled for this account type.']);
         }
 
         // New email → send code (respect cooldown in case of double-submit)
@@ -228,6 +237,13 @@ class AccessController extends Controller
             'password'     => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        if (! $this->isRegistrationEnabled($data['account_type'])) {
+            session(['access_stage' => 'email', 'access_email' => '']);
+
+            return redirect()->route('access.show')
+                ->withErrors(['email' => 'Registrations for this account type are currently disabled.']);
+        }
+
         $user = User::create([
             'name'     => $data['name'],
             'email'    => strtolower($data['email']),
@@ -253,9 +269,12 @@ class AccessController extends Controller
             return redirect()->route('worker.profile.edit');
         }
 
+        $approvalService = app(ApprovalService::class);
+
         Employer::create([
             'user_id'      => $user->id,
             'company_name' => $user->name,
+            'approved_at'  => $approvalService->requiresEmployerApproval() ? null : now(),
         ]);
 
         event(new Registered($user));
@@ -306,6 +325,23 @@ class AccessController extends Controller
     private function isDevMode(): bool
     {
         return app()->environment('local') || config('mail.default') === 'log';
+    }
+
+    private function isRegistrationEnabled(string $accountType): bool
+    {
+        if (! Setting::getBool('registration_enabled', true)) {
+            return false;
+        }
+
+        if ($accountType === User::ROLE_WORKER) {
+            return Setting::getBool('worker_registration_enabled', true);
+        }
+
+        if ($accountType === User::ROLE_EMPLOYER) {
+            return Setting::getBool('employer_registration_enabled', true);
+        }
+
+        return false;
     }
 }
 

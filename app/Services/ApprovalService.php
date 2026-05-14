@@ -31,14 +31,28 @@ class ApprovalService
             return $employer->require_approval_override;
         }
 
-        // Fallback to global setting
-        $key = match ($type) {
-            'job' => 'jobs_require_approval',
-            'education' => 'educations_require_approval',
+        // Fallback to global setting (new key, then legacy key).
+        [$newKey, $legacyKey] = match ($type) {
+            'job' => ['job_approval_required', 'jobs_require_approval'],
+            'education' => ['education_approval_required', 'educations_require_approval'],
         };
 
-        $globalSetting = Setting::where('key', $key)->first();
-        return $globalSetting?->value['value'] ?? true; // Default to true (safer)
+        $newValue = Setting::getValue($newKey);
+        if ($newValue !== null) {
+            return filter_var($newValue, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true;
+        }
+
+        $legacyValue = Setting::getValue($legacyKey, true);
+        return filter_var($legacyValue, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true;
+    }
+
+    /**
+     * Check whether employer accounts require manual admin approval.
+     */
+    public function requiresEmployerApproval(): bool
+    {
+        $value = Setting::getValue('employer_approval_required', true);
+        return filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true;
     }
 
     /**

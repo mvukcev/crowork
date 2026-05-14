@@ -54,7 +54,7 @@ class ReportController extends Controller
             'user_id' => auth()->id(),
             'ip_address' => $request->ip(),
             'user_agent' => substr((string) $request->userAgent(), 0, 1000),
-            'status' => 'new',
+            'status' => 'open',
         ]);
 
         if ($validated['type'] === 'job') {

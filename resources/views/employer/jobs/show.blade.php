@@ -24,10 +24,42 @@
                                 <x-badge tone="info">{{ ucfirst($application->status) }}</x-badge>
                             </div>
                             <p class="text-xs text-slate-500 mb-2">Applied {{ $application->created_at->diffForHumans() }}</p>
-                            @if($application->cover_letter)
-                                <p class="text-sm text-slate-700">{{ $application->cover_letter }}</p>
-                            @elseif($application->message)
-                                <p class="text-sm text-slate-700">{{ $application->message }}</p>
+
+                            @if($application->cover_letter || $application->message)
+                                <div class="mb-3">
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Motivation</p>
+                                    <p class="text-sm text-slate-700">{{ $application->cover_letter ?: $application->message }}</p>
+                                </div>
+                            @endif
+
+                            @if(is_array($application->profile_snapshot) && count($application->profile_snapshot) > 0)
+                                <div class="border-t border-slate-100 pt-3">
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Profile snapshot</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-700 mb-2">
+                                        <p><strong>Nationality:</strong> {{ data_get($application->profile_snapshot, 'nationality_country_code', 'N/A') }}</p>
+                                        <p><strong>Current city:</strong> {{ data_get($application->profile_snapshot, 'current_city', 'N/A') }}</p>
+                                        <p><strong>Desired city:</strong> {{ data_get($application->profile_snapshot, 'desired_city', 'N/A') }}</p>
+                                        <p><strong>Availability:</strong> {{ data_get($application->profile_snapshot, 'availability_date', 'N/A') }}</p>
+                                    </div>
+
+                                    @if(is_array(data_get($application->profile_snapshot, 'skills')) && count(data_get($application->profile_snapshot, 'skills')) > 0)
+                                        <div class="flex flex-wrap gap-1.5 mb-2">
+                                            @foreach(data_get($application->profile_snapshot, 'skills') as $skill)
+                                                <span class="cw-chip">{{ $skill }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    @if(is_array(data_get($application->profile_snapshot, 'languages')) && count(data_get($application->profile_snapshot, 'languages')) > 0)
+                                        <ul class="text-sm text-slate-700 space-y-1">
+                                            @foreach(data_get($application->profile_snapshot, 'languages') as $language)
+                                                @if(!empty($language['language']))
+                                                    <li>{{ $language['language'] }}{{ !empty($language['level']) ? ' (' . $language['level'] . ')' : '' }}</li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </div>
                             @endif
                         </article>
                     @endforeach

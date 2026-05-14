@@ -10,6 +10,15 @@ class EditJobApplication extends EditRecord
 {
     protected static string $resource = JobApplicationResource::class;
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (array_key_exists('status', $data)) {
+            $data['status_updated_at'] = now();
+        }
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

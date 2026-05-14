@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +14,7 @@ class ComingSoonModeMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!config('crowork.coming_soon.enabled', false)) {
+        if (! $this->isComingSoonEnabled()) {
             return $next($request);
         }
 
@@ -55,5 +56,14 @@ class ComingSoonModeMiddleware
             'favicon.ico',
             'robots.txt'
         );
+    }
+
+    private function isComingSoonEnabled(): bool
+    {
+        try {
+            return Setting::getBool('coming_soon_enabled', config('crowork.coming_soon.enabled', false));
+        } catch (\Throwable) {
+            return (bool) config('crowork.coming_soon.enabled', false);
+        }
     }
 }

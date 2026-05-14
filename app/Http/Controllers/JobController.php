@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 class JobController extends Controller
 {
@@ -20,18 +19,20 @@ class JobController extends Controller
         $cities = $this->getCities();
         $categories = $this->getCategories();
         $languages = $this->getLanguages();
-        
+        $employmentTypes = $this->getEmploymentTypes();
+
         // For SEO and initial render
         $filters = [
             'q' => $request->input('q'),
             'city' => $request->input('city'),
             'category' => $request->input('category'),
+            'employment_type' => $request->input('employment_type'),
             'salary_min' => $request->input('salary_min'),
             'accommodation' => $request->input('accommodation'),
             'language' => $request->input('language'),
         ];
 
-        return view('jobs.index', compact('jobs', 'cities', 'categories', 'languages', 'filters'));
+        return view('jobs.index', compact('jobs', 'cities', 'categories', 'languages', 'employmentTypes', 'filters'));
     }
 
     /**
@@ -56,8 +57,6 @@ class JobController extends Controller
 
         // Load employer relationship for company info
         $job->load('employer');
-
-        $contentSections = $this->extractJobSections($job->description);
 
         $baseSimilarQuery = Job::query()
             ->with('employer')
@@ -100,78 +99,7 @@ class JobController extends Controller
             $similarJobs = $similarJobs->concat($fallbackJobs);
         }
 
-        return view('jobs.show', compact('job', 'contentSections', 'similarJobs'));
-    }
-
-    /**
-     * Split job description into richer optional sections when headings are present.
-     */
-    private function extractJobSections(?string $description): array
-    {
-        $text = trim((string) $description);
-
-        if ($text === '') {
-            return [];
-        }
-
-        $headingMap = [
-            'about this job' => 'about',
-            'job description' => 'about',
-            'overview' => 'about',
-            'responsibilities' => 'responsibilities',
-            'requirements' => 'requirements',
-            'benefits' => 'benefits',
-            'application instructions' => 'application_instructions',
-            'how to apply' => 'application_instructions',
-            'relocation' => 'relocation',
-            'accommodation' => 'relocation',
-            'visa support' => 'relocation',
-            'about employer' => 'about_employer',
-            'about the employer' => 'about_employer',
-        ];
-
-        $buckets = [
-            'about' => [],
-            'responsibilities' => [],
-            'requirements' => [],
-            'benefits' => [],
-            'application_instructions' => [],
-            'relocation' => [],
-            'about_employer' => [],
-        ];
-
-        $currentSection = 'about';
-
-        foreach (preg_split('/\R/', $text) as $line) {
-            $trimmed = trim($line);
-            $normalizedHeading = Str::of($trimmed)
-                ->lower()
-                ->replaceMatches('/^[#\-\*\d\.)\s]+/', '')
-                ->replace(':', '')
-                ->trim()
-                ->value();
-
-            if (isset($headingMap[$normalizedHeading])) {
-                $currentSection = $headingMap[$normalizedHeading];
-                continue;
-            }
-
-            $buckets[$currentSection][] = $line;
-        }
-
-        $sections = [];
-        foreach ($buckets as $key => $lines) {
-            $value = trim(implode("\n", $lines));
-            if ($value !== '') {
-                $sections[$key] = $value;
-            }
-        }
-
-        if (empty($sections['about'])) {
-            $sections['about'] = $text;
-        }
-
-        return $sections;
+        return view('jobs.show', compact('job', 'similarJobs'));
     }
 
     /**
@@ -204,6 +132,11 @@ class JobController extends Controller
             $query->where('category', $request->input('category'));
         }
 
+        // Filter by employment type
+        if ($request->filled('employment_type')) {
+            $query->where('contract_type', $request->input('employment_type'));
+        }
+
         // Filter by minimum salary
         if ($request->filled('salary_min')) {
             $query->where('salary_min', '>=', $request->input('salary_min'));
@@ -216,7 +149,7 @@ class JobController extends Controller
 
         // Filter by language
         if ($request->filled('language')) {
-            $language = $request->input('language');
+            $language = strtoupper((string) $request->input('language'));
             $query->whereJsonContains('languages', $language);
         }
 
@@ -263,8 +196,7 @@ class JobController extends Controller
      */
     protected function getLanguages()
     {
-        // Common languages in Croatia for international workers
-        return [
+        $defaults = [
             'EN' => 'English',
             'HR' => 'Croatian',
             'DE' => 'German',
@@ -272,6 +204,49 @@ class JobController extends Controller
             'ES' => 'Spanish',
             'FR' => 'French',
         ];
+
+        $allLanguageCodes = Job::active()
+            ->whereNotNull('languages')
+            ->get(['languages'])
+            ->flatMap(function (Job $job) {
+                $languages = $job->languages;
+
+                if (is_string($languages)) {
+                    $decoded = json_decode($languages, true);
+                    $languages = is_array($decoded) ? $decoded : preg_split('/[\n,]+/', $languages);
+                }
+
+                return is_array($languages) ? $languages : [];
+            })
+            ->filter(fn ($code) => is_string($code) && trim($code) !== '')
+            ->map(fn ($code) => strtoupper(trim($code)))
+            ->unique()
+            ->sort()
+            ->values();
+
+        $result = [];
+        foreach ($allLanguageCodes as $code) {
+            $result[$code] = $defaults[$code] ?? $code;
+        }
+
+        foreach ($defaults as $code => $label) {
+            if (!array_key_exists($code, $result)) {
+                $result[$code] = $label;
+            }
+        }
+
+        return $result;
+    }
+
+    protected function getEmploymentTypes()
+    {
+        return Job::active()
+            ->whereNotNull('contract_type')
+            ->distinct()
+            ->pluck('contract_type')
+            ->filter()
+            ->sort()
+            ->values();
     }
 }
 

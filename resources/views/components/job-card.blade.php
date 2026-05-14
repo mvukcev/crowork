@@ -8,6 +8,9 @@
     'salary_period' => 'month',
     'employment_type' => null,
     'accommodation_provided' => false,
+    'visa_support' => false,
+    'is_featured' => false,
+    'is_urgent' => false,
     'languages' => [],
     'posted_at' => null,
     'href' => '#',
@@ -48,9 +51,14 @@
             <p class="text-xs text-slate-500 mb-1">{{ $company ?: 'Employer' }}{{ $city ? ' · ' . $city : '' }}</p>
             <h3 class="text-lg font-semibold text-slate-900 leading-tight">{{ $title }}</h3>
         </div>
-        @if($accommodation_provided)
-            <span class="cw-chip text-amber-800 bg-amber-50 border-amber-200">Accommodation</span>
-        @endif
+        <div class="flex flex-col gap-1 items-end">
+            @if($is_urgent)
+                <span class="cw-chip text-red-800 bg-red-50 border-red-200">Urgent</span>
+            @endif
+            @if($is_featured)
+                <span class="cw-chip text-indigo-800 bg-indigo-50 border-indigo-200">Featured</span>
+            @endif
+        </div>
     </div>
 
     @if($salaryDisplay)
@@ -63,6 +71,12 @@
         @endif
         @if($languageText)
             <span class="cw-chip">{{ $languageText }}</span>
+        @endif
+        @if($accommodation_provided)
+            <span class="cw-chip text-amber-800 bg-amber-50 border-amber-200">Accommodation</span>
+        @endif
+        @if($visa_support)
+            <span class="cw-chip text-emerald-800 bg-emerald-50 border-emerald-200">Visa support</span>
         @endif
         @if($posted_at)
             <span class="cw-chip">Posted {{ \Carbon\Carbon::parse($posted_at)->diffForHumans() }}</span>

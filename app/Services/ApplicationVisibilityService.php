@@ -24,9 +24,13 @@ class ApplicationVisibilityService
             return $employer->applications_visibility_override;
         }
 
-        // Fallback to global setting
-        $globalSetting = Setting::where('key', 'employer_application_visibility')->first();
-        return $globalSetting?->value['value'] ?? 'limited'; // Default to 'limited' for safety
+        // Fallback to global setting (new key, then legacy key).
+        $value = Setting::getString('application_visibility_mode');
+        if ($value === null) {
+            $value = Setting::getString('employer_application_visibility', 'limited');
+        }
+
+        return strtolower($value ?? 'limited'); // Default to 'limited' for safety
     }
 
     /**
@@ -42,9 +46,13 @@ class ApplicationVisibilityService
             return $employer->visible_fields_override;
         }
 
-        // Fallback to global setting
-        $globalSetting = Setting::where('key', 'employer_visible_fields')->first();
-        return $globalSetting?->value ?? $this->getDefaultVisibleFields();
+        // Fallback to global setting.
+        $value = Setting::getValue('employer_visible_fields');
+        if (! is_array($value)) {
+            return $this->getDefaultVisibleFields();
+        }
+
+        return $value;
     }
 
     /**
@@ -60,9 +68,13 @@ class ApplicationVisibilityService
             return $employer->can_export_applications_override;
         }
 
-        // Fallback to global setting
-        $globalSetting = Setting::where('key', 'employer_can_export_applications')->first();
-        return $globalSetting?->value['value'] ?? false; // Default to false for safety
+        // Fallback to global setting (new key, then legacy key).
+        $value = Setting::getValue('employer_export_allowed');
+        if ($value === null) {
+            $value = Setting::getValue('employer_can_export_applications', false);
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false;
     }
 
     /**

@@ -16,6 +16,10 @@
             ? \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $job->contract_type))
             : null;
 
+        $experienceLevel = $job->experience_level
+            ? \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $job->experience_level))
+            : null;
+
         $languageValues = [];
         if (is_array($job->languages)) {
             $languageValues = $job->languages;
@@ -31,13 +35,37 @@
         $postedAgo = $job->published_at?->diffForHumans() ?? $job->created_at?->diffForHumans();
         $expiryDate = $job->expires_at?->format('M j, Y');
 
-        $aboutText = trim((string) ($contentSections['about'] ?? $job->description));
-        $responsibilitiesText = trim((string) ($contentSections['responsibilities'] ?? ''));
-        $requirementsText = trim((string) ($contentSections['requirements'] ?? ''));
-        $benefitsText = trim((string) ($contentSections['benefits'] ?? ''));
-        $applicationInstructionsText = trim((string) ($contentSections['application_instructions'] ?? ''));
-        $relocationText = trim((string) ($contentSections['relocation'] ?? $job->accommodation_details ?? ''));
-        $aboutEmployerText = trim((string) ($contentSections['about_employer'] ?? ''));
+        $aboutText = trim((string) ($job->description ?? ''));
+        $responsibilitiesText = trim((string) ($job->responsibilities ?? ''));
+        $requirementsText = trim((string) ($job->requirements ?? ''));
+        $benefitsText = trim((string) ($job->benefits ?? ''));
+        $applicationInstructionsText = trim((string) ($job->application_instructions ?? ''));
+
+        $mobilityDetails = array_values(array_filter([
+            $job->accommodation_provided ? 'Accommodation is provided by employer.' : null,
+            !empty($job->accommodation_details) ? trim((string) $job->accommodation_details) : null,
+            $job->visa_support ? 'Visa/work permit support is available.' : null,
+            !empty($job->visa_support_details) ? trim((string) $job->visa_support_details) : null,
+        ]));
+
+        $keyFacts = [
+            'Employment type' => $employmentType,
+            'Category' => $category,
+            'City' => $location,
+            'Experience level' => $experienceLevel,
+            'Education required' => $job->education_required,
+            'Contract duration' => $job->contract_duration,
+            'Start date' => $job->start_date?->format('M j, Y'),
+            'Start flexibility' => $job->start_flexibility,
+            'Open positions' => $job->positions_available,
+            'Working hours' => $job->working_hours,
+            'Shifts' => $job->shift_details,
+            'Languages' => $languageSummary,
+            'Salary' => $salaryDisplay,
+            'Apply before' => $expiryDate,
+        ];
+
+        $aboutEmployerText = trim((string) ($job->employer?->description ?? ''));
     @endphp
 
     <section class="cw-section">
@@ -51,7 +79,7 @@
             </div>
 
             <article class="cw-surface p-6 md:p-8 mb-6">
-                <p class="cw-kicker mb-2">Job detail</p>
+                <p class="cw-kicker mb-2">Job overview</p>
                 <h1 class="cw-display text-4xl md:text-6xl mb-3">{{ $job->title }}</h1>
                 <p class="text-base text-slate-600 mb-4">
                     {{ $companyName }}
@@ -71,7 +99,16 @@
                         <span class="cw-chip">Language: {{ $languageSummary }}</span>
                     @endif
                     @if($job->accommodation_provided)
-                        <span class="cw-chip text-amber-800 bg-amber-50 border-amber-200">Accommodation provided</span>
+                        <span class="cw-chip text-amber-800 bg-amber-50 border-amber-200">Accommodation</span>
+                    @endif
+                    @if($job->visa_support)
+                        <span class="cw-chip text-emerald-800 bg-emerald-50 border-emerald-200">Visa support</span>
+                    @endif
+                    @if($job->is_urgent)
+                        <span class="cw-chip text-red-800 bg-red-50 border-red-200">Urgent</span>
+                    @endif
+                    @if($job->is_featured)
+                        <span class="cw-chip text-indigo-800 bg-indigo-50 border-indigo-200">Featured</span>
                     @endif
                     @if($salaryDisplay)
                         <span class="cw-chip">{{ $salaryDisplay }}</span>
@@ -88,50 +125,60 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <div class="lg:col-span-2 space-y-4">
+                    <article class="cw-surface p-6 md:p-7">
+                        <h2 class="text-xl font-semibold text-slate-900 mb-3">Key facts</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            @foreach($keyFacts as $label => $value)
+                                @if(!is_null($value) && trim((string) $value) !== '')
+                                    <p class="text-slate-700"><strong>{{ $label }}:</strong> {{ $value }}</p>
+                                @endif
+                            @endforeach
+                        </div>
+                    </article>
+
                     @if($aboutText !== '')
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">About this job</h2>
-                            <div class="prose max-w-none text-slate-700 leading-relaxed">{!! nl2br(e($aboutText)) !!}</div>
+                            <div class="prose max-w-none text-slate-700 leading-relaxed">{!! $aboutText !!}</div>
                         </article>
                     @endif
 
                     @if($responsibilitiesText !== '')
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">Responsibilities</h2>
-                            <div class="prose max-w-none text-slate-700 leading-relaxed">{!! nl2br(e($responsibilitiesText)) !!}</div>
+                            <div class="prose max-w-none text-slate-700 leading-relaxed whitespace-pre-line">{{ $responsibilitiesText }}</div>
                         </article>
                     @endif
 
                     @if($requirementsText !== '')
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">Requirements</h2>
-                            <div class="prose max-w-none text-slate-700 leading-relaxed">{!! nl2br(e($requirementsText)) !!}</div>
+                            <div class="prose max-w-none text-slate-700 leading-relaxed whitespace-pre-line">{{ $requirementsText }}</div>
                         </article>
                     @endif
 
                     @if($benefitsText !== '')
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">Benefits</h2>
-                            <div class="prose max-w-none text-slate-700 leading-relaxed">{!! nl2br(e($benefitsText)) !!}</div>
+                            <div class="prose max-w-none text-slate-700 leading-relaxed whitespace-pre-line">{{ $benefitsText }}</div>
+                        </article>
+                    @endif
+
+                    @if(count($mobilityDetails) > 0)
+                        <article class="cw-surface p-6 md:p-7">
+                            <h2 class="text-xl font-semibold text-slate-900 mb-3">Relocation, accommodation, and visa support</h2>
+                            <ul class="space-y-2 text-slate-700 text-sm">
+                                @foreach($mobilityDetails as $mobilityLine)
+                                    <li>{{ $mobilityLine }}</li>
+                                @endforeach
+                            </ul>
                         </article>
                     @endif
 
                     @if($applicationInstructionsText !== '')
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">Application instructions</h2>
-                            <div class="prose max-w-none text-slate-700 leading-relaxed">{!! nl2br(e($applicationInstructionsText)) !!}</div>
-                        </article>
-                    @endif
-
-                    @if($relocationText !== '' || $job->accommodation_provided)
-                        <article class="cw-surface p-6 md:p-7">
-                            <h2 class="text-xl font-semibold text-slate-900 mb-3">Relocation, accommodation, and visa support</h2>
-                            @if($job->accommodation_provided)
-                                <p class="text-slate-700 mb-3">Accommodation is provided for this role.</p>
-                            @endif
-                            @if($relocationText !== '')
-                                <div class="prose max-w-none text-slate-700 leading-relaxed">{!! nl2br(e($relocationText)) !!}</div>
-                            @endif
+                            <div class="prose max-w-none text-slate-700 leading-relaxed whitespace-pre-line">{{ $applicationInstructionsText }}</div>
                         </article>
                     @endif
 
@@ -139,7 +186,7 @@
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">About the employer</h2>
                             @if($aboutEmployerText !== '')
-                                <div class="prose max-w-none text-slate-700 leading-relaxed mb-3">{!! nl2br(e($aboutEmployerText)) !!}</div>
+                                <div class="prose max-w-none text-slate-700 leading-relaxed mb-3 whitespace-pre-line">{{ $aboutEmployerText }}</div>
                             @endif
                             @if($job->employer)
                                 <p class="text-slate-700">{{ $companyName }}@if($job->employer->city) · {{ $job->employer->city }}@endif</p>
@@ -162,6 +209,9 @@
                                         :salary_period="$similarJob->salary_period ?? 'month'"
                                         :employment_type="$similarJob->contract_type"
                                         :accommodation_provided="$similarJob->accommodation_provided"
+                                        :visa_support="$similarJob->visa_support"
+                                        :is_urgent="$similarJob->is_urgent"
+                                        :is_featured="$similarJob->is_featured"
                                         :languages="$similarJob->languages ?? []"
                                         :posted_at="$similarJob->published_at ?? $similarJob->created_at"
                                         :href="route('jobs.show', $similarJob)"
@@ -191,19 +241,14 @@
                         @if($job->accommodation_provided)
                             <p class="text-sm text-slate-700 mb-2"><strong>Accommodation:</strong> Provided</p>
                         @endif
-                        @if(!empty($job->accommodation_details))
-                            <p class="text-sm text-slate-700 mb-2"><strong>Relocation details:</strong> {{ $job->accommodation_details }}</p>
+                        @if($job->visa_support)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Visa/work permit:</strong> Supported</p>
                         @endif
                         @if($expiryDate)
                             <p class="text-sm text-slate-700 mb-2"><strong>Apply before:</strong> {{ $expiryDate }}</p>
                         @endif
 
                         <a href="{{ route('jobs.apply', $job) }}" class="cw-button-primary w-full mt-3">Apply now</a>
-                    </div>
-
-                    <div class="cw-surface p-5">
-                        <h3 class="text-base font-semibold text-slate-900 mb-2">Safe and secure applications</h3>
-                        <p class="text-sm text-slate-600 mb-0">Never pay upfront fees for interviews, visas, or job placement. Report suspicious listings so our moderation team can review them quickly.</p>
                     </div>
 
                     <div class="cw-surface p-5">

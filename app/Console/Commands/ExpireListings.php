@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Education;
 use App\Models\Job;
+use App\Models\Setting;
 use Illuminate\Console\Command;
 
 class ExpireListings extends Command
@@ -14,6 +15,11 @@ class ExpireListings extends Command
 
     public function handle(): int
     {
+        if (! Setting::getBool('auto_expire_jobs_enabled', true)) {
+            $this->info('Auto-expire listings is disabled in platform settings.');
+            return self::SUCCESS;
+        }
+
         $expiredJobs = Job::query()
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now())

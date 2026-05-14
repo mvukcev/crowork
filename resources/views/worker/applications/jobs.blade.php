@@ -23,6 +23,9 @@
                                 <th>Employer</th>
                                 <th>Status</th>
                                 <th>Applied</th>
+                                <th>Status updated</th>
+                                <th>Motivation</th>
+                                <th>Snapshot</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -33,7 +36,18 @@
                                     <td>{{ $application->job?->employer?->company_name ?? 'N/A' }}</td>
                                     <td><x-badge tone="info">{{ ucfirst($application->status) }}</x-badge></td>
                                     <td>{{ $application->created_at?->format('M j, Y') }}</td>
-                                    <td><a href="{{ route('jobs.show', $application->job) }}" class="cw-button-secondary">View</a></td>
+                                    <td>{{ $application->status_updated_at?->format('M j, Y H:i') ?? 'N/A' }}</td>
+                                    <td class="max-w-xs">
+                                        <p class="text-sm text-slate-700 line-clamp-2">{{ $application->message ?: 'No motivation message provided.' }}</p>
+                                    </td>
+                                    <td>{{ !empty($application->profile_snapshot) ? 'Stored' : 'N/A' }}</td>
+                                    <td>
+                                        @if($application->job)
+                                            <a href="{{ route('jobs.show', $application->job) }}" class="cw-button-secondary">View</a>
+                                        @else
+                                            <span class="text-xs text-slate-500">Unavailable</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

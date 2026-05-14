@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -10,7 +11,7 @@ class ComingSoonPreviewController extends Controller
 {
     public function show(): View|RedirectResponse
     {
-        if (!config('crowork.coming_soon.enabled', false)) {
+        if (! $this->isComingSoonEnabled()) {
             return redirect()->route('home');
         }
 
@@ -19,7 +20,7 @@ class ComingSoonPreviewController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
-        if (!config('crowork.coming_soon.enabled', false)) {
+        if (! $this->isComingSoonEnabled()) {
             return redirect()->route('home');
         }
 
@@ -51,5 +52,14 @@ class ComingSoonPreviewController extends Controller
         $request->session()->forget(config('crowork.coming_soon.session_key', 'coming_soon_preview'));
 
         return redirect()->route('coming-soon-preview.show');
+    }
+
+    private function isComingSoonEnabled(): bool
+    {
+        try {
+            return Setting::getBool('coming_soon_enabled', config('crowork.coming_soon.enabled', false));
+        } catch (\Throwable) {
+            return (bool) config('crowork.coming_soon.enabled', false);
+        }
     }
 }

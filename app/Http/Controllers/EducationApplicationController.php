@@ -31,6 +31,7 @@ class EducationApplicationController extends Controller
         return view('educations.apply', [
             'education' => $education,
             'profile' => $profile,
+            'profileSnapshot' => $profile->toSnapshot(),
             'alreadyApplied' => $existingApplication !== null,
             'existingApplication' => $existingApplication,
         ]);
@@ -61,6 +62,7 @@ class EducationApplicationController extends Controller
 
         $validated = $request->validate([
             'message' => 'nullable|string|max:1000',
+            'consent' => 'accepted',
         ]);
 
         EducationApplication::create([

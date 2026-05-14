@@ -117,6 +117,14 @@ Route::middleware('auth')->group(function () {
 
 // Authenticated routes
 Route::get('/dashboard', function () {
+    if (auth()->user()?->isWorker()) {
+        return redirect()->route('worker.dashboard');
+    }
+
+    if (auth()->user()?->isEmployer()) {
+        return redirect('/employer');
+    }
+
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -128,7 +136,9 @@ Route::middleware('auth')->group(function () {
 
 // Worker Profile routes (CV management)
 Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () {
+    Route::get('/dashboard', [WorkerApplicationController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [WorkerProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile/preview', [WorkerProfileController::class, 'preview'])->name('profile.preview');
     Route::put('/profile', [WorkerProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/photo', [WorkerProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
     Route::get('/settings', [WorkerSettingsController::class, 'edit'])->name('settings.edit');

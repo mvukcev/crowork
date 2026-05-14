@@ -48,7 +48,17 @@ class JobApplicationController extends Controller
 
         $alreadyApplied = $existingApplication !== null;
 
-        return view('jobs.apply', compact('job', 'profile', 'alreadyApplied', 'existingApplication'));
+        $profileSnapshot = $profile->toSnapshot();
+        $profileSkills = is_array($profileSnapshot['skills'] ?? null) ? $profileSnapshot['skills'] : [];
+
+        return view('jobs.apply', compact(
+            'job',
+            'profile',
+            'alreadyApplied',
+            'existingApplication',
+            'profileSnapshot',
+            'profileSkills',
+        ));
     }
 
     /**
@@ -92,6 +102,7 @@ class JobApplicationController extends Controller
         // Validate request
         $validated = $request->validate([
             'message' => 'nullable|string|max:1000',
+            'consent' => 'accepted',
         ]);
 
         // Create job application with profile snapshot
@@ -99,6 +110,7 @@ class JobApplicationController extends Controller
             'job_id' => $job->id,
             'worker_id' => Auth::id(),
             'profile_snapshot' => $profile->toSnapshot(),
+            'job_snapshot' => $this->jobSnapshot($job),
             'message' => $validated['message'] ?? null,
             'status' => 'new',
         ]);
@@ -123,5 +135,28 @@ class JobApplicationController extends Controller
             && !empty($profile->last_name)
             && !empty($profile->nationality_country_code)
             && !empty($profile->birth_year);
+    }
+
+    private function jobSnapshot(Job $job): array
+    {
+        return [
+            'title' => $job->title,
+            'company_name' => $job->employer?->company_name,
+            'location_city' => $job->location_city,
+            'category' => $job->category,
+            'contract_type' => $job->contract_type,
+            'salary_min' => $job->salary_min,
+            'salary_max' => $job->salary_max,
+            'salary_currency' => $job->salary_currency,
+            'salary_period' => $job->salary_period,
+            'languages' => $job->languages,
+            'accommodation_provided' => $job->accommodation_provided,
+            'visa_support' => $job->visa_support,
+            'experience_level' => $job->experience_level,
+            'education_required' => $job->education_required,
+            'positions_available' => $job->positions_available,
+            'posted_at' => $job->published_at?->toDateString(),
+            'expires_at' => $job->expires_at?->toDateString(),
+        ];
     }
 }

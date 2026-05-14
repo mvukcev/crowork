@@ -35,6 +35,15 @@
                         </select>
                     </div>
                     <div>
+                        <label class="cw-label" for="employment_type">Employment type</label>
+                        <select id="employment_type" name="employment_type" class="cw-field">
+                            <option value="">Any type</option>
+                            @foreach($employmentTypes as $employmentType)
+                                <option value="{{ $employmentType }}" @selected(($filters['employment_type'] ?? request('employment_type')) === $employmentType)>{{ \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $employmentType)) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
                         <label class="cw-label" for="salary_min">Minimum salary</label>
                         <input id="salary_min" name="salary_min" value="{{ $filters['salary_min'] ?? request('salary_min') }}" class="cw-field" type="number" min="0" placeholder="EUR">
                     </div>
@@ -42,7 +51,6 @@
                         <label class="cw-label" for="language">Language</label>
                         <select id="language" name="language" class="cw-field">
                             <option value="">Any language</option>
-                            @php($languages = ['en' => 'English', 'hr' => 'Croatian', 'de' => 'German', 'it' => 'Italian'])
                             @foreach($languages as $code => $name)
                                 <option value="{{ $code }}" @selected(($filters['language'] ?? request('language')) === $code)>{{ $name }}</option>
                             @endforeach
