@@ -25,6 +25,15 @@ class JobApplicationStatusChanged extends Notification
      */
     public function via(object $notifiable): array
     {
+        // Check deduplication - don't send if same notification sent recently
+        if (!\App\Services\DataIntegrityService::shouldSendNotification(
+            $notifiable,
+            self::class,
+            "application_{$this->application->id}_status_changed"
+        )) {
+            return []; // Skip notification if duplicate
+        }
+
         return ['mail', 'database'];
     }
 

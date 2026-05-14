@@ -22,6 +22,15 @@ class NewJobApplicationReceived extends Notification
      */
     public function via(object $notifiable): array
     {
+        // Check deduplication - don't send if same notification sent recently
+        if (!\App\Services\DataIntegrityService::shouldSendNotification(
+            $notifiable,
+            self::class,
+            "new_application_{$this->application->id}"
+        )) {
+            return []; // Skip notification if duplicate
+        }
+
         return ['mail', 'database'];
     }
 

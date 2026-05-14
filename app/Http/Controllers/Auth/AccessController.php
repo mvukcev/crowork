@@ -58,6 +58,19 @@ class AccessController extends Controller
 
     public function checkEmail(Request $request): RedirectResponse
     {
+        // Rate limit: Max 10 email checks per minute per IP to prevent enumeration
+        $rateLimitKey = 'cw_email_check_' . $request->ip();
+        if (Cache::has($rateLimitKey)) {
+            $attempts = Cache::get($rateLimitKey, 0);
+            if ($attempts >= 10) {
+                return redirect()->route('access.show')
+                    ->withErrors(['email' => 'Too many email checks. Please try again in 1 minute.']);
+            }
+            Cache::put($rateLimitKey, $attempts + 1, now()->addMinute());
+        } else {
+            Cache::put($rateLimitKey, 1, now()->addMinute());
+        }
+
         $data = $request->validate([
             'email'       => ['required', 'string', 'lowercase', 'email', 'max:255'],
             'intent_type' => ['nullable', Rule::in([User::ROLE_WORKER, User::ROLE_EMPLOYER])],
@@ -182,6 +195,15 @@ class AccessController extends Controller
 
         session(['access_email' => $email, 'access_intent_type' => $intentType, 'access_stage' => 'verify_code']);
 
+        // Rate limit: Max 3 resend attempts per 5 minutes per email
+        $rateLimitKey = 'cw_resend_limit_' . $email;
+        $resendCount = Cache::get($rateLimitKey, 0);
+        
+        if ($resendCount >= 3) {
+            return redirect()->route('access.show')
+                ->withErrors(['resend' => 'Too many resend requests. Please try again in 5 minutes.']);
+        }
+
         if (Cache::has($this->resendCooldownKey($email))) {
             return redirect()->route('access.show')
                 ->withErrors(['resend' => 'Please wait 60 seconds before requesting a new code.']);
@@ -192,6 +214,9 @@ class AccessController extends Controller
         if ($this->isDevMode()) {
             session(['cw_dev_code' => $code]);
         }
+
+        // Increment resend counter with 5-minute expiry
+        Cache::put($rateLimitKey, $resendCount + 1, now()->addMinutes(5));
 
         return redirect()->route('access.show')
             ->with('resend_success', 'A new code has been sent to ' . $email . '.');

@@ -38,18 +38,19 @@ class ApplicationController extends Controller
             ->where('status', 'pending')
             ->count();
 
-        // Get all applications for this employer's jobs
-        $allApplications = JobApplication::whereHas('job', fn($q) => 
+        // Get application counts by status using database queries (prevents N+1)
+        $applications = JobApplication::whereHas('job', fn($q) => 
             $q->where('employer_id', $employer->id)
-        )->get();
+        );
 
-        $totalApplications = $allApplications->count();
-        $newApplications = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_NEW)->count();
-        $shortlistedCount = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_SHORTLISTED)->count();
-        $interviewCount = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_INTERVIEW)->count();
-        $offerCount = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_OFFER)->count();
-        $hiredCount = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_HIRED)->count();
-        $rejectedCount = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_REJECTED)->count();
+        $totalApplications = $applications->count();
+        $newApplications = (clone $applications)->where('status', JobApplication::STATUS_NEW)->count();
+        $shortlistedCount = (clone $applications)->where('status', JobApplication::STATUS_SHORTLISTED)->count();
+        $interviewCount = (clone $applications)->where('status', JobApplication::STATUS_INTERVIEW)->count();
+        $offerCount = (clone $applications)->where('status', JobApplication::STATUS_OFFER)->count();
+        $hiredCount = (clone $applications)->where('status', JobApplication::STATUS_HIRED)->count();
+        $rejectedCount = (clone $applications)->where('status', JobApplication::STATUS_REJECTED)->count();
+        $reviewingCount = (clone $applications)->where('status', JobApplication::STATUS_REVIEWING)->count();
 
         $pipelineBreakdown = [
             [
@@ -62,7 +63,7 @@ class ApplicationController extends Controller
             [
                 'label' => 'Reviewing',
                 'key' => JobApplication::STATUS_REVIEWING,
-                'count' => $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_REVIEWING)->count(),
+                'count' => $reviewingCount,
                 'color' => 'text-indigo-600',
                 'bg' => 'bg-indigo-100',
             ],
@@ -366,7 +367,7 @@ class ApplicationController extends Controller
             'industry' => ['nullable', 'string', 'max:100'],
             'website' => ['nullable', 'url', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'logo' => ['nullable', 'image', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048', 'dimensions:min_width=100,min_height=100'],
             'relocation_support' => ['boolean'],
             'accommodation_support' => ['boolean'],
         ]);
@@ -376,7 +377,10 @@ class ApplicationController extends Controller
                 Storage::disk('public')->delete($employer->logo_path);
             }
 
-            $validated['logo_path'] = $request->file('logo')->store('company-logos', 'public');
+            // Store with safe filename to prevent path traversal
+            $logoFile = $request->file('logo');
+            $filename = $employer->id . '_' . time() . '.' . $logoFile->getClientOriginalExtension();
+            $validated['logo_path'] = $logoFile->storeAs('company-logos', $filename, 'public');
         }
 
         unset($validated['logo']);

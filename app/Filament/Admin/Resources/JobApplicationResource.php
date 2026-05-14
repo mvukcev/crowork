@@ -19,19 +19,28 @@ class JobApplicationResource extends Resource
 
     protected static ?string $navigationGroup = 'Applications';
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('job_id')
                     ->relationship('job', 'title')
-                    ->required()
+                    ->disabled()
+                    ->dehydrated(false)
                     ->searchable(),
                 Forms\Components\Select::make('worker_id')
                     ->relationship('worker', 'name')
-                    ->required()
+                    ->disabled()
+                    ->dehydrated(false)
                     ->searchable(),
                 Forms\Components\Textarea::make('message')
+                    ->disabled()
+                    ->dehydrated(false)
                     ->columnSpanFull(),
                 Forms\Components\Select::make('status')
                     ->options([
@@ -40,9 +49,19 @@ class JobApplicationResource extends Resource
                         'shortlisted' => 'Shortlisted',
                         'rejected' => 'Rejected',
                     ])
-                    ->required(),
-                Forms\Components\KeyValue::make('profile_snapshot')
-                    ->label('Profile Snapshot')
+                    ->disabled()
+                    ->dehydrated(false),
+                Forms\Components\Textarea::make('profile_snapshot_display')
+                    ->label('Profile Snapshot (Read-Only - For Reference Only)')
+                    ->disabled()
+                    ->formatStateUsing(fn (JobApplication $record): string => json_encode($record->profile_snapshot ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))
+                    ->rows(12)
+                    ->columnSpanFull(),
+                Forms\Components\Textarea::make('job_snapshot_display')
+                    ->label('Job Snapshot (Read-Only - For Reference Only)')
+                    ->disabled()
+                    ->formatStateUsing(fn (JobApplication $record): string => json_encode($record->job_snapshot ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))
+                    ->rows(8)
                     ->columnSpanFull(),
             ]);
     }
