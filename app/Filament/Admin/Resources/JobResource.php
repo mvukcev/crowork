@@ -178,6 +178,17 @@ class JobResource extends Resource
                     ->label('Employment')
                     ->formatStateUsing(fn (?string $state): string => $state ? str($state)->replace(['-', '_'], ' ')->title() : '-')
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('experience_level')
+                    ->formatStateUsing(fn (?string $state): string => $state ? str($state)->replace(['-', '_'], ' ')->title() : '-')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('education_required')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('positions_available')
+                    ->label('Positions')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('start_date')
+                    ->date()
+                    ->toggleable(),
                 Tables\Columns\IconColumn::make('is_urgent')
                     ->label('Urgent')
                     ->boolean(),
@@ -215,6 +226,8 @@ class JobResource extends Resource
                 Tables\Filters\SelectFilter::make('contract_type')
                     ->label('Employment type')
                     ->options(fn () => Job::query()->whereNotNull('contract_type')->distinct()->pluck('contract_type', 'contract_type')->toArray()),
+                Tables\Filters\SelectFilter::make('experience_level')
+                    ->options(fn () => Job::query()->whereNotNull('experience_level')->distinct()->pluck('experience_level', 'experience_level')->toArray()),
             ])
             ->actions([
                 Tables\Actions\Action::make('approve')

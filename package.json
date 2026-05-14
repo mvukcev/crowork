@@ -16,7 +16,6 @@
         "vite": "^5.0"
     },
     "dependencies": {
-        "@fontsource/geist": "^5.2.8",
-        "@fontsource/space-grotesk": "^5.2.10"
+        "@fontsource/geist": "^5.2.8"
     }
 }

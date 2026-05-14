@@ -11,14 +11,21 @@
         <nav class="h-full flex items-center justify-between gap-4">
             <div class="flex items-center gap-8">
                 <a href="{{ route('home') }}" class="flex items-center">
-                    <span class="text-[15px] font-semibold text-slate-900">CroWork</span>
+                    <img
+                        src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                        alt="CroWork"
+                        class="h-6 w-auto"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
+                    >
+                    <span class="hidden text-[15px] font-semibold text-slate-900">CroWork</span>
                 </a>
 
                 <div class="hidden lg:flex items-center gap-8">
-                    <a href="{{ route('jobs.index') }}" class="cw-nav-link" @class(['cw-nav-link-active' => request()->routeIs('jobs.*')])>Jobs</a>
-                    <a href="{{ route('educations.index') }}" class="cw-nav-link" @class(['cw-nav-link-active' => request()->routeIs('educations.*')])>Educations</a>
-                    <a href="{{ route('about') }}" class="cw-nav-link" @class(['cw-nav-link-active' => request()->routeIs('about')])>About</a>
-                    <a href="{{ route('for-employers') }}" class="cw-nav-link" @class(['cw-nav-link-active' => request()->routeIs('for-employers')])>For Employers</a>
+                    <a href="{{ route('jobs.index') }}" @class(['cw-nav-link', 'cw-nav-link-active' => request()->routeIs('jobs.*')])>Jobs</a>
+                    <a href="{{ route('educations.index') }}" @class(['cw-nav-link', 'cw-nav-link-active' => request()->routeIs('educations.*')])>Educations</a>
+                    <a href="{{ route('resources.index') }}" @class(['cw-nav-link', 'cw-nav-link-active' => request()->routeIs('resources.*')])>Resources</a>
+                    <a href="{{ route('about') }}" @class(['cw-nav-link', 'cw-nav-link-active' => request()->routeIs('about')])>About</a>
+                    <a href="{{ route('for-employers') }}" @class(['cw-nav-link', 'cw-nav-link-active' => request()->routeIs('for-employers')])>For Employers</a>
                 </div>
             </div>
 
@@ -57,6 +64,7 @@
             <div class="pt-3 space-y-2">
                 <a href="{{ route('jobs.index') }}" class="block cw-button-secondary text-center">Jobs</a>
                 <a href="{{ route('educations.index') }}" class="block cw-button-secondary text-center">Educations</a>
+                <a href="{{ route('resources.index') }}" class="block cw-button-secondary text-center">Resources</a>
                 <a href="{{ route('about') }}" class="block cw-button-secondary text-center">About</a>
                 <a href="{{ route('for-employers') }}" class="block cw-button-secondary text-center">For Employers</a>
             </div>

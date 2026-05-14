@@ -4,13 +4,16 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="robots" content="noindex,nofollow">
         <title>Continue to CroWork</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="h-full cw-page">
         <div class="min-h-screen flex flex-col">
             <header class="cw-container py-4">
-                <a href="{{ route('home') }}" class="text-[15px] font-semibold text-slate-900">CroWork</a>
+                <a href="{{ route('home') }}" class="inline-flex items-center h-8">
+                    <img src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-full" loading="lazy">
+                </a>
             </header>
 
             <main class="cw-container flex-1 flex items-start sm:items-center justify-center pb-8 sm:pb-12">
@@ -28,7 +31,7 @@
                             <div class="mb-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700">{{ $message }}</div>
                         @enderror
 
-                        <form method="POST" action="{{ route('access.email') }}" class="space-y-4">
+                        <form method="POST" action="{{ route('access.email') }}" class="space-y-4" data-cw-track-submit="registration_start">
                             @csrf
                             <input type="hidden" name="intent_type" value="{{ $intentType ?? 'worker' }}">
                             <div>
@@ -57,7 +60,10 @@
                                 Remember me
                             </label>
                             <button type="submit" class="cw-button-primary w-full">Sign in</button>
-                            <a href="{{ route('access.show') }}" class="inline-flex justify-center w-full text-sm text-slate-600 hover:text-slate-900">Use different email</a>
+                            <form method="POST" action="{{ route('access.reset') }}" class="w-full">
+                                @csrf
+                                <button type="submit" class="inline-flex justify-center w-full text-sm text-slate-600 hover:text-slate-900">Use a different email</button>
+                            </form>
                         </form>
 
                     {{-- ─── Stage: VERIFY CODE ────────────────────────────────── --}}
@@ -164,7 +170,10 @@
                             </div>
 
                             <div class="mt-4 text-center">
-                                <a href="{{ route('access.show') }}" class="text-sm text-slate-600 hover:text-slate-900">Use different email</a>
+                                <form method="POST" action="{{ route('access.reset') }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-sm text-slate-600 hover:text-slate-900">Use a different email</button>
+                                </form>
                             </div>
                         </div>
 
@@ -200,7 +209,10 @@
                                 <input id="password_confirmation" class="cw-field" type="password" name="password_confirmation" required autocomplete="new-password">
                             </div>
                             <button type="submit" class="cw-button-primary w-full">Create account</button>
-                            <a href="{{ route('access.show') }}" class="inline-flex justify-center w-full text-sm text-slate-600 hover:text-slate-900">Use different email</a>
+                            <form method="POST" action="{{ route('access.reset') }}" class="w-full">
+                                @csrf
+                                <button type="submit" class="inline-flex justify-center w-full text-sm text-slate-600 hover:text-slate-900">Use a different email</button>
+                            </form>
                         </form>
                     @endif
 

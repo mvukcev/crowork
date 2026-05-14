@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'continue_to_crowork' => 'Continue to CroWork',
+    'use_email_to_sign_in' => 'Use your email to sign in or create your account.',
+    'email' => 'Email',
+    'password' => 'Password',
+    'continue' => 'Continue',
+    'sign_in' => 'Sign in',
+    'create_account' => 'Create account',
+    'remember_me' => 'Remember me',
+    'use_different_email' => 'Use a different email',
+    'verification_code' => 'Verification Code',
+    'we_sent_code' => 'We sent a 6-digit code to',
+    'code_expires_in' => 'The code expires in 10 minutes.',
+    'resend_code' => 'Resend code',
+    'verify' => 'Verify',
+    'first_name' => 'First Name',
+    'last_name' => 'Last Name',
+    'full_name' => 'Full Name',
+    'register' => 'Register',
+    'already_have_account' => 'Already have an account?',
+    'accept_terms' => 'I accept the Terms & Conditions',
+    'email_invalid' => 'Invalid email address.',
+    'password_required' => 'Password is required.',
+    'password_min' => 'Password must be at least 8 characters.',
+    'password_confirmed' => 'Password confirmation does not match.',
+];

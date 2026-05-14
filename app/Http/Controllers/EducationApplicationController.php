@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Education;
 use App\Models\EducationApplication;
 use App\Models\WorkerProfile;
+use App\Notifications\EducationApplicationSubmitted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -65,13 +66,16 @@ class EducationApplicationController extends Controller
             'consent' => 'accepted',
         ]);
 
-        EducationApplication::create([
+        $application = EducationApplication::create([
             'education_id' => $education->id,
             'worker_id' => Auth::id(),
             'profile_snapshot' => $profile->toSnapshot(),
             'message' => $validated['message'] ?? null,
             'status' => 'new',
         ]);
+
+        $application->loadMissing('worker');
+        $application->worker?->notify(new EducationApplicationSubmitted($application));
 
         return redirect()
             ->route('educations.show', $education)

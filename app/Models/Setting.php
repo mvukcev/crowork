@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Setting extends Model
 {
     public const DEFINITIONS = [
+        // Platform Access
         'coming_soon_enabled' => [
             'label' => 'Coming Soon Enabled',
             'group' => 'Platform Access',
@@ -31,6 +32,14 @@ class Setting extends Model
             'type' => 'boolean',
             'default' => true,
         ],
+        'demo_preview_enabled' => [
+            'label' => 'Demo Preview Enabled',
+            'group' => 'Platform Access',
+            'type' => 'boolean',
+            'default' => false,
+        ],
+
+        // Approvals
         'job_approval_required' => [
             'label' => 'Job Approval Required',
             'group' => 'Approvals',
@@ -49,6 +58,8 @@ class Setting extends Model
             'type' => 'boolean',
             'default' => true,
         ],
+
+        // Applications
         'application_visibility_mode' => [
             'label' => 'Application Visibility Mode',
             'group' => 'Applications',
@@ -66,24 +77,6 @@ class Setting extends Model
             'type' => 'boolean',
             'default' => false,
         ],
-        'default_job_expiry_days' => [
-            'label' => 'Default Job Expiry Days',
-            'group' => 'Jobs Lifecycle',
-            'type' => 'integer',
-            'default' => 30,
-        ],
-        'auto_expire_jobs_enabled' => [
-            'label' => 'Auto-expire Jobs Enabled',
-            'group' => 'Jobs Lifecycle',
-            'type' => 'boolean',
-            'default' => true,
-        ],
-        'admin_notification_email' => [
-            'label' => 'Admin Notification Email',
-            'group' => 'Notifications',
-            'type' => 'email',
-            'default' => null,
-        ],
         'employer_visible_fields' => [
             'label' => 'Employer Visible Fields (Limited Mode)',
             'group' => 'Applications',
@@ -99,6 +92,296 @@ class Setting extends Model
                 'recommendations',
                 'photo_path',
             ],
+        ],
+
+        // Jobs Lifecycle
+        'default_job_expiry_days' => [
+            'label' => 'Default Job Expiry Days',
+            'group' => 'Jobs Lifecycle',
+            'type' => 'integer',
+            'default' => 30,
+        ],
+        'max_active_jobs_per_employer' => [
+            'label' => 'Max Active Jobs Per Employer',
+            'group' => 'Jobs Lifecycle',
+            'type' => 'integer',
+            'default' => 0, // 0 = unlimited
+        ],
+        'auto_expire_jobs_enabled' => [
+            'label' => 'Auto-expire Jobs Enabled',
+            'group' => 'Jobs Lifecycle',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+
+        // Email & SMTP
+        'mail_mailer' => [
+            'label' => 'Mail Driver',
+            'group' => 'Email & SMTP',
+            'type' => 'select',
+            'default' => 'smtp',
+            'options' => [
+                'smtp' => 'SMTP',
+                'log' => 'Log (Development)',
+                'mailgun' => 'Mailgun',
+                'postmark' => 'Postmark',
+                'sendmail' => 'Sendmail',
+            ],
+        ],
+        'mail_host' => [
+            'label' => 'Mail Host',
+            'group' => 'Email & SMTP',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'mail_port' => [
+            'label' => 'Mail Port',
+            'group' => 'Email & SMTP',
+            'type' => 'integer',
+            'default' => 587,
+        ],
+        'mail_username' => [
+            'label' => 'Mail Username',
+            'group' => 'Email & SMTP',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'mail_password' => [
+            'label' => 'Mail Password',
+            'group' => 'Email & SMTP',
+            'type' => 'password',
+            'default' => null,
+            'secret' => true,
+        ],
+        'mail_encryption' => [
+            'label' => 'Mail Encryption',
+            'group' => 'Email & SMTP',
+            'type' => 'select',
+            'default' => 'tls',
+            'options' => [
+                'tls' => 'TLS',
+                'ssl' => 'SSL',
+                'null' => 'None',
+            ],
+        ],
+        'mail_from_address' => [
+            'label' => 'Mail From Address',
+            'group' => 'Email & SMTP',
+            'type' => 'email',
+            'default' => 'noreply@crowork.local',
+        ],
+        'mail_from_name' => [
+            'label' => 'Mail From Name',
+            'group' => 'Email & SMTP',
+            'type' => 'text',
+            'default' => 'CroWork',
+        ],
+
+        // Notifications
+        'admin_notification_email' => [
+            'label' => 'Admin Notification Email',
+            'group' => 'Notifications',
+            'type' => 'email',
+            'default' => null,
+        ],
+        'notify_admin_new_employer' => [
+            'label' => 'Notify Admin on New Employer Registration',
+            'group' => 'Notifications',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'notify_admin_new_report' => [
+            'label' => 'Notify Admin on Abuse Report',
+            'group' => 'Notifications',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'notify_employer_new_application' => [
+            'label' => 'Notify Employer on New Application',
+            'group' => 'Notifications',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'notify_worker_status_changed' => [
+            'label' => 'Notify Worker on Application Status Change',
+            'group' => 'Notifications',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+
+        // Localization
+        'default_platform_locale' => [
+            'label' => 'Default Platform Locale',
+            'group' => 'Localization',
+            'type' => 'select',
+            'default' => 'en',
+            'options' => [
+                'en' => 'English',
+                'hr' => 'Croatian',
+                'de' => 'German',
+            ],
+        ],
+        'enabled_locales' => [
+            'label' => 'Enabled Locales',
+            'group' => 'Localization',
+            'type' => 'array',
+            'default' => ['en', 'hr'],
+        ],
+        'default_timezone' => [
+            'label' => 'Default Timezone',
+            'group' => 'Localization',
+            'type' => 'text',
+            'default' => 'Europe/Zagreb',
+        ],
+        'default_currency' => [
+            'label' => 'Default Currency',
+            'group' => 'Localization',
+            'type' => 'select',
+            'default' => 'EUR',
+            'options' => [
+                'EUR' => 'EUR (€)',
+                'USD' => 'USD ($)',
+                'GBP' => 'GBP (£)',
+            ],
+        ],
+
+        // Analytics & Tracking
+        'analytics_enabled' => [
+            'label' => 'Analytics Enabled',
+            'group' => 'Analytics',
+            'type' => 'boolean',
+            'default' => false,
+        ],
+        'google_tag_manager_id' => [
+            'label' => 'Google Tag Manager ID (GTM-XXXXXXX)',
+            'group' => 'Analytics',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'google_tag_id' => [
+            'label' => 'Google Analytics 4 Measurement ID (G-XXXXXXXXXX)',
+            'group' => 'Analytics',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'analytics_debug_mode' => [
+            'label' => 'Analytics Debug Mode',
+            'group' => 'Analytics',
+            'type' => 'boolean',
+            'default' => false,
+        ],
+
+        // Meta Pixel & CAPI
+        'meta_tracking_enabled' => [
+            'label' => 'Meta Tracking Enabled',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'boolean',
+            'default' => false,
+        ],
+        'meta_pixel_id' => [
+            'label' => 'Meta Pixel ID',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'meta_conversions_api_access_token' => [
+            'label' => 'Meta Conversions API Access Token',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'password',
+            'default' => null,
+            'secret' => true,
+        ],
+        'meta_test_event_code' => [
+            'label' => 'Meta Test Event Code',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'meta_dataset_id' => [
+            'label' => 'Meta Dataset ID',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'meta_api_version' => [
+            'label' => 'Meta API Version',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'text',
+            'default' => 'v18.0',
+        ],
+        'meta_debug_mode' => [
+            'label' => 'Meta Debug Mode',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'boolean',
+            'default' => false,
+        ],
+
+        // Consent & Privacy
+        'cookie_banner_enabled' => [
+            'label' => 'Cookie Banner Enabled',
+            'group' => 'Consent & Privacy',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'consent_required' => [
+            'label' => 'Require Consent for Analytics & Marketing',
+            'group' => 'Consent & Privacy',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'cookie_statement_url' => [
+            'label' => 'Cookie Statement URL',
+            'group' => 'Consent & Privacy',
+            'type' => 'text',
+            'default' => null,
+        ],
+
+        // Security & Audit
+        'audit_log_enabled' => [
+            'label' => 'Audit Log Enabled',
+            'group' => 'Security & Audit',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'audit_log_retention_days' => [
+            'label' => 'Audit Log Retention Days',
+            'group' => 'Security & Audit',
+            'type' => 'integer',
+            'default' => 90,
+        ],
+
+        // File Uploads
+        'upload_max_file_size_mb' => [
+            'label' => 'Max Upload File Size (MB)',
+            'group' => 'File Uploads',
+            'type' => 'integer',
+            'default' => 10,
+        ],
+        'allowed_upload_extensions' => [
+            'label' => 'Allowed Upload Extensions',
+            'group' => 'File Uploads',
+            'type' => 'array',
+            'default' => ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
+        ],
+
+        // Admin Features
+        'admin_impersonation_enabled' => [
+            'label' => 'Admin Impersonation Enabled',
+            'group' => 'Admin Features',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'dark_mode_enabled' => [
+            'label' => 'Dark Mode Enabled',
+            'group' => 'Admin Features',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'legal_pages_managed_from_admin' => [
+            'label' => 'Manage Legal Pages from Admin',
+            'group' => 'Admin Features',
+            'type' => 'boolean',
+            'default' => true,
         ],
     ];
 
@@ -140,6 +423,12 @@ class Setting extends Model
     {
         $value = static::getValue($key, $default);
         return is_string($value) ? $value : $default;
+    }
+
+    public static function getArray(string $key, array $default = []): array
+    {
+        $value = static::getValue($key, $default);
+        return is_array($value) ? $value : $default;
     }
 
     public static function setValue(string $key, mixed $value): self

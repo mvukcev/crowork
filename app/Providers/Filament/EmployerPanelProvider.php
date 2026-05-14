@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Employer\Pages\Dashboard;
+use App\Filament\Employer\Resources\EmployerProfileResource;
+use App\Filament\Employer\Resources\JobApplicationResource;
 use App\Filament\Employer\Widgets\EmployerApplicationStatusChart;
 use App\Filament\Employer\Widgets\EmployerApplicationsByJobChart;
 use App\Filament\Employer\Widgets\EmployerJobsByStatusChart;
@@ -32,10 +34,14 @@ class EmployerPanelProvider extends PanelProvider
             ->id('employer')
             ->path('employer')
             ->login()
+            ->brandName('CroWork Employer')
             ->colors([
                 'primary' => Color::Green,
             ])
-            ->discoverResources(in: app_path('Filament/Employer/Resources'), for: 'App\\Filament\\Employer\\Resources')
+            ->resources([
+                EmployerProfileResource::class,
+                JobApplicationResource::class,
+            ])
             ->discoverPages(in: app_path('Filament/Employer/Pages'), for: 'App\\Filament\\Employer\\Pages')
             ->pages([
                 Dashboard::class,

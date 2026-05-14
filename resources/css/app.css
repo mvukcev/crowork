@@ -2,8 +2,30 @@
 @import '@fontsource/geist/400.css';
 @import '@fontsource/geist/500.css';
 @import '@fontsource/geist/600.css';
-@import '@fontsource/space-grotesk/500.css';
-@import '@fontsource/space-grotesk/600.css';
+
+@font-face {
+    font-family: "Monument Extended";
+    src: url('../fonts/MonumentExtended-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Monument Extended";
+    src: url('../fonts/MonumentExtended-Regular.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Monument Extended";
+    src: url('../fonts/MonumentExtended-Regular.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -25,7 +47,7 @@
         --cw-yellow: 255 198 61;
 
         --font-ui: 'Geist', ui-sans-serif, system-ui, sans-serif;
-        --font-display: 'Space Grotesk', 'Geist', ui-sans-serif, system-ui, sans-serif;
+        --font-display: "Monument Extended", 'Geist', ui-sans-serif, system-ui, sans-serif;
     }
 
     * {
@@ -182,10 +204,16 @@
 
     .cw-display {
         font-family: var(--font-display);
-        font-weight: 600;
+        font-weight: 500;
         letter-spacing: -0.045em;
         line-height: 0.98;
         color: var(--cw-ink);
+    }
+
+    .cw-brand-display .cw-display {
+        font-family: var(--font-display);
+        font-weight: 400;
+        letter-spacing: -0.03em;
     }
 
     .cw-surface {
@@ -232,7 +260,7 @@
     }
 
     .cw-button-accent {
-        background: linear-gradient(92deg, rgb(var(--cw-orange)) 0%, rgb(var(--cw-yellow)) 100%);
+        background: rgb(var(--cw-orange));
         color: #0f172a;
         border: 1px solid rgba(var(--cw-orange) / 0.45);
     }
@@ -557,6 +585,118 @@
 
     .cw-table tr:last-child td {
         border-bottom: none;
+    }
+
+    .cw-filter-shell {
+        position: sticky;
+        top: 4.75rem;
+        z-index: 35;
+        border-radius: 18px;
+        padding: 0.5rem;
+        background:
+            linear-gradient(160deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.94) 55%, rgba(237, 242, 255, 0.82) 100%);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+        backdrop-filter: blur(8px);
+    }
+
+    .cw-filter-topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr) auto;
+        gap: 0.75rem;
+    }
+
+    .cw-filter-panel {
+        border: 1px solid rgba(15, 23, 42, 0.09);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .cw-filter-heading {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--cw-subtle);
+        margin-bottom: 0.75rem;
+    }
+
+    .cw-filter-chip {
+        @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium;
+        border: 1px solid rgba(var(--cw-blue) / 0.28);
+        background: rgba(var(--cw-blue) / 0.1);
+        color: rgb(37 99 235);
+        transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    }
+
+    .cw-filter-chip:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
+        background: rgba(var(--cw-blue) / 0.14);
+    }
+
+    .cw-filter-chip:focus-visible {
+        outline: 2px solid rgba(var(--cw-blue) / 0.45);
+        outline-offset: 2px;
+    }
+
+    .cw-filter-chip-orange {
+        border-color: rgba(var(--cw-orange) / 0.34);
+        background: rgba(var(--cw-orange) / 0.12);
+        color: rgb(194 65 12);
+    }
+
+    .cw-filter-chip-orange:hover {
+        box-shadow: 0 6px 14px rgba(255, 138, 61, 0.2);
+        background: rgba(var(--cw-orange) / 0.16);
+    }
+
+    .cw-filter-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(15, 23, 42, 0.38);
+        backdrop-filter: blur(2px);
+    }
+
+    .cw-filter-bottom-sheet {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 70;
+        border-radius: 18px 18px 0 0;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        background: #ffffff;
+        box-shadow: 0 -14px 28px rgba(15, 23, 42, 0.2);
+        max-height: 82vh;
+        overflow-y: auto;
+    }
+
+    .cw-filter-fab {
+        position: fixed;
+        right: 1rem;
+        bottom: 1.25rem;
+        z-index: 45;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
+    }
+
+    @media (max-width: 767px) {
+        .cw-filter-shell {
+            position: relative;
+            top: 0;
+            z-index: 1;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+
+        .cw-filter-topbar {
+            grid-template-columns: 1fr;
+            gap: 0.6rem;
+        }
     }
 
 }

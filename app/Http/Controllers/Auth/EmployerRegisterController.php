@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Employer;
+use App\Notifications\AdminNewEmployerPending;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,13 @@ class EmployerRegisterController extends Controller
             'company_name' => $request->company_name,
             'city' => $request->city,
         ]);
+
+        $user->loadMissing('employer');
+
+        User::query()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_MOD])
+            ->get()
+            ->each(fn (User $admin) => $admin->notify(new AdminNewEmployerPending($user->employer)));
 
         // Send email verification notification
         event(new Registered($user));

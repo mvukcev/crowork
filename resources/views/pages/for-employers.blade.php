@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="title">For Employers</x-slot>
     <x-slot name="description">Recruit and manage migration-ready talent in Croatia with one clear workflow.</x-slot>
+    <x-slot name="canonical">{{ route('for-employers') }}</x-slot>
 
     <section class="cw-section">
         <div class="cw-container">
@@ -17,7 +18,7 @@
             </div>
 
             <div class="flex flex-wrap gap-2 mt-8">
-                <a href="{{ url('/employer/register') }}" class="cw-button-primary">Create employer account</a>
+                <a href="{{ url('/employer/register') }}" class="cw-button-primary" data-cw-track-click="employer_cta_click">Create employer account</a>
                 <a href="{{ url('/contact') }}" class="cw-button-secondary">Talk to CroWork</a>
             </div>
             </div>

@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\Employer;
 use App\Models\User;
 use App\Models\WorkerProfile;
+use App\Notifications\AdminNewEmployerPending;
 use App\Services\ApprovalService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -64,6 +65,19 @@ class AccessController extends Controller
 
         $email      = strtolower($data['email']);
         $intentType = $data['intent_type'] ?? User::ROLE_WORKER;
+
+        // If user restarts with another email, invalidate stale code state from previous flow.
+        $previousEmail = session('access_email');
+        $verifiedEmail = session('cw_verified_email');
+
+        if ($previousEmail && strtolower((string) $previousEmail) !== $email) {
+            $this->invalidateVerificationStateForEmail((string) $previousEmail);
+        }
+
+        if ($verifiedEmail && strtolower((string) $verifiedEmail) !== $email) {
+            $this->invalidateVerificationStateForEmail((string) $verifiedEmail);
+            session()->forget('cw_verified_email');
+        }
 
         session(['access_email' => $email, 'access_intent_type' => $intentType]);
 
@@ -204,9 +218,13 @@ class AccessController extends Controller
         }
 
         $request->session()->regenerate();
-        session()->forget(['access_stage', 'access_email', 'access_intent_type']);
+        $this->clearAccessSessionState();
 
         $user = Auth::user();
+        if ($user->role === User::ROLE_ADMIN || $user->role === User::ROLE_MOD) {
+            return redirect()->intended('/admin');
+        }
+
         if ($user->role === User::ROLE_EMPLOYER) {
             return redirect()->intended('/employer');
         }
@@ -251,7 +269,7 @@ class AccessController extends Controller
             'role'     => $data['account_type'],
         ]);
 
-        session()->forget(['cw_verified_email', 'access_stage', 'access_email', 'access_intent_type', 'cw_dev_code']);
+        $this->clearAccessSessionState();
 
         if ($user->role === User::ROLE_WORKER) {
             WorkerProfile::create([
@@ -277,10 +295,53 @@ class AccessController extends Controller
             'approved_at'  => $approvalService->requiresEmployerApproval() ? null : now(),
         ]);
 
-        event(new Registered($user));
+        $user->loadMissing('employer');
 
-        return redirect()->route('access.show', ['type' => User::ROLE_EMPLOYER])
-            ->with('status', 'Account created. Verify your email, then sign in to continue to employer approval.');
+        if ($approvalService->requiresEmployerApproval() && $user->employer?->approved_at === null) {
+            User::query()
+                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_MOD])
+                ->get()
+                ->each(fn (User $admin) => $admin->notify(new AdminNewEmployerPending($user->employer)));
+        }
+
+        event(new Registered($user));
+        $this->clearAccessSessionState();
+        Auth::login($user);
+
+        // If employer requires approval, show the pending approval page
+        if ($approvalService->requiresEmployerApproval() && ! $user->employer->approved_at) {
+            return redirect()->route('employer.pending-approval');
+        }
+
+        return redirect('/employer');
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /access/reset — clear unified access state and start over
+    // -------------------------------------------------------------------------
+
+    public function reset(Request $request): RedirectResponse
+    {
+        $emails = array_values(array_unique(array_filter([
+            session('access_email'),
+            session('cw_verified_email'),
+            $request->input('email'),
+        ])));
+
+        foreach ($emails as $email) {
+            $this->invalidateVerificationStateForEmail((string) $email);
+        }
+
+        $this->clearAccessSessionState();
+
+        if (app()->environment('local') || config('app.debug')) {
+            Log::info('Unified access flow reset.', [
+                'emails_cleared' => array_map(fn ($value) => strtolower((string) $value), $emails),
+                'ip' => $request->ip(),
+            ]);
+        }
+
+        return redirect()->route('access.show');
     }
 
     // -------------------------------------------------------------------------
@@ -320,6 +381,44 @@ class AccessController extends Controller
     private function resendCooldownKey(string $email): string
     {
         return 'cw_ev_cd_' . hash('sha256', strtolower(trim($email)));
+    }
+
+    private function invalidateVerificationStateForEmail(string $email): void
+    {
+        $normalized = strtolower(trim($email));
+
+        if ($normalized === '') {
+            return;
+        }
+
+        Cache::forget($this->verifyCacheKey($normalized));
+        Cache::forget($this->resendCooldownKey($normalized));
+    }
+
+    private function clearAccessSessionState(): void
+    {
+        session()->forget([
+            // Current keys
+            'access_stage',
+            'access_email',
+            'access_intent_type',
+            'cw_verified_email',
+            'cw_dev_code',
+
+            // Legacy/variant keys to avoid stale state regressions
+            'access.stage',
+            'access.email',
+            'access.intent_type',
+            'access.intent',
+            'access.type',
+            'access_pending_email',
+            'access_verified_email',
+            'access_password_step',
+            'verification_pending',
+            'verification_attempts',
+            'verification_cooldown',
+            'password_step_state',
+        ]);
     }
 
     private function isDevMode(): bool

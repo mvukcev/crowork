@@ -72,16 +72,24 @@ class SettingsResource extends Resource
                             ->email()
                             ->maxLength(255)
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'email'),
+                        Forms\Components\TextInput::make('value_password')
+                            ->label('Value')
+                            ->statePath('value')
+                            ->password()
+                            ->maxLength(255)
+                            ->helperText('Leave blank to keep the existing value.')
+                            ->visible(fn (?Setting $record) => self::settingType($record) === 'password'),
                         Forms\Components\TagsInput::make('value_array')
                             ->label('Value')
                             ->statePath('value')
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'array')
-                            ->helperText('Used for advanced visibility field control in limited mode.'),
+                            ->helperText('Enter comma-separated values.'),
                         Forms\Components\Textarea::make('value_text')
                             ->label('Value')
                             ->statePath('value')
                             ->rows(4)
-                            ->visible(fn (?Setting $record) => !in_array(self::settingType($record), ['boolean', 'select', 'integer', 'email', 'array'], true)),
+                            ->helperText(fn (?Setting $record) => self::getHelperText($record))
+                            ->visible(fn (?Setting $record) => !in_array(self::settingType($record), ['boolean', 'select', 'integer', 'email', 'password', 'array'], true)),
                     ]),
             ]);
     }
@@ -125,7 +133,23 @@ class SettingsResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('group')
+                    ->label('Group')
+                    ->options(function () {
+                        return collect(\App\Models\Setting::DEFINITIONS)
+                            ->pluck('group')
+                            ->unique()
+                            ->sort()
+                            ->mapWithKeys(fn ($g) => [$g => $g])
+                            ->toArray();
+                    })
+                    ->query(fn (\Illuminate\Database\Eloquent\Builder $query, array $data) => isset($data['value'])
+                        ? $query->whereIn('key', collect(\App\Models\Setting::DEFINITIONS)
+                            ->filter(fn ($def) => ($def['group'] ?? '') === $data['value'])
+                            ->keys()
+                            ->all())
+                        : $query
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -167,5 +191,28 @@ class SettingsResource extends Resource
         }
 
         return Setting::definition($record->key)['options'] ?? [];
+    }
+
+    private static function getHelperText(?Setting $record): string
+    {
+        if (! $record) {
+            return '';
+        }
+
+        $key = $record->key;
+        $helpers = [
+            'mail_host' => 'e.g., smtp.gmail.com, smtp.sendgrid.net',
+            'mail_port' => 'Usually 587 for TLS, 465 for SSL',
+            'mail_username' => 'Your SMTP username or email',
+            'mail_password' => 'Leave blank to keep existing value. Never displayed once saved.',
+            'google_tag_manager_id' => 'Format: GTM-XXXXXXX',
+            'google_tag_id' => 'Format: G-XXXXXXXXXX',
+            'meta_pixel_id' => 'Your Meta Pixel ID',
+            'meta_conversions_api_access_token' => 'Never exposed to browser. Leave blank to keep existing value.',
+            'meta_test_event_code' => 'Optional test event code for debugging',
+            'cookie_statement_url' => 'URL to your cookie policy page',
+        ];
+
+        return $helpers[$key] ?? '';
     }
 }

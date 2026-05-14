@@ -5,9 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? config('app.name', 'CroWork') }} - Find Your Career in Croatia</title>
-    <meta name="description" content="{{ $description ?? 'CroWork connects international talent with Croatian employers. Find jobs, education opportunities, and build your career in Croatia.' }}">
-    <link rel="canonical" href="{{ trim($__env->yieldContent('canonical')) ?: ($canonical ?? url()->current()) }}">
+    @php
+        $seoTitle = ($title ?? config('app.name', 'CroWork')).' - Find Your Career in Croatia';
+        $seoDescription = $description ?? 'CroWork connects international talent with Croatian employers. Find jobs, education opportunities, and build your career in Croatia.';
+        $canonicalUrl = trim($__env->yieldContent('canonical')) ?: ($canonical ?? url()->current());
+        $ogTitle = $ogTitle ?? ($title ?? config('app.name', 'CroWork'));
+        $ogDescription = $ogDescription ?? $seoDescription;
+        $ogType = $ogType ?? 'website';
+        $ogImage = $ogImage ?? asset('assets/branding/CW-Logo-Dark.png');
+        $robots = $robots ?? 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+    @endphp
+
+    <title>{{ $seoTitle }}</title>
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="robots" content="{{ $robots }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
+    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:site_name" content="CroWork">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $ogTitle }}">
+    <meta name="twitter:description" content="{{ $ogDescription }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
 
     @php
         $organizationSchema = [
@@ -15,7 +40,7 @@
             '@type' => 'Organization',
             'name' => config('app.name', 'CroWork'),
             'url' => url('/'),
-            'logo' => asset('favicon.ico'),
+            'logo' => asset('assets/branding/CW-Logo-Dark.png'),
         ];
 
         $websiteSchema = [
@@ -36,10 +61,35 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Analytics & Tracking -->
+    @include('components.analytics-head')
+
     @stack('head')
     @stack('styles')
 </head>
-<body class="h-full cw-page" x-data>
+@php
+    $brandDisplayRoutes = [
+        'home',
+        'jobs.index',
+        'jobs.show',
+        'educations.index',
+        'educations.show',
+        'companies.show',
+        'resources.index',
+        'resources.show',
+        'about',
+        'for-employers',
+        'pricing',
+        'contact',
+        'coming-soon',
+    ];
+
+    $useBrandDisplay = request()->routeIs($brandDisplayRoutes);
+@endphp
+<body @class([
+    'h-full cw-page' => true,
+    'cw-brand-display' => $useBrandDisplay,
+]) x-data>
     @php($isHome = request()->routeIs('home'))
     <div class="min-h-screen flex flex-col">
     <x-site-header />
@@ -114,17 +164,23 @@
         <div class="cw-container py-8 md:py-10">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-5 border-b border-slate-200">
                 <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                    <div class="h-9 w-9 rounded-xl border border-slate-200 bg-white grid place-items-center">
-                        <span class="text-sm font-semibold text-slate-900">C</span>
-                    </div>
+                    <img
+                        src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                        alt="CroWork"
+                        class="h-7 w-auto"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
+                    >
+                    <span class="hidden text-lg font-semibold text-slate-900">CroWork</span>
                     <div>
-                        <p class="text-lg font-semibold text-slate-900 mb-0">CroWork</p>
                         <p class="text-xs uppercase tracking-[0.08em] text-slate-500 mb-0">Migration platform</p>
                     </div>
                 </a>
                 <div class="flex flex-wrap items-center gap-4 md:gap-5">
                     <a href="{{ route('jobs.index') }}" class="cw-footer-link">Jobs</a>
                     <a href="{{ route('educations.index') }}" class="cw-footer-link">Educations</a>
+                    <a href="{{ route('resources.index') }}" class="cw-footer-link">Resources</a>
+                    <a href="{{ route('resources.show', 'work-permits') }}" class="cw-footer-link">Work Permits</a>
+                    <a href="{{ route('resources.show', 'faq-foreign-workers') }}" class="cw-footer-link">Worker FAQ</a>
                     <a href="{{ route('for-employers') }}" class="cw-footer-link">For Employers</a>
                     <a href="{{ route('about') }}" class="cw-footer-link">About</a>
                     <a href="{{ route('privacy') }}" class="cw-footer-link">Privacy</a>
@@ -187,5 +243,7 @@
             });
         }
     </script>
+
+    @include('components.analytics-noscript')
 </body>
 </html>

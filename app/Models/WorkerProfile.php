@@ -33,6 +33,7 @@ class WorkerProfile extends Model
         'recommendations',
         'profile_visibility',
         'photo_path',
+        'communication_language',
     ];
 
     protected function casts(): array

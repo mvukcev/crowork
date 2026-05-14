@@ -9,7 +9,7 @@ class JobObserver
 {
     public function updated(Job $job): void
     {
-        if (!$job->wasChanged('status') || !in_array($job->status, ['published', 'delisted'], true)) {
+        if (!$job->wasChanged('status') || !in_array($job->status, ['published', 'delisted', 'rejected'], true)) {
             return;
         }
 

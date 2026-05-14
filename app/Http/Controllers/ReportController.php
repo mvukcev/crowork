@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AbuseReport;
 use App\Models\Job;
+use App\Models\User;
+use App\Notifications\AdminNewAbuseReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -46,7 +48,7 @@ class ReportController extends Controller
             return redirect()->back()->with('error', 'Reporting is temporarily unavailable.');
         }
 
-        AbuseReport::create([
+        $report = AbuseReport::create([
             'type' => $validated['type'],
             'target_id' => (int) $validated['id'],
             'reason' => $validated['reason'],
@@ -56,6 +58,11 @@ class ReportController extends Controller
             'user_agent' => substr((string) $request->userAgent(), 0, 1000),
             'status' => 'open',
         ]);
+
+        User::query()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_MOD])
+            ->get()
+            ->each(fn (User $admin) => $admin->notify(new AdminNewAbuseReport($report)));
 
         if ($validated['type'] === 'job') {
             return redirect()->route('jobs.show', $target)->with('success', 'Thanks. Your report was submitted.');

@@ -102,6 +102,7 @@
                                 :href="route('jobs.show', $job)"
                                 :title="$job->title"
                                 :company="$job->employer?->company_name"
+                                :company_href="$job->employer?->slug ? route('companies.show', $job->employer) : null"
                                 :city="$job->location_city"
                                 :salary_min="$job->salary_min"
                                 :salary_max="$job->salary_max"

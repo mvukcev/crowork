@@ -33,7 +33,7 @@ class ExpiringJobsTable extends BaseWidget
             ->actions([
                 Tables\Actions\Action::make('edit')
                     ->label('Edit')
-                    ->url(fn (Job $record): string => route('filament.employer.resources.jobs.edit', ['record' => $record])),
+                    ->url(fn (Job $record): string => route('employer.jobs.edit', $record)),
             ])
             ->defaultSort('expires_at');
     }

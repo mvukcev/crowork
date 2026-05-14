@@ -6,8 +6,14 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ $title ?? 'Authentication' }} - {{ config('app.name', 'CroWork') }}</title>
+        <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <!-- Analytics & Tracking -->
+        @include('components.analytics-head')
     </head>
     <body class="h-full cw-page overflow-x-hidden">
         <div class="min-h-screen flex flex-col">
@@ -19,7 +25,13 @@
                     <aside class="cw-auth-aside hidden lg:block">
                         <div class="relative h-full">
                             <a href="{{ url('/') }}" class="inline-flex items-center gap-2 text-slate-900">
-                                <span class="text-base font-semibold">CroWork</span>
+                                <img
+                                    src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                                    alt="CroWork"
+                                    class="h-6 w-auto"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
+                                >
+                                <span class="hidden text-base font-semibold">CroWork</span>
                             </a>
                             <p class="text-[2rem] leading-tight font-semibold text-slate-800 mt-12 max-w-[260px]">Communicate your migration story with clarity.</p>
                             <p class="text-sm text-slate-600 mt-4 max-w-[260px]">Focused account flows inspired by modern product sign-in experiences.</p>
@@ -34,7 +46,15 @@
 
                     <section class="cw-auth-main">
                         <div class="flex items-center justify-between mb-5 lg:hidden">
-                            <a href="{{ url('/') }}" class="text-[15px] font-semibold text-slate-900">CroWork</a>
+                            <a href="{{ url('/') }}" class="inline-flex items-center">
+                                <img
+                                    src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                                    alt="CroWork"
+                                    class="h-5 w-auto"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
+                                >
+                                <span class="hidden text-[15px] font-semibold text-slate-900">CroWork</span>
+                            </a>
                             <a href="{{ route('home') }}" class="text-sm text-slate-600 hover:text-slate-900">Back home</a>
                         </div>
                         <div class="max-w-[520px] mx-auto">
@@ -71,5 +91,7 @@
                 </div>
             </section>
         </div>
+
+        @include('components.analytics-noscript')
     </body>
 </html>

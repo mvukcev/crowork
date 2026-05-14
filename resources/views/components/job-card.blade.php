@@ -1,12 +1,19 @@
 @props([
     'title',
     'company' => null,
+    'company_href' => null,
     'city' => null,
     'salary_min' => null,
     'salary_max' => null,
     'salary_currency' => 'EUR',
     'salary_period' => 'month',
     'employment_type' => null,
+    'experience_level' => null,
+    'education_required' => null,
+    'positions_available' => null,
+    'working_hours' => null,
+    'start_date' => null,
+    'start_flexibility' => null,
     'accommodation_provided' => false,
     'visa_support' => false,
     'is_featured' => false,
@@ -43,13 +50,28 @@
     $languageText = count($languageValues) ? implode(', ', array_slice($languageValues, 0, 3)) : null;
 
     $employmentTypeText = $employment_type ? \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $employment_type)) : null;
+    $experienceLevelText = $experience_level ? \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $experience_level)) : null;
+    $educationText = $education_required ?: null;
+    $positionsText = is_numeric($positions_available) ? ((int) $positions_available === 1 ? '1 position' : (int) $positions_available . ' positions') : null;
+    $workingHoursText = $working_hours ?: null;
+    $startDateText = $start_date ? 'Start ' . \Illuminate\Support\Carbon::parse($start_date)->format('M j') : null;
+    $startFlexibilityText = $start_flexibility ?: null;
 @endphp
 
-<a href="{{ $href }}" class="cw-surface p-5 block cw-hover-lift">
+<article class="cw-surface p-5 block cw-hover-lift">
     <div class="flex items-start justify-between gap-3 mb-2">
         <div>
-            <p class="text-xs text-slate-500 mb-1">{{ $company ?: 'Employer' }}{{ $city ? ' · ' . $city : '' }}</p>
-            <h3 class="text-lg font-semibold text-slate-900 leading-tight">{{ $title }}</h3>
+            <p class="text-xs text-slate-500 mb-1">
+                @if($company_href && $company)
+                    <a href="{{ $company_href }}" class="hover:text-slate-900 underline-offset-2 hover:underline">{{ $company }}</a>
+                @else
+                    {{ $company ?: 'Employer' }}
+                @endif
+                @if($city)
+                    <span> · {{ $city }}</span>
+                @endif
+            </p>
+            <h3 class="text-lg font-semibold text-slate-900 leading-tight"><a href="{{ $href }}" class="hover:text-slate-700">{{ $title }}</a></h3>
         </div>
         <div class="flex flex-col gap-1 items-end">
             @if($is_urgent)
@@ -69,6 +91,24 @@
         @if($employmentTypeText)
             <span class="cw-chip">{{ $employmentTypeText }}</span>
         @endif
+        @if($experienceLevelText)
+            <span class="cw-chip">{{ $experienceLevelText }}</span>
+        @endif
+        @if($educationText)
+            <span class="cw-chip">{{ $educationText }}</span>
+        @endif
+        @if($positionsText)
+            <span class="cw-chip">{{ $positionsText }}</span>
+        @endif
+        @if($workingHoursText)
+            <span class="cw-chip">{{ $workingHoursText }}</span>
+        @endif
+        @if($startDateText)
+            <span class="cw-chip">{{ $startDateText }}</span>
+        @endif
+        @if($startFlexibilityText)
+            <span class="cw-chip">{{ $startFlexibilityText }}</span>
+        @endif
         @if($languageText)
             <span class="cw-chip">{{ $languageText }}</span>
         @endif
@@ -82,4 +122,11 @@
             <span class="cw-chip">Posted {{ \Carbon\Carbon::parse($posted_at)->diffForHumans() }}</span>
         @endif
     </div>
-</a>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+        <a href="{{ $href }}" class="cw-button-secondary">View role</a>
+        @if($company_href)
+            <a href="{{ $company_href }}" class="cw-button-secondary">Company profile</a>
+        @endif
+    </div>
+</article>

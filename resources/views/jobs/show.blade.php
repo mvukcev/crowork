@@ -1,8 +1,11 @@
 <x-app-layout>
     <x-slot name="title">{{ $job->title }}</x-slot>
     <x-slot name="description">{{ \Illuminate\Support\Str::limit(strip_tags($job->description), 150) }}</x-slot>
+    <x-slot name="canonical">{{ route('jobs.show', $job) }}</x-slot>
+    <x-slot name="ogType">article</x-slot>
 
     @php
+        $companyProfileUrl = $job->employer?->slug ? route('companies.show', $job->employer) : null;
         $companyName = $job->employer?->company_name ?? 'Employer';
         $location = $job->location_city ?: null;
         $category = $job->category ?: null;
@@ -34,12 +37,18 @@
         $publishedDate = $job->published_at?->format('M j, Y') ?? $job->created_at?->format('M j, Y');
         $postedAgo = $job->published_at?->diffForHumans() ?? $job->created_at?->diffForHumans();
         $expiryDate = $job->expires_at?->format('M j, Y');
+        $positionsText = $job->positions_available
+            ? ((int) $job->positions_available === 1 ? '1 position' : (int) $job->positions_available . ' positions')
+            : null;
+        $startDateDisplay = $job->start_date?->format('M j, Y');
+        $workingHoursText = trim((string) ($job->working_hours ?? ''));
+        $shiftDetailsText = trim((string) ($job->shift_details ?? ''));
+        $applicationInstructionsText = trim((string) ($job->application_instructions ?? ''));
 
         $aboutText = trim((string) ($job->description ?? ''));
         $responsibilitiesText = trim((string) ($job->responsibilities ?? ''));
         $requirementsText = trim((string) ($job->requirements ?? ''));
         $benefitsText = trim((string) ($job->benefits ?? ''));
-        $applicationInstructionsText = trim((string) ($job->application_instructions ?? ''));
 
         $mobilityDetails = array_values(array_filter([
             $job->accommodation_provided ? 'Accommodation is provided by employer.' : null,
@@ -55,18 +64,85 @@
             'Experience level' => $experienceLevel,
             'Education required' => $job->education_required,
             'Contract duration' => $job->contract_duration,
-            'Start date' => $job->start_date?->format('M j, Y'),
+            'Start date' => $startDateDisplay,
             'Start flexibility' => $job->start_flexibility,
-            'Open positions' => $job->positions_available,
-            'Working hours' => $job->working_hours,
-            'Shifts' => $job->shift_details,
+            'Open positions' => $positionsText,
+            'Working hours' => $workingHoursText,
+            'Shifts' => $shiftDetailsText,
             'Languages' => $languageSummary,
             'Salary' => $salaryDisplay,
             'Apply before' => $expiryDate,
         ];
 
         $aboutEmployerText = trim((string) ($job->employer?->description ?? ''));
+
+        $jobPostingSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'JobPosting',
+            'title' => $job->title,
+            'description' => \Illuminate\Support\Str::limit(strip_tags((string) $job->description), 4000, ''),
+            'datePosted' => optional($job->published_at ?? $job->created_at)?->toIso8601String(),
+            'validThrough' => optional($job->expires_at)?->toIso8601String(),
+            'employmentType' => $employmentType,
+            'hiringOrganization' => [
+                '@type' => 'Organization',
+                'name' => $companyName,
+                'sameAs' => $job->employer?->website,
+            ],
+            'jobLocation' => $location ? [
+                '@type' => 'Place',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressLocality' => $location,
+                    'addressCountry' => 'HR',
+                ],
+            ] : null,
+            'baseSalary' => (!is_null($job->salary_min) || !is_null($job->salary_max)) ? [
+                '@type' => 'MonetaryAmount',
+                'currency' => $job->salary_currency ?? 'EUR',
+                'value' => [
+                    '@type' => 'QuantitativeValue',
+                    'minValue' => $job->salary_min,
+                    'maxValue' => $job->salary_max,
+                    'unitText' => strtoupper((string) ($job->salary_period ?? 'MONTH')),
+                ],
+            ] : null,
+            'directApply' => true,
+            'url' => route('jobs.show', $job),
+        ];
+
+        $jobPostingSchema = array_filter($jobPostingSchema, fn ($value) => !is_null($value) && $value !== '');
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => route('home'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Jobs',
+                    'item' => route('jobs.index'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $job->title,
+                    'item' => route('jobs.show', $job),
+                ],
+            ],
+        ];
     @endphp
+
+    @push('head')
+        <script type="application/ld+json">{!! json_encode($jobPostingSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endpush
 
     <section class="cw-section">
         <div class="cw-container">
@@ -82,7 +158,11 @@
                 <p class="cw-kicker mb-2">Job overview</p>
                 <h1 class="cw-display text-4xl md:text-6xl mb-3">{{ $job->title }}</h1>
                 <p class="text-base text-slate-600 mb-4">
-                    {{ $companyName }}
+                    @if($companyProfileUrl)
+                        <a href="{{ $companyProfileUrl }}" class="hover:text-slate-900 underline-offset-2 hover:underline">{{ $companyName }}</a>
+                    @else
+                        {{ $companyName }}
+                    @endif
                     @if($location)
                         <span> · {{ $location }}</span>
                     @endif
@@ -112,6 +192,12 @@
                     @endif
                     @if($salaryDisplay)
                         <span class="cw-chip">{{ $salaryDisplay }}</span>
+                    @endif
+                    @if($experienceLevel)
+                        <span class="cw-chip">{{ $experienceLevel }}</span>
+                    @endif
+                    @if($positionsText)
+                        <span class="cw-chip">{{ $positionsText }}</span>
                     @endif
                 </div>
 
@@ -190,6 +276,9 @@
                             @endif
                             @if($job->employer)
                                 <p class="text-slate-700">{{ $companyName }}@if($job->employer->city) · {{ $job->employer->city }}@endif</p>
+                                @if($companyProfileUrl)
+                                    <a href="{{ $companyProfileUrl }}" class="cw-button-secondary mt-3 inline-flex">View company profile</a>
+                                @endif
                             @endif
                         </article>
                     @endif
@@ -202,6 +291,7 @@
                                     <x-job-card
                                         :title="$similarJob->title"
                                         :company="$similarJob->employer?->company_name"
+                                        :company_href="$similarJob->employer?->slug ? route('companies.show', $similarJob->employer) : null"
                                         :city="$similarJob->location_city"
                                         :salary_min="$similarJob->salary_min"
                                         :salary_max="$similarJob->salary_max"
@@ -235,6 +325,30 @@
                         @if($employmentType)
                             <p class="text-sm text-slate-700 mb-2"><strong>Employment type:</strong> {{ $employmentType }}</p>
                         @endif
+                        @if($experienceLevel)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Experience level:</strong> {{ $experienceLevel }}</p>
+                        @endif
+                        @if($job->education_required)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Education:</strong> {{ $job->education_required }}</p>
+                        @endif
+                        @if($positionsText)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Open positions:</strong> {{ $positionsText }}</p>
+                        @endif
+                        @if($workingHoursText)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Working hours:</strong> {{ $workingHoursText }}</p>
+                        @endif
+                        @if($shiftDetailsText)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Shifts:</strong> {{ $shiftDetailsText }}</p>
+                        @endif
+                        @if($startDateDisplay)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Start date:</strong> {{ $startDateDisplay }}</p>
+                        @endif
+                        @if($job->start_flexibility)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Start flexibility:</strong> {{ $job->start_flexibility }}</p>
+                        @endif
+                        @if($job->contract_duration)
+                            <p class="text-sm text-slate-700 mb-2"><strong>Contract duration:</strong> {{ $job->contract_duration }}</p>
+                        @endif
                         @if($languageSummary)
                             <p class="text-sm text-slate-700 mb-2"><strong>Language:</strong> {{ $languageSummary }}</p>
                         @endif
@@ -248,7 +362,12 @@
                             <p class="text-sm text-slate-700 mb-2"><strong>Apply before:</strong> {{ $expiryDate }}</p>
                         @endif
 
-                        <a href="{{ route('jobs.apply', $job) }}" class="cw-button-primary w-full mt-3">Apply now</a>
+                        <div class="flex flex-col gap-2 mt-3">
+                            <a href="{{ route('jobs.apply', $job) }}" class="cw-button-primary w-full text-center" data-cw-track-click="job_apply_click">Apply now</a>
+                            @if($companyProfileUrl)
+                                <a href="{{ $companyProfileUrl }}" class="cw-button-secondary w-full text-center">Company profile</a>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="cw-surface p-5">
@@ -259,4 +378,16 @@
             </div>
         </div>
     </section>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                window.cwTrack?.('job_detail_view', {
+                    job_slug: @json($job->slug),
+                    company_slug: @json($job->employer?->slug),
+                    has_salary: {{ (!is_null($job->salary_min) || !is_null($job->salary_max)) ? 'true' : 'false' }}
+                });
+            });
+        </script>
+    @endpush
 </x-app-layout>

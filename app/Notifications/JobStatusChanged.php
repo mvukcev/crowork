@@ -29,11 +29,11 @@ class JobStatusChanged extends Notification
         $isPublished = $this->status === 'published';
 
         $message = (new MailMessage)
-            ->subject($isPublished ? 'Your job is approved: '.$this->job->title : 'Your job was delisted: '.$this->job->title)
+            ->subject($isPublished ? 'CroWork: job approved' : 'CroWork: job rejected/delisted')
             ->greeting('Hi '.$notifiable->name.',')
             ->line($isPublished
                 ? 'Your job listing "'.$this->job->title.'" has been approved and is now visible to workers.'
-                : 'Your job listing "'.$this->job->title.'" has been delisted and is no longer visible to workers.'
+                : 'Your job listing "'.$this->job->title.'" is no longer publicly visible.'
             );
 
         if ($isPublished) {

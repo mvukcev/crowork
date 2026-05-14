@@ -1,6 +1,38 @@
 <x-app-layout>
     <x-slot name="title">{{ $education->title }}</x-slot>
     <x-slot name="description">{{ \Illuminate\Support\Str::limit(strip_tags($education->description), 150) }}</x-slot>
+    <x-slot name="canonical">{{ route('educations.show', $education) }}</x-slot>
+
+    @php
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => route('home'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Educations',
+                    'item' => route('educations.index'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $education->title,
+                    'item' => route('educations.show', $education),
+                ],
+            ],
+        ];
+    @endphp
+
+    @push('head')
+        <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endpush
 
     <section class="cw-section">
         <div class="cw-container">

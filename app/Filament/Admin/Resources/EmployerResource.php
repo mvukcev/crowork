@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class EmployerResource extends Resource
 {
@@ -102,6 +103,16 @@ class EmployerResource extends Resource
                     ->requiresConfirmation()
                     ->action(fn (Employer $record) => $record->update(['approved_at' => null]))
                     ->visible(fn (Employer $record) => $record->approved_at !== null),
+                Tables\Actions\Action::make('impersonate')
+                    ->icon('heroicon-o-arrow-left-on-rectangle')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Login as Employer')
+                    ->modalDescription('You will be logged in as this employer. An impersonation banner will appear. End impersonation to return to admin.')
+                    ->action(function (Employer $record) {
+                        return redirect('/admin/impersonate/' . $record->user_id);
+                    })
+                    ->visible(fn (Employer $record) => setting('admin_impersonation_enabled', true) && $record->approved_at !== null && ! session('impersonation_original_admin_id')),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

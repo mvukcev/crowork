@@ -12,11 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
+            \App\Http\Middleware\SecureHeaders::class,
             \App\Http\Middleware\ComingSoonModeMiddleware::class,
         ]);
 
         $middleware->alias([
             'employer.approved' => \App\Http\Middleware\EnsureEmployerIsApproved::class,
+            'admin.access' => \App\Http\Middleware\AdminAccessMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

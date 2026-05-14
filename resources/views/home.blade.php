@@ -3,6 +3,7 @@
     <x-slot name="description">A premium product platform connecting workers, employers, and education pathways in Croatia.</x-slot>
     <x-slot name="canonical">{{ route('home') }}</x-slot>
 
+    <div class="overflow-x-hidden">
     <section class="cw-hero cw-section-atmosphere">
         <div class="cw-hero-glow" aria-hidden="true"></div>
         <span class="cw-orb cw-orb-cyan hidden md:block" style="width: 260px; height: 260px; left: -80px; top: 220px;"></span>
@@ -10,7 +11,7 @@
         <div class="cw-container cw-hero-inner">
             <div class="cw-content-wide mx-auto text-center scroll-fade-in">
                 <p class="cw-kicker mb-4">CroWork platform</p>
-                <h1 class="cw-display text-[clamp(2.6rem,7vw,5.7rem)] text-slate-900 mb-4 text-balance">
+                <h1 class="cw-display text-[clamp(2.65rem,7.4vw,5.75rem)] leading-[0.94] tracking-[-0.018em] text-slate-900 mb-4 text-balance max-w-[16.9ch] mx-auto">
                     Every migration journey
                     deserves <span class="cw-highlight">a clear story.</span>
                 </h1>
@@ -37,7 +38,7 @@
             <article class="grid grid-cols-1 lg:grid-cols-2 gap-7 items-center scroll-fade-in">
                 <div class="space-y-4">
                     <p class="cw-kicker">Story 1 · Workers <span class="cw-chip cw-chip-blue ml-1.5">Blue status flow</span></p>
-                    <h2 class="cw-display text-3xl md:text-5xl">Communicate each step effectively.</h2>
+                    <h2 class="cw-display text-2xl md:text-4xl">Communicate each step effectively.</h2>
                     <p class="text-base text-slate-600 leading-relaxed">From first role discovery to relocation prep, workers can track all events and responsibilities in one clear view.</p>
                     <a href="{{ route('access.show') }}" class="cw-button-primary cw-press">Start as worker</a>
                 </div>
@@ -52,7 +53,7 @@
 
             <article class="grid grid-cols-1 lg:grid-cols-2 gap-7 items-center scroll-fade-in">
                 <div class="cw-story-panel cw-story-accent cw-story-orange order-2 lg:order-1">
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
                             <p class="text-xs text-slate-500 mb-1">New</p>
                             <p class="text-base font-semibold text-slate-900 mb-0">14</p>
@@ -72,7 +73,7 @@
                 </div>
                 <div class="space-y-4 order-1 lg:order-2">
                     <p class="cw-kicker">Story 2 · Employers <span class="cw-chip cw-chip-orange ml-1.5">Orange hiring moments</span></p>
-                    <h2 class="cw-display text-3xl md:text-5xl">Keep hiring decisions structured and fast.</h2>
+                    <h2 class="cw-display text-2xl md:text-4xl">Keep hiring decisions structured and fast.</h2>
                     <p class="text-base text-slate-600 leading-relaxed">Employers can triage candidates, manage interview waves, and maintain decision momentum with less operational drag.</p>
                     <a href="{{ route('for-employers') }}" class="cw-button-accent cw-press">Learn employer flow</a>
                 </div>
@@ -80,7 +81,7 @@
 
             <article class="cw-content-wide mx-auto text-center space-y-5 scroll-fade-in cw-soft-reveal">
                 <p class="cw-kicker">Story 3 · Education + relocation</p>
-                <h2 class="cw-display text-3xl md:text-5xl">Support readiness beyond the job offer.</h2>
+                <h2 class="cw-display text-2xl md:text-4xl">Support readiness beyond the job offer.</h2>
                 <p class="text-base text-slate-600 leading-relaxed">Education pathways, language modules, and relocation tasks stay connected so workers and employers always operate on shared context.</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-left">
                     <article class="cw-mini-card cw-hover-lift">
@@ -108,7 +109,7 @@
         <div class="cw-container">
             <div class="cw-surface p-7 md:p-10 text-center scroll-fade-in">
                 <p class="cw-kicker mb-2">Start now</p>
-                <h2 class="cw-display text-3xl md:text-5xl mb-3">Move your migration workflow forward.</h2>
+                <h2 class="cw-display text-2xl md:text-4xl mb-3">Move your migration workflow forward.</h2>
                 <p class="text-base text-slate-600 cw-measure-sm mx-auto mb-6">Create your account and run applications, employer decisions, and relocation planning from one clear product flow.</p>
                 <div class="flex flex-wrap justify-center gap-2.5">
                     <a href="{{ route('access.show') }}" class="cw-button-primary cw-press">Create account</a>
@@ -117,4 +118,5 @@
             </div>
         </div>
     </section>
+</div>
 </x-app-layout>

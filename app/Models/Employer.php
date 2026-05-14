@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Employer extends Model
 {
@@ -10,8 +11,10 @@ class Employer extends Model
         'user_id',
         'approved_at',
         'company_name',
+        'slug',
         'logo_path',
         'city',
+        'country',
         'industry',
         'website',
         'description',
@@ -21,6 +24,7 @@ class Employer extends Model
         'applications_visibility_override',
         'can_export_applications_override',
         'visible_fields_override',
+        'communication_language',
     ];
 
     protected function casts(): array
@@ -33,6 +37,39 @@ class Employer extends Model
             'can_export_applications_override' => 'boolean',
             'visible_fields_override' => 'array',
         ];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Employer $employer) {
+            if (! empty($employer->slug) || empty($employer->company_name)) {
+                return;
+            }
+
+            $employer->slug = static::generateUniqueSlug($employer->company_name, $employer->id);
+        });
+    }
+
+    protected static function generateUniqueSlug(string $companyName, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($companyName);
+        $slug = $baseSlug !== '' ? $baseSlug : 'company';
+        $counter = 2;
+
+        while (static::query()
+            ->where('slug', $slug)
+            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->exists()) {
+            $slug = ($baseSlug !== '' ? $baseSlug : 'company') . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     public function user()
@@ -50,6 +87,7 @@ class Employer extends Model
         $checks = [
             !empty($this->company_name),
             !empty($this->city),
+            !empty($this->country),
             !empty($this->industry),
             !empty($this->website),
             !empty($this->description),

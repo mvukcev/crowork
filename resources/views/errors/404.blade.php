@@ -1,5 +1,6 @@
 <x-app-layout>
     <x-slot name="title">Page Not Found</x-slot>
+    <x-slot name="robots">noindex,follow</x-slot>
 
     <section class="cw-section">
         <div class="cw-container max-w-3xl text-center">

@@ -15,9 +15,9 @@
                 <div class="cw-surface p-3 mb-4 text-sm text-emerald-700 bg-emerald-50 border-emerald-200">{{ session('success') }}</div>
             @endif
 
-            <div class="cw-surface overflow-hidden">
+            <div class="cw-surface overflow-x-auto">
                 @if($jobs->count() > 0)
-                    <table class="cw-table">
+                    <table class="cw-table min-w-[760px]">
                         <thead>
                             <tr>
                                 <th>Title</th>
@@ -44,9 +44,9 @@
                                     <td>{{ $job->created_at?->format('M j, Y') }}</td>
                                     <td>
                                         <div class="flex gap-2">
-                                            <a href="{{ route('employer.jobs.show', $job->id) }}" class="cw-button-secondary">View</a>
-                                            <a href="{{ route('employer.jobs.edit', $job->id) }}" class="cw-button-secondary">Edit</a>
-                                            <form method="POST" action="{{ route('employer.jobs.destroy', $job->id) }}" onsubmit="return confirm('Delete this job?')">
+                                            <a href="{{ route('employer.jobs.show', $job) }}" class="cw-button-secondary">View</a>
+                                            <a href="{{ route('employer.jobs.edit', $job) }}" class="cw-button-secondary">Edit</a>
+                                            <form method="POST" action="{{ route('employer.jobs.destroy', $job) }}" onsubmit="return confirm('Delete this job?')">
                                                 @csrf @method('DELETE')
                                                 <button class="cw-button-secondary text-red-700 border-red-200 bg-red-50">Delete</button>
                                             </form>

@@ -75,6 +75,32 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
+### Mail Configuration
+
+Local development (safe default):
+
+```env
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS="no-reply@crowork.local"
+MAIL_FROM_NAME="CroWork"
+```
+
+Production SMTP example:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.your-provider.com
+MAIL_PORT=587
+MAIL_USERNAME=your-smtp-username
+MAIL_PASSWORD=your-smtp-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="no-reply@your-domain.com"
+MAIL_FROM_NAME="CroWork"
+MAIL_EHLO_DOMAIN=your-domain.com
+```
+
+All transactional emails are designed to avoid sensitive data exposure (no passwords, no full profile snapshots, no internal moderation notes).
+
 ### 5. Create Database
 
 For SQLite:
@@ -245,6 +271,69 @@ For production deployment:
 5. Build assets: `npm run build`
 6. Optimize: `php artisan optimize`
 7. Set up a web server (Nginx/Apache) with proper configuration
+
+### Shared Hosting Production Checklist
+
+Use this checklist before switching traffic to production.
+
+1. Environment safety
+  - Keep `.env` out of git (already ignored in `.gitignore`).
+  - Set `APP_ENV=production`.
+  - Set `APP_DEBUG=false`.
+  - Set a valid `APP_URL=https://your-domain`.
+  - Generate app key if missing: `php artisan key:generate --force`.
+
+2. Update helper lock-down
+  - Keep `UPDATE_HELPER_ENABLED=false` by default.
+  - Only enable briefly during controlled deploys.
+  - Always use a long random `UPDATE_TOKEN`.
+  - Disable helper again immediately after deployment.
+
+3. Storage and cache permissions
+  - Ensure writable dirs for web user:
+    - `storage/`
+    - `bootstrap/cache/`
+  - Typical command (adjust user/group per host):
+    - `chmod -R ug+rwx storage bootstrap/cache`
+
+4. Sessions, cache, queue (shared-hosting friendly)
+  - `SESSION_DRIVER=database`
+  - `CACHE_STORE=database`
+  - `QUEUE_CONNECTION=database`
+  - Run required tables:
+    - `php artisan session:table`
+    - `php artisan cache:table`
+    - `php artisan queue:table`
+    - `php artisan queue:failed-table`
+    - `php artisan migrate --force`
+
+5. Mail
+  - Local/dev can use `MAIL_MAILER=log`.
+  - Production should use SMTP (`MAIL_MAILER=smtp`) with valid provider credentials.
+
+6. Frontend build artifacts
+  - Build production assets before go-live:
+    - `npm ci`
+    - `npm run build`
+  - Verify manifest exists: `public/build/manifest.json`.
+
+7. Composer production install
+  - `composer install --no-dev --optimize-autoloader`
+
+8. Framework optimization
+  - `php artisan optimize:clear`
+  - `php artisan config:cache`
+  - `php artisan route:cache`
+  - `php artisan view:cache`
+
+9. Logs and public exposure
+  - Application logs are stored in `storage/logs` (outside public web root).
+  - Ensure web root points to `public/` only.
+  - Do not expose project root, `.env`, or `storage/` over HTTP.
+
+10. Optional queue worker strategy
+  - If shared hosting has no daemon/supervisor, use cron to process queued jobs:
+    - `* * * * * php /path/to/artisan queue:work --stop-when-empty --tries=3`
 
 ## Technology Stack
 

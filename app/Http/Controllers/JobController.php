@@ -20,6 +20,8 @@ class JobController extends Controller
         $categories = $this->getCategories();
         $languages = $this->getLanguages();
         $employmentTypes = $this->getEmploymentTypes();
+        $experienceLevels = $this->getExperienceLevels();
+        $educationRequirements = $this->getEducationRequirements();
 
         // For SEO and initial render
         $filters = [
@@ -27,12 +29,17 @@ class JobController extends Controller
             'city' => $request->input('city'),
             'category' => $request->input('category'),
             'employment_type' => $request->input('employment_type'),
+            'experience_level' => $request->input('experience_level'),
             'salary_min' => $request->input('salary_min'),
             'accommodation' => $request->input('accommodation'),
+            'visa_support' => $request->input('visa_support'),
+            'featured' => $request->input('featured'),
+            'urgent' => $request->input('urgent'),
             'language' => $request->input('language'),
+            'education_required' => $request->input('education_required'),
         ];
 
-        return view('jobs.index', compact('jobs', 'cities', 'categories', 'languages', 'employmentTypes', 'filters'));
+        return view('jobs.index', compact('jobs', 'cities', 'categories', 'languages', 'employmentTypes', 'experienceLevels', 'educationRequirements', 'filters'));
     }
 
     /**
@@ -137,6 +144,11 @@ class JobController extends Controller
             $query->where('contract_type', $request->input('employment_type'));
         }
 
+        // Filter by experience level
+        if ($request->filled('experience_level')) {
+            $query->where('experience_level', $request->input('experience_level'));
+        }
+
         // Filter by minimum salary
         if ($request->filled('salary_min')) {
             $query->where('salary_min', '>=', $request->input('salary_min'));
@@ -147,10 +159,26 @@ class JobController extends Controller
             $query->where('accommodation_provided', true);
         }
 
+        if ($request->input('visa_support') == '1') {
+            $query->where('visa_support', true);
+        }
+
+        if ($request->input('featured') == '1') {
+            $query->where('is_featured', true);
+        }
+
+        if ($request->input('urgent') == '1') {
+            $query->where('is_urgent', true);
+        }
+
         // Filter by language
         if ($request->filled('language')) {
             $language = strtoupper((string) $request->input('language'));
             $query->whereJsonContains('languages', $language);
+        }
+
+        if ($request->filled('education_required')) {
+            $query->where('education_required', $request->input('education_required'));
         }
 
         // Order by newest first
@@ -247,6 +275,30 @@ class JobController extends Controller
             ->filter()
             ->sort()
             ->values();
+    }
+
+    protected function getExperienceLevels()
+    {
+        return Job::active()
+            ->whereNotNull('experience_level')
+            ->distinct()
+            ->pluck('experience_level')
+            ->filter()
+            ->sort()
+            ->values();
+    }
+
+    protected function getEducationRequirements()
+    {
+        return Cache::remember('job_education_requirements', 3600, function () {
+            return Job::active()
+                ->whereNotNull('education_required')
+                ->distinct()
+                ->pluck('education_required')
+                ->filter()
+                ->sort()
+                ->values();
+        });
     }
 }
 

@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'continue_to_crowork' => 'Nastavi na CroWork',
+    'use_email_to_sign_in' => 'Koristi svoju e-mail adresu za prijavu ili kreiraj novi račun.',
+    'email' => 'E-mail',
+    'password' => 'Lozinka',
+    'continue' => 'Nastavi',
+    'sign_in' => 'Prijavi se',
+    'create_account' => 'Kreiraj račun',
+    'remember_me' => 'Zapamti me',
+    'use_different_email' => 'Koristi drugačitu e-mail adresu',
+    'verification_code' => 'Kod za provjeru',
+    'we_sent_code' => 'Kod za provjeru smo poslali na',
+    'code_expires_in' => 'Kod istječe za 10 minuta.',
+    'resend_code' => 'Ponovno pošalji kod',
+    'verify' => 'Provjeri',
+    'first_name' => 'Ime',
+    'last_name' => 'Prezime',
+    'full_name' => 'Puno ime',
+    'register' => 'Registracija',
+    'already_have_account' => 'Već imaš račun?',
+    'accept_terms' => 'Prihvaćam Uvjete korištenja',
+    'email_invalid' => 'Nevaljana e-mail adresa.',
+    'password_required' => 'Lozinka je obavezna.',
+    'password_min' => 'Lozinka mora sadržavati najmanje 8 znakova.',
+    'password_confirmed' => 'Potvrda lozinke se ne podudara.',
+];

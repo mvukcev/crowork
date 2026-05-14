@@ -7,11 +7,14 @@
 
     <title>CroWork - Coming Soon</title>
     <meta name="description" content="CroWork is getting ready. Private preview access is available for approved partners.">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
-<body class="h-full cw-page antialiased overflow-x-hidden">
+<body class="h-full cw-page cw-brand-display antialiased overflow-x-hidden">
     <div class="cw-orb cw-orb-blue" style="width: 290px; height: 290px; top: -80px; right: -60px;"></div>
     <div class="cw-orb cw-orb-cyan" style="width: 250px; height: 250px; bottom: -90px; left: -50px;"></div>
 
@@ -25,11 +28,14 @@
         <main class="flex-1 flex items-center justify-center px-4 py-8 sm:px-6">
             <div class="w-full max-w-xl cw-product-window p-7 sm:p-9 cw-soft-reveal">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center">
-                        <span class="text-slate-900 font-semibold text-xl">C</span>
-                    </div>
+                    <img
+                        src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                        alt="CroWork"
+                        class="h-8 w-auto"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
+                    >
+                    <span class="hidden text-lg font-semibold text-slate-900">CroWork</span>
                     <div>
-                        <p class="text-lg font-semibold text-slate-900 mb-0">CroWork</p>
                         <p class="text-[11px] uppercase tracking-[0.08em] text-slate-500 mb-0">Private preview</p>
                     </div>
                 </div>

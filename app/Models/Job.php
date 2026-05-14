@@ -54,6 +54,7 @@ class Job extends Model
             'visa_support' => 'boolean',
             'is_featured' => 'boolean',
             'is_urgent' => 'boolean',
+            'positions_available' => 'integer',
             'start_date' => 'date',
             'expires_at' => 'datetime',
             'published_at' => 'datetime',
@@ -151,5 +152,41 @@ class Job extends Model
     public function getCompanyNameAttribute(): ?string
     {
         return $this->employer?->company_name ?? $this->attributes['company_name'] ?? null;
+    }
+
+    public function getLocationAttribute(): ?string
+    {
+        return $this->location_city;
+    }
+
+    public function setLocationAttribute(?string $value): void
+    {
+        $this->attributes['location_city'] = $value;
+    }
+
+    public function getJobTypeAttribute(): ?string
+    {
+        return $this->contract_type;
+    }
+
+    public function setJobTypeAttribute(?string $value): void
+    {
+        $this->attributes['contract_type'] = $value;
+    }
+
+    public function getIsActiveAttribute(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function setIsActiveAttribute($value): void
+    {
+        $isActive = filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false;
+
+        $this->attributes['status'] = $isActive ? 'published' : 'draft';
+
+        if (! $isActive) {
+            $this->attributes['published_at'] = null;
+        }
     }
 }
