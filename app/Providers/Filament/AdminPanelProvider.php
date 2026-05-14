@@ -11,6 +11,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -28,8 +29,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('CroWork Admin')
+            ->brandName('CroWork')
             ->brandLogo(asset('assets/branding/CW-Logo-Dark.svg'))
+            ->darkModeBrandLogo(asset('assets/branding/CW-Logo-Light.svg'))
             ->brandLogoHeight('2rem')
             ->colors([
                 'primary' => Color::Blue,
@@ -43,6 +45,10 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): string => view('filament.partials.notification-center-dropdown')->render()
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

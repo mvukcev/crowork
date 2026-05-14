@@ -7,10 +7,10 @@
                 <div>
                     <p class="cw-kicker mb-1">Worker dashboard</p>
                     <h1 class="cw-display text-4xl md:text-6xl">Welcome, {{ $user->name }}.</h1>
-                    <p class="text-slate-600 mt-2">Complete your CV, apply confidently, and track progress in one place.</p>
+                    <p class="text-slate-600 mt-2">Complete your profile, follow your timeline, and act on the next best steps.</p>
                 </div>
                 <div class="flex gap-2">
-                    <a href="{{ route('worker.profile.edit') }}" class="cw-button-primary">Complete CV/profile</a>
+                    <a href="{{ route('worker.profile.edit') }}" class="cw-button-primary">Update profile</a>
                     <a href="{{ route('jobs.index') }}" class="cw-button-secondary">Browse jobs</a>
                 </div>
             </div>
@@ -24,30 +24,102 @@
                     <div class="h-2 rounded-full bg-slate-100 overflow-hidden mb-3">
                         <div class="h-full bg-emerald-500" style="width: {{ $completeness }}%"></div>
                     </div>
-                    @if(count($missingChecklist) > 0)
-                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Missing profile fields checklist</p>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach($missingChecklist as $item)
-                                <span class="cw-chip">{{ $item }}</span>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-sm text-emerald-700">Your profile looks complete. You are ready to apply.</p>
-                    @endif
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <p class="text-sm text-slate-600">
+                            @if($completeness < 80)
+                                Complete a few more fields to improve match quality and employer response rates.
+                            @else
+                                Your profile is strong. Keep applications active and up to date.
+                            @endif
+                        </p>
+                        <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">
+                            {{ $completeness < 80 ? 'Finish profile now' : 'Review profile' }}
+                        </a>
+                    </div>
                 </article>
 
                 <article class="cw-surface p-5">
                     <h2 class="text-lg font-semibold text-slate-900 mb-3">Applications overview</h2>
                     <div class="space-y-2 text-sm text-slate-700">
                         <p><strong>Active applications:</strong> {{ $activeApplicationsCount }}</p>
-                        <p><strong>Job applications:</strong> {{ $user->jobApplications()->count() }}</p>
-                        <p><strong>Education applications:</strong> {{ $user->educationApplications()->count() }}</p>
+                        <p><strong>Job applications:</strong> {{ $totalJobApplications }}</p>
+                        <p><strong>Education applications:</strong> {{ $totalEducationApplications }}</p>
                     </div>
                     <div class="mt-4 flex gap-2">
                         <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary">Track job applications</a>
                     </div>
                 </article>
             </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+                <article class="cw-surface p-5">
+                    <h2 class="text-lg font-semibold text-slate-900 mb-3">Onboarding checklist</h2>
+                    <div class="space-y-2">
+                        @foreach($onboardingChecklist as $check)
+                            <a href="{{ $check['href'] }}" class="flex items-center justify-between gap-3 p-3 rounded-xl border {{ $check['done'] ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 bg-white' }} hover:border-slate-300 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full {{ $check['done'] ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500' }} text-xs font-semibold">
+                                        {{ $check['done'] ? '✓' : '•' }}
+                                    </span>
+                                    <span class="text-sm {{ $check['done'] ? 'text-emerald-800 font-medium' : 'text-slate-700' }}">{{ $check['label'] }}</span>
+                                </div>
+                                <span class="text-xs text-slate-500">Open</span>
+                            </a>
+                        @endforeach
+                    </div>
+
+                    @if(count($missingChecklist) > 0)
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-4 mb-2">Missing profile fields</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($missingChecklist as $item)
+                                <span class="cw-chip">{{ $item }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+                </article>
+
+                <article class="cw-surface p-5">
+                    <h2 class="text-lg font-semibold text-slate-900 mb-3">Recommended next actions</h2>
+                    <div class="space-y-3">
+                        @foreach($recommendedNextActions as $action)
+                            <div class="p-3 rounded-xl border border-slate-200">
+                                <h3 class="text-sm font-semibold text-slate-900">{{ $action['title'] }}</h3>
+                                <p class="text-sm text-slate-600 mt-1">{{ $action['description'] }}</p>
+                                <a href="{{ $action['href'] }}" class="cw-button-secondary mt-3">{{ $action['label'] }}</a>
+                            </div>
+                        @endforeach
+                    </div>
+                </article>
+            </div>
+
+            <article class="cw-surface p-5 mb-6">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h2 class="text-lg font-semibold text-slate-900">Application timeline</h2>
+                    <a href="{{ route('worker.applications.index') }}" class="text-sm text-slate-600 hover:text-slate-900">Open full history</a>
+                </div>
+
+                @if($applicationTimeline->isEmpty())
+                    <p class="text-sm text-slate-600">No timeline events yet. Your updates will appear here after you apply.</p>
+                @else
+                    <div class="space-y-3">
+                        @foreach($applicationTimeline as $event)
+                            <a href="{{ $event['href'] }}" class="block p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900">{{ $event['title'] }}</p>
+                                        <p class="text-xs text-slate-500 mt-0.5">{{ $event['subtitle'] }}</p>
+                                    </div>
+                                    <span class="text-xs uppercase tracking-wide px-2 py-1 rounded-full {{ $event['type'] === 'job' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700' }}">{{ $event['type'] }}</span>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <x-badge tone="info">{{ $event['status'] }}</x-badge>
+                                    <p class="text-xs text-slate-500">{{ optional($event['date'])->diffForHumans() }}</p>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </article>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
                 <article class="cw-surface p-5">

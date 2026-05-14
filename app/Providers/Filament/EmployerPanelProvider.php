@@ -11,6 +11,7 @@ use App\Filament\Employer\Widgets\EmployerJobsByStatusChart;
 use App\Filament\Employer\Widgets\EmployerOverviewStats;
 use App\Filament\Employer\Widgets\ExpiringJobsTable;
 use App\Http\Middleware\EmployerAccessMiddleware;
+use App\Http\Middleware\PreventImpersonatedWrites;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -18,6 +19,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -34,7 +36,10 @@ class EmployerPanelProvider extends PanelProvider
             ->id('employer')
             ->path('employer')
             ->login()
-            ->brandName('CroWork Employer')
+            ->brandName('CroWork')
+            ->brandLogo(asset('assets/branding/CW-Logo-Dark.svg'))
+            ->darkModeBrandLogo(asset('assets/branding/CW-Logo-Light.svg'))
+            ->brandLogoHeight('2rem')
             ->colors([
                 'primary' => Color::Green,
             ])
@@ -55,11 +60,20 @@ class EmployerPanelProvider extends PanelProvider
                 EmployerApplicationsByJobChart::class,
                 ExpiringJobsTable::class,
             ])
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_START,
+                fn (): string => view('filament.partials.impersonation-banner')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): string => view('filament.partials.notification-center-dropdown')->render()
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
                 AuthenticateSession::class,
+                PreventImpersonatedWrites::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
                 SubstituteBindings::class,

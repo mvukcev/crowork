@@ -91,14 +91,17 @@
     'cw-brand-display' => $useBrandDisplay,
 ]) x-data>
     @php($isHome = request()->routeIs('home'))
+    @php($isImpersonating = session('impersonation_original_admin_id'))
     <div class="min-h-screen flex flex-col">
     <x-site-header />
+    @include('components.impersonation-banner')
 
     <!-- Main Content -->
     <main @class([
         'flex-1' => true,
         'pt-0' => $isHome,
         'pt-16 md:pt-[72px]' => ! $isHome,
+        'pt-28 md:pt-[124px]' => $isImpersonating,
     ])>
         {{-- Flash Messages --}}
         @if(session('success'))

@@ -13,6 +13,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WorkerProfileController;
 use App\Http\Controllers\WorkerSettingsController;
+use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
 use App\Http\Controllers\Auth\AccessController;
 use App\Http\Controllers\Auth\EmployerRegisterController;
@@ -222,6 +223,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notificationId}/read', [NotificationCenterController::class, 'markRead'])->name('notifications.read');
+    Route::get('/notifications/{notificationId}/open', [NotificationCenterController::class, 'open'])->name('notifications.open');
 });
 
 // Worker Profile routes (CV management)
@@ -239,12 +245,12 @@ Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () 
 });
 
 // Employer routes (must be verified and approved)
-Route::middleware(['auth', 'employer.approved'])->prefix('employer')->name('employer.')->group(function () {
+Route::middleware(['auth', 'employer.approved', 'impersonation.readonly'])->prefix('employer')->name('employer.')->group(function () {
     Route::resource('jobs', EmployerJobController::class);
 });
 
 // Employer ATS Dashboard & Applications (must be verified and approved)
-Route::middleware(['auth', 'employer.approved'])->prefix('employer')->name('employer.')->group(function () {
+Route::middleware(['auth', 'employer.approved', 'impersonation.readonly'])->prefix('employer')->name('employer.')->group(function () {
     Route::get('/dashboard', [EmployerApplicationController::class, 'dashboard'])->name('dashboard');
     Route::get('/applications/pipeline', [EmployerApplicationController::class, 'pipeline'])->name('applications.pipeline');
     Route::get('/applications/{application}', [EmployerApplicationController::class, 'candidate'])->name('applications.candidate');

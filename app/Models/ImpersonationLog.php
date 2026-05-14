@@ -37,13 +37,47 @@ class ImpersonationLog extends Model
         $this->update(['ended_at' => now()]);
     }
 
-    public static function startImpersonation(User $admin, User $employer): self
+    /**
+     * @param array<string, mixed> $details
+     */
+    public static function startImpersonation(User $admin, User $employer, array $details = []): self
     {
         return static::create([
             'admin_user_id' => $admin->id,
             'employer_user_id' => $employer->id,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
+            'notes' => $details !== [] ? json_encode($details, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function decodedNotes(): array
+    {
+        if (! is_string($this->notes) || trim($this->notes) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($this->notes, true);
+
+        return is_array($decoded) ? $decoded : ['notes' => $this->notes];
+    }
+
+    /**
+     * @param array<string, mixed> $details
+     */
+    public function appendNotes(array $details): void
+    {
+        $notes = $this->decodedNotes();
+
+        foreach ($details as $key => $value) {
+            $notes[$key] = $value;
+        }
+
+        $this->update([
+            'notes' => json_encode($notes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
     }
 

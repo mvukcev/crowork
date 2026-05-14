@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Job;
+use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -21,28 +22,32 @@ class JobStatusChanged extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         $isPublished = $this->status === 'published';
+        $locale = $notifiable->communication_language ?? app()->getLocale();
+        $actionUrl = $isPublished
+            ? route('jobs.show', $this->job)
+            : url('/employer');
+        $actionLabel = $isPublished
+            ? 'View job listing'
+            : 'Go to employer dashboard';
 
-        $message = (new MailMessage)
-            ->subject($isPublished ? 'CroWork: job approved' : 'CroWork: job rejected/delisted')
-            ->greeting('Hi '.$notifiable->name.',')
-            ->line($isPublished
-                ? 'Your job listing "'.$this->job->title.'" has been approved and is now visible to workers.'
-                : 'Your job listing "'.$this->job->title.'" is no longer publicly visible.'
-            );
-
-        if ($isPublished) {
-            $message->action('View job listing', route('jobs.show', $this->job));
-        } else {
-            $message->action('Go to employer dashboard', url('/employer'));
-        }
-
-        return $message;
+        return app(EmailTemplateService::class)->toMailMessage(
+            'job_status_changed',
+            $locale,
+            [
+                'name' => $notifiable->name,
+                'job_title' => $this->job->title,
+                'job_status' => $isPublished ? 'approved and visible to workers' : 'not publicly visible',
+                'action_url' => $actionUrl,
+            ],
+            $actionLabel,
+            $actionUrl
+        );
     }
 
     /**
@@ -50,7 +55,16 @@ class JobStatusChanged extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $isPublished = $this->status === 'published';
+
         return [
+            'title' => $isPublished ? 'Job approved' : 'Job no longer public',
+            'message' => $isPublished
+                ? 'Your job listing "'.$this->job->title.'" is approved and visible to workers.'
+                : 'Your job listing "'.$this->job->title.'" is no longer publicly visible.',
+            'url' => $isPublished ? route('jobs.show', $this->job) : url('/employer'),
+            'category' => 'important_system_notice',
+            'importance' => $isPublished ? 'normal' : 'high',
             'job_id' => $this->job->id,
             'status' => $this->status,
         ];

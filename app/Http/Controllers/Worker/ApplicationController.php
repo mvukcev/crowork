@@ -52,6 +52,95 @@ class ApplicationController extends Controller
             ->limit(5)
             ->get();
 
+        $totalJobApplications = (clone $jobApplicationsQuery)->count();
+        $totalEducationApplications = (clone $educationApplicationsQuery)->count();
+
+        $onboardingChecklist = [
+            [
+                'label' => 'Complete profile to at least 80%',
+                'done' => $completeness >= 80,
+                'href' => route('worker.profile.edit'),
+            ],
+            [
+                'label' => 'Set communication language and account settings',
+                'done' => ! empty($user->communication_language),
+                'href' => route('worker.settings.edit'),
+            ],
+            [
+                'label' => 'Submit your first job application',
+                'done' => $totalJobApplications > 0,
+                'href' => route('jobs.index'),
+            ],
+            [
+                'label' => 'Track your application updates',
+                'done' => $activeApplicationsCount > 0,
+                'href' => route('worker.applications.index'),
+            ],
+        ];
+
+        $recommendedNextActions = [];
+
+        if ($completeness < 80) {
+            $recommendedNextActions[] = [
+                'title' => 'Finish your profile details',
+                'description' => 'Profiles with stronger detail are easier for employers to shortlist.',
+                'href' => route('worker.profile.edit'),
+                'label' => 'Complete profile',
+            ];
+        }
+
+        if ($totalJobApplications === 0) {
+            $recommendedNextActions[] = [
+                'title' => 'Apply to your first role',
+                'description' => 'Use your profile snapshot to apply quickly to matching jobs.',
+                'href' => route('jobs.index'),
+                'label' => 'Browse jobs',
+            ];
+        }
+
+        if ($totalEducationApplications === 0) {
+            $recommendedNextActions[] = [
+                'title' => 'Explore education opportunities',
+                'description' => 'Upskilling options can improve match quality and hiring speed.',
+                'href' => route('educations.index'),
+                'label' => 'Browse educations',
+            ];
+        }
+
+        if ($recommendedNextActions === []) {
+            $recommendedNextActions[] = [
+                'title' => 'Review your active applications',
+                'description' => 'Stay ready for interview requests and status updates.',
+                'href' => route('worker.applications.index'),
+                'label' => 'Track applications',
+            ];
+        }
+
+        $applicationTimeline = collect()
+            ->merge($latestJobApplications->map(function (JobApplication $application) {
+                return [
+                    'type' => 'job',
+                    'title' => $application->job?->title ?? 'Job unavailable',
+                    'subtitle' => $application->job?->employer?->company_name ?? 'Employer unavailable',
+                    'status' => ucfirst((string) $application->status),
+                    'date' => $application->status_updated_at ?? $application->created_at,
+                    'href' => $application->job ? route('jobs.show', $application->job) : route('worker.applications.index'),
+                ];
+            }))
+            ->merge($latestEducationApplications->map(function (EducationApplication $application) {
+                return [
+                    'type' => 'education',
+                    'title' => $application->education?->title ?? 'Program unavailable',
+                    'subtitle' => 'Education application',
+                    'status' => ucfirst((string) ($application->status ?: 'new')),
+                    'date' => $application->updated_at ?? $application->created_at,
+                    'href' => route('worker.education-applications.index'),
+                ];
+            }))
+            ->sortByDesc('date')
+            ->values()
+            ->take(8);
+
         $appliedJobIds = JobApplication::query()
             ->where('worker_id', $user->id)
             ->pluck('job_id');
@@ -76,6 +165,11 @@ class ApplicationController extends Controller
             'activeApplicationsCount',
             'latestJobApplications',
             'latestEducationApplications',
+            'totalJobApplications',
+            'totalEducationApplications',
+            'onboardingChecklist',
+            'recommendedNextActions',
+            'applicationTimeline',
             'recommendedJobs',
         ));
     }

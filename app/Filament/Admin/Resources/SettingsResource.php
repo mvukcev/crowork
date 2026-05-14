@@ -31,6 +31,11 @@ class SettingsResource extends Resource
         return false;
     }
 
+    public static function canEdit($record): bool
+    {
+        return ! session()->has('impersonation_original_admin_id');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

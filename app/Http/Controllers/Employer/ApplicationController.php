@@ -51,6 +51,84 @@ class ApplicationController extends Controller
         $hiredCount = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_HIRED)->count();
         $rejectedCount = $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_REJECTED)->count();
 
+        $pipelineBreakdown = [
+            [
+                'label' => 'New',
+                'key' => JobApplication::STATUS_NEW,
+                'count' => $newApplications,
+                'color' => 'text-blue-600',
+                'bg' => 'bg-blue-100',
+            ],
+            [
+                'label' => 'Reviewing',
+                'key' => JobApplication::STATUS_REVIEWING,
+                'count' => $allApplications->filter(fn($app) => $app->status === JobApplication::STATUS_REVIEWING)->count(),
+                'color' => 'text-indigo-600',
+                'bg' => 'bg-indigo-100',
+            ],
+            [
+                'label' => 'Shortlisted',
+                'key' => JobApplication::STATUS_SHORTLISTED,
+                'count' => $shortlistedCount,
+                'color' => 'text-violet-600',
+                'bg' => 'bg-violet-100',
+            ],
+            [
+                'label' => 'Interview',
+                'key' => JobApplication::STATUS_INTERVIEW,
+                'count' => $interviewCount,
+                'color' => 'text-purple-600',
+                'bg' => 'bg-purple-100',
+            ],
+            [
+                'label' => 'Offer',
+                'key' => JobApplication::STATUS_OFFER,
+                'count' => $offerCount,
+                'color' => 'text-emerald-600',
+                'bg' => 'bg-emerald-100',
+            ],
+            [
+                'label' => 'Hired',
+                'key' => JobApplication::STATUS_HIRED,
+                'count' => $hiredCount,
+                'color' => 'text-green-700',
+                'bg' => 'bg-green-100',
+            ],
+        ];
+
+        $recentCandidates = JobApplication::query()
+            ->whereHas('job', fn($q) => $q->where('employer_id', $employer->id))
+            ->with(['job', 'worker'])
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        $jobPerformance = $employer->jobs()
+            ->where('status', 'published')
+            ->withCount([
+                'applications',
+                'applications as hired_applications_count' => fn($q) => $q->where('status', JobApplication::STATUS_HIRED),
+                'applications as interview_applications_count' => fn($q) => $q->where('status', JobApplication::STATUS_INTERVIEW),
+            ])
+            ->orderByDesc('applications_count')
+            ->limit(4)
+            ->get();
+
+        $expiringJobs = $employer->jobs()
+            ->where('status', 'published')
+            ->whereNotNull('expires_at')
+            ->whereBetween('expires_at', [now(), now()->copy()->addDays(14)])
+            ->withCount('applications')
+            ->orderBy('expires_at')
+            ->limit(5)
+            ->get();
+
+        $pendingApprovalJobs = $employer->jobs()
+            ->where('status', 'pending')
+            ->latest()
+            ->limit(5)
+            ->get();
+
         return view('employer.dashboard', [
             'employer' => $employer,
             'activeJobs' => $activeJobs,
@@ -63,6 +141,11 @@ class ApplicationController extends Controller
             'offerCount' => $offerCount,
             'hiredCount' => $hiredCount,
             'rejectedCount' => $rejectedCount,
+            'pipelineBreakdown' => $pipelineBreakdown,
+            'recentCandidates' => $recentCandidates,
+            'jobPerformance' => $jobPerformance,
+            'expiringJobs' => $expiringJobs,
+            'pendingApprovalJobs' => $pendingApprovalJobs,
             'jobs' => $jobs,
         ]);
     }

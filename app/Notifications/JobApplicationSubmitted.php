@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\JobApplication;
+use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -21,20 +22,27 @@ class JobApplicationSubmitted extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         $job = $this->application->job;
+        $locale = $notifiable->communication_language ?? app()->getLocale();
 
-        return (new MailMessage)
-            ->subject('Application received: '.$job->title)
-            ->greeting('Hi '.$notifiable->name.',')
-            ->line('We received your application for '.$job->title.' at '.$job->employer?->company_name.'.')
-            ->line('Your application status is currently: '.ucfirst($this->application->status).'.')
-            ->action('View your applications', route('worker.applications.index'))
-            ->line('We will keep your application available in your CroWork account.');
+        return app(EmailTemplateService::class)->toMailMessage(
+            'worker_application_confirmation',
+            $locale,
+            [
+                'name' => $notifiable->name,
+                'job_title' => $job->title,
+                'company_name' => $job->employer?->company_name ?? 'Employer',
+                'application_status' => ucfirst((string) $this->application->status),
+                'action_url' => route('worker.applications.index'),
+            ],
+            'View your applications',
+            route('worker.applications.index')
+        );
     }
 
     /**
@@ -42,7 +50,14 @@ class JobApplicationSubmitted extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $job = $this->application->job;
+
         return [
+            'title' => 'Application received',
+            'message' => 'We received your application for '.$job->title.'.',
+            'url' => route('worker.applications.index'),
+            'category' => 'application_status_update',
+            'importance' => 'normal',
             'application_id' => $this->application->id,
             'job_id' => $this->application->job_id,
             'status' => $this->application->status,

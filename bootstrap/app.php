@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'employer.approved' => \App\Http\Middleware\EnsureEmployerIsApproved::class,
             'admin.access' => \App\Http\Middleware\AdminAccessMiddleware::class,
+            'impersonation.readonly' => \App\Http\Middleware\PreventImpersonatedWrites::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

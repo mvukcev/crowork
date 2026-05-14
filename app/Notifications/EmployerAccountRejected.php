@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Employer;
+use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -18,18 +19,26 @@ class EmployerAccountRejected extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('CroWork: employer account update')
-            ->greeting('Hi '.$notifiable->name.',')
-            ->line('Your employer account for '.$this->employer->company_name.' is currently not approved.')
-            ->line('If you believe this is a mistake, contact the CroWork support team for clarification.')
-            ->action('Go to CroWork', url('/'))
-            ->line('This message does not include sensitive internal moderation details.');
+        $locale = $notifiable->communication_language ?? app()->getLocale();
+
+        return app(EmailTemplateService::class)->toMailMessage(
+            'employer_account_status',
+            $locale,
+            [
+                'name' => $notifiable->name,
+                'company_name' => $this->employer->company_name,
+                'account_status' => 'not approved',
+                'status_message' => 'If you believe this is a mistake, contact CroWork support for clarification.',
+                'action_url' => url('/'),
+            ],
+            'Go to CroWork',
+            url('/')
+        );
     }
 
     /**
@@ -38,6 +47,11 @@ class EmployerAccountRejected extends Notification
     public function toArray(object $notifiable): array
     {
         return [
+            'title' => 'Employer account not approved',
+            'message' => 'Your employer account for '.$this->employer->company_name.' is currently not approved.',
+            'url' => url('/'),
+            'category' => 'important_system_notice',
+            'importance' => 'high',
             'employer_id' => $this->employer->id,
             'approved_at' => $this->employer->approved_at?->toIso8601String(),
         ];

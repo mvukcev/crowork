@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Employer;
+use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -18,17 +19,26 @@ class EmployerAccountApproved extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('Your CroWork employer account is approved')
-            ->greeting('Hi '.$notifiable->name.',')
-            ->line('Your employer account for '.$this->employer->company_name.' has been approved.')
-            ->line('You can now access employer tools and manage your listings in CroWork.')
-            ->action('Go to employer dashboard', url('/employer'));
+        $locale = $notifiable->communication_language ?? app()->getLocale();
+
+        return app(EmailTemplateService::class)->toMailMessage(
+            'employer_account_status',
+            $locale,
+            [
+                'name' => $notifiable->name,
+                'company_name' => $this->employer->company_name,
+                'account_status' => 'approved',
+                'status_message' => 'You can now access employer tools and manage listings in CroWork.',
+                'action_url' => url('/employer'),
+            ],
+            'Go to employer dashboard',
+            url('/employer')
+        );
     }
 
     /**
@@ -37,6 +47,11 @@ class EmployerAccountApproved extends Notification
     public function toArray(object $notifiable): array
     {
         return [
+            'title' => 'Employer account approved',
+            'message' => 'Your employer account for '.$this->employer->company_name.' is approved.',
+            'url' => url('/employer'),
+            'category' => 'important_system_notice',
+            'importance' => 'high',
             'employer_id' => $this->employer->id,
             'approved_at' => $this->employer->approved_at?->toIso8601String(),
         ];

@@ -31,6 +31,7 @@
 
             <div class="hidden md:flex items-center justify-end gap-2">
                 @auth
+                    @include('components.notification-dropdown')
                     @if(auth()->user()->isAdmin() || auth()->user()->isMod())
                         <a href="{{ url('/admin') }}" class="cw-button-secondary">Admin</a>
                     @endif
@@ -70,6 +71,12 @@
             </div>
             <div class="mt-3 grid grid-cols-1 gap-2">
                 @auth
+                    <a href="{{ route('notifications.index') }}" class="cw-button-secondary text-center">
+                        Notifications
+                        @if(auth()->user()->unreadNotifications()->count() > 0)
+                            ({{ auth()->user()->unreadNotifications()->count() }})
+                        @endif
+                    </a>
                     @if(auth()->user()->isAdmin() || auth()->user()->isMod())
                         <a href="{{ url('/admin') }}" class="cw-button-secondary text-center">Admin</a>
                     @elseif(auth()->user()->isEmployer())

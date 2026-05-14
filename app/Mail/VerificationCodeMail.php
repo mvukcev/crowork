@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,20 +14,35 @@ class VerificationCodeMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly string $code
+        public readonly string $code,
+        public readonly ?string $locale = null,
+        public readonly ?string $name = null,
     ) {}
 
     public function envelope(): Envelope
     {
+        $rendered = app(EmailTemplateService::class)->render('verification_code', $this->locale, [
+            'name' => $this->name ?: 'there',
+            'code' => $this->code,
+        ]);
+
         return new Envelope(
-            subject: 'Your CroWork verification code',
+            subject: $rendered['subject'],
         );
     }
 
     public function content(): Content
     {
+        $rendered = app(EmailTemplateService::class)->render('verification_code', $this->locale, [
+            'name' => $this->name ?: 'there',
+            'code' => $this->code,
+        ]);
+
         return new Content(
-            view: 'mail.verification-code',
+            view: 'mail.dynamic-template',
+            with: [
+                'body' => $rendered['body'],
+            ],
         );
     }
 }
