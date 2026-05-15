@@ -6,7 +6,7 @@
         <div class="cw-container">
             <div class="cw-content-wide">
             <p class="cw-kicker mb-3">About</p>
-            <h1 class="cw-display text-4xl md:text-6xl mb-4">A clearer migration experience for everyone involved.</h1>
+            <h1 class="cw-display text-3xl md:text-5xl mb-4">A clearer migration experience for everyone involved.</h1>
             <p class="text-base text-slate-600 leading-relaxed cw-measure-md">CroWork is built to remove uncertainty from international hiring and relocation workflows by connecting jobs, readiness, and education in one system.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">

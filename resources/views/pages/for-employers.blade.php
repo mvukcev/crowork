@@ -7,7 +7,7 @@
         <div class="cw-container">
             <div class="cw-content-wide">
             <p class="cw-kicker mb-3">For employers</p>
-            <h1 class="cw-display text-4xl md:text-6xl mb-4">Hire with less friction and more confidence.</h1>
+            <h1 class="cw-display text-3xl md:text-5xl mb-4">Hire with less friction and more confidence.</h1>
             <p class="text-base text-slate-600 leading-relaxed cw-measure-md">CroWork helps teams shortlist, interview, and onboard workers while keeping readiness and relocation context visible.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">

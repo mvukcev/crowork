@@ -52,11 +52,11 @@
         @resize.window="open && positionPanel()"
         @scroll.window="open && positionPanel()"
     >
-        <button
-            type="button"
+        <a
+            href="{{ route('notifications.index') }}"
             x-ref="button"
-            class="relative inline-flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 bg-white text-slate-800"
-            @click.stop="toggle()"
+            class="relative inline-flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 bg-white text-slate-800 cw-nav-control"
+            @click.prevent.stop="toggle()"
             data-cw-track-click="notification_open"
             aria-label="Notifications"
             :aria-expanded="open"
@@ -67,7 +67,7 @@
             @if($notificationUnreadCount > 0)
                 <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] leading-[18px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
             @endif
-        </button>
+        </a>
 
         <template x-teleport="body">
             <div

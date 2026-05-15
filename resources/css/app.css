@@ -364,6 +364,38 @@
         outline-offset: 2px;
     }
 
+    .cw-nav-control {
+        min-height: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .cw-button-primary.cw-nav-control,
+    .cw-button-secondary.cw-nav-control,
+    .cw-button-accent.cw-nav-control {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .cw-icon-control {
+        @apply inline-flex items-center justify-center rounded-xl;
+        width: 2.5rem;
+        border: 1px solid var(--cw-hairline);
+        background: #ffffff;
+        color: var(--cw-ink);
+        transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+    }
+
+    .cw-icon-control:hover {
+        transform: translateY(-1px);
+        background: var(--cw-bg-soft);
+        border-color: rgba(15, 23, 42, 0.2);
+    }
+
+    .cw-icon-control:focus-visible {
+        outline: 2px solid rgba(var(--cw-blue) / 0.5);
+        outline-offset: 2px;
+    }
+
     .cw-logo-on-light {
         display: inline;
     }
@@ -1133,6 +1165,17 @@
         border-color: rgba(148, 163, 184, 0.42);
     }
 
+    .cw-theme-dark .cw-icon-control {
+        background: #111827;
+        border-color: rgba(148, 163, 184, 0.3);
+        color: #e2e8f0;
+    }
+
+    .cw-theme-dark .cw-icon-control:hover {
+        background: #1f2937;
+        border-color: rgba(148, 163, 184, 0.42);
+    }
+
     .cw-theme-dark .cw-button-primary {
         background: #2563eb;
         color: #eff6ff;
@@ -1188,6 +1231,30 @@
     .cw-theme-dark .border-neutral-200,
     .cw-theme-dark .border-neutral-100 {
         border-color: rgba(148, 163, 184, 0.24) !important;
+    }
+
+    .cw-theme-dark .cw-chip,
+    .cw-theme-dark .cw-chip-blue,
+    .cw-theme-dark .cw-chip-featured {
+        border-color: rgba(96, 165, 250, 0.52);
+        background: rgba(37, 99, 235, 0.24);
+        color: #dbeafe;
+    }
+
+    .cw-theme-dark .bg-blue-50,
+    .cw-theme-dark .bg-blue-50\/40 {
+        background-color: rgba(30, 64, 175, 0.26) !important;
+    }
+
+    .cw-theme-dark .border-blue-200,
+    .cw-theme-dark .border-blue-300 {
+        border-color: rgba(96, 165, 250, 0.44) !important;
+    }
+
+    .cw-theme-dark .text-blue-800,
+    .cw-theme-dark .text-blue-700,
+    .cw-theme-dark .text-blue-600 {
+        color: #bfdbfe !important;
     }
 
     /* Keyboard Navigation Accessibility */

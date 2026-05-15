@@ -125,11 +125,8 @@
                                     class="cw-button-primary min-w-[120px]"
                                     type="submit"
                                     :disabled="submitting"
-                                    wire:loading.attr="disabled"
-                                    wire:target="q,city"
                                 >
-                                    <span x-show="!submitting" wire:loading.remove wire:target="q,city">Search</span>
-                                    <span x-show="submitting" x-cloak wire:loading wire:target="q,city">Updating...</span>
+                                    <span x-text="submitting ? 'Updating...' : 'Search'" aria-live="polite"></span>
                                 </button>
                                 <button
                                     type="button"
@@ -212,11 +209,8 @@
                                     type="submit"
                                     data-cw-track-click="education_filter_apply"
                                     :disabled="submitting"
-                                    wire:loading.attr="disabled"
-                                    wire:target="is_online,start_from,price_max"
                                 >
-                                    <span x-show="!submitting" wire:loading.remove wire:target="is_online,start_from,price_max">Apply filters</span>
-                                    <span x-show="submitting" x-cloak wire:loading wire:target="is_online,start_from,price_max">Applying...</span>
+                                    <span x-text="submitting ? 'Applying...' : 'Apply filters'" aria-live="polite"></span>
                                 </button>
                                 <a href="{{ route('educations.index') }}" class="cw-button-secondary" data-cw-track-click="education_filter_reset">Reset</a>
                                 <button type="button" class="cw-button-secondary md:hidden" @click="mobilePanelOpen = false">Done</button>

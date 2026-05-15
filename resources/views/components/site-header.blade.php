@@ -23,6 +23,19 @@
 
     $currentUrl = request()->fullUrl();
     $localeLabels = ['en' => 'EN', 'hr' => 'HR'];
+
+    $activeLocaleIndex = array_search($activeLocale, $enabledLocales, true);
+    if ($activeLocaleIndex === false) {
+        $activeLocaleIndex = 0;
+    }
+    $nextLocale = $enabledLocales[($activeLocaleIndex + 1) % max(count($enabledLocales), 1)];
+
+    $themeOrder = ['system', 'light', 'dark'];
+    $themeIndex = array_search($themePreference, $themeOrder, true);
+    if ($themeIndex === false) {
+        $themeIndex = 0;
+    }
+    $nextThemePreference = $themeOrder[($themeIndex + 1) % count($themeOrder)];
 @endphp
 
 <header @class([
@@ -59,43 +72,55 @@
             </div>
 
             <div class="hidden md:flex items-center justify-end gap-2">
-                <form method="POST" action="{{ route('preferences.locale') }}">
+                <form method="POST" action="{{ route('preferences.locale') }}" data-cw-track-click="language_change">
                     @csrf
                     <input type="hidden" name="redirect" value="{{ $currentUrl }}">
-                    <label class="sr-only" for="desktop-locale-switch">Language</label>
-                    <select id="desktop-locale-switch" name="locale" class="cw-control-select" onchange="this.form.submit()">
-                        @foreach($enabledLocales as $locale)
-                            <option value="{{ $locale }}" @selected($activeLocale === $locale)>{{ $localeLabels[$locale] ?? strtoupper($locale) }}</option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" name="locale" value="{{ $nextLocale }}">
+                    <button type="submit" class="cw-icon-control cw-nav-control" title="Language {{ $localeLabels[$activeLocale] ?? strtoupper($activeLocale) }}" aria-label="Switch language to {{ $localeLabels[$nextLocale] ?? strtoupper($nextLocale) }}">
+                        <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3a15.3 15.3 0 014 9 15.3 15.3 0 01-4 9 15.3 15.3 0 01-4-9 15.3 15.3 0 014-9zM5 7h14M5 17h14" />
+                        </svg>
+                    </button>
                 </form>
-                <form method="POST" action="{{ route('preferences.theme') }}">
+                <form method="POST" action="{{ route('preferences.theme') }}" data-cw-track-click="theme_change">
                     @csrf
                     <input type="hidden" name="redirect" value="{{ $currentUrl }}">
-                    <label class="sr-only" for="desktop-theme-switch">Theme</label>
-                    <select id="desktop-theme-switch" name="theme" class="cw-control-select" data-cw-theme-switcher onchange="window.cwTheme?.setPreference(this.value); this.form.submit()">
-                        <option value="system" @selected($themePreference === 'system')>System</option>
-                        <option value="light" @selected($themePreference === 'light')>Light</option>
-                        <option value="dark" @selected($themePreference === 'dark')>Dark</option>
-                    </select>
+                    <input type="hidden" name="theme" value="{{ $nextThemePreference }}">
+                    <button type="submit" class="cw-icon-control cw-nav-control" title="Theme {{ ucfirst($themePreference) }}" aria-label="Switch theme to {{ ucfirst($nextThemePreference) }}" onclick="window.cwTheme?.setPreference('{{ $nextThemePreference }}')">
+                        @if($themePreference === 'light')
+                            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                <circle cx="12" cy="12" r="4" />
+                                <path stroke-linecap="round" d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" />
+                            </svg>
+                        @elseif($themePreference === 'dark')
+                            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3c.1 0 .2 0 .29.01A7 7 0 0021 12.79z" />
+                            </svg>
+                        @else
+                            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="13" rx="2" />
+                                <path stroke-linecap="round" d="M8 20h8" />
+                            </svg>
+                        @endif
+                    </button>
                 </form>
                 @auth
                     @include('components.notification-dropdown')
                     @if(auth()->user()->isAdmin() || auth()->user()->isMod())
-                        <a href="{{ url('/admin') }}" class="cw-button-secondary" data-cw-track-click="navigation_click">Admin</a>
+                        <a href="{{ url('/admin') }}" class="cw-button-secondary cw-nav-control" data-cw-track-click="navigation_click">Admin</a>
                     @endif
                     @if(auth()->user()->isEmployer())
-                        <a href="{{ url('/employer') }}" class="cw-button-secondary" data-cw-track-click="navigation_click">Dashboard</a>
+                        <a href="{{ url('/employer') }}" class="cw-button-secondary cw-nav-control" data-cw-track-click="navigation_click">Dashboard</a>
                     @endif
                     @if(auth()->user()->isWorker())
-                        <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary" data-cw-track-click="navigation_click">Dashboard</a>
+                        <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary cw-nav-control" data-cw-track-click="navigation_click">Dashboard</a>
                     @endif
                     <form method="POST" action="{{ route('logout') }}" data-cw-track-submit="logout">
                         @csrf
-                        <button class="cw-button-secondary">Logout</button>
+                        <button class="cw-button-secondary cw-nav-control">Logout</button>
                     </form>
                 @else
-                    <a href="{{ route('access.show') }}" class="cw-button-primary" data-cw-track-click="navigation_click">Get started</a>
+                    <a href="{{ route('access.show') }}" class="cw-button-primary cw-nav-control" data-cw-track-click="navigation_click">Get started</a>
                 @endauth
             </div>
 
@@ -119,48 +144,60 @@
                 <a href="{{ route('for-employers') }}" class="block cw-button-secondary text-center" data-cw-track-click="navigation_click">For Employers</a>
             </div>
             <div class="mt-3 grid grid-cols-2 gap-2">
-                <form method="POST" action="{{ route('preferences.locale') }}" class="col-span-1">
+                <form method="POST" action="{{ route('preferences.locale') }}" class="col-span-1" data-cw-track-click="language_change">
                     @csrf
                     <input type="hidden" name="redirect" value="{{ $currentUrl }}">
-                    <label class="sr-only" for="mobile-locale-switch">Language</label>
-                    <select id="mobile-locale-switch" name="locale" class="cw-control-select w-full" onchange="this.form.submit()">
-                        @foreach($enabledLocales as $locale)
-                            <option value="{{ $locale }}" @selected($activeLocale === $locale)>{{ $localeLabels[$locale] ?? strtoupper($locale) }}</option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" name="locale" value="{{ $nextLocale }}">
+                    <button type="submit" class="cw-icon-control cw-nav-control w-full" title="Language {{ $localeLabels[$activeLocale] ?? strtoupper($activeLocale) }}" aria-label="Switch language to {{ $localeLabels[$nextLocale] ?? strtoupper($nextLocale) }}">
+                        <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3a15.3 15.3 0 014 9 15.3 15.3 0 01-4 9 15.3 15.3 0 01-4-9 15.3 15.3 0 014-9zM5 7h14M5 17h14" />
+                        </svg>
+                    </button>
                 </form>
-                <form method="POST" action="{{ route('preferences.theme') }}" class="col-span-1">
+                <form method="POST" action="{{ route('preferences.theme') }}" class="col-span-1" data-cw-track-click="theme_change">
                     @csrf
                     <input type="hidden" name="redirect" value="{{ $currentUrl }}">
-                    <label class="sr-only" for="mobile-theme-switch">Theme</label>
-                    <select id="mobile-theme-switch" name="theme" class="cw-control-select w-full" data-cw-theme-switcher onchange="window.cwTheme?.setPreference(this.value); this.form.submit()">
-                        <option value="system" @selected($themePreference === 'system')>System</option>
-                        <option value="light" @selected($themePreference === 'light')>Light</option>
-                        <option value="dark" @selected($themePreference === 'dark')>Dark</option>
-                    </select>
+                    <input type="hidden" name="theme" value="{{ $nextThemePreference }}">
+                    <button type="submit" class="cw-icon-control cw-nav-control w-full" title="Theme {{ ucfirst($themePreference) }}" aria-label="Switch theme to {{ ucfirst($nextThemePreference) }}" onclick="window.cwTheme?.setPreference('{{ $nextThemePreference }}')">
+                        @if($themePreference === 'light')
+                            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                <circle cx="12" cy="12" r="4" />
+                                <path stroke-linecap="round" d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" />
+                            </svg>
+                        @elseif($themePreference === 'dark')
+                            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3c.1 0 .2 0 .29.01A7 7 0 0021 12.79z" />
+                            </svg>
+                        @else
+                            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="13" rx="2" />
+                                <path stroke-linecap="round" d="M8 20h8" />
+                            </svg>
+                        @endif
+                    </button>
                 </form>
             </div>
             <div class="mt-3 grid grid-cols-1 gap-2">
                 @auth
-                    <a href="{{ route('notifications.index') }}" class="cw-button-secondary text-center">
+                    <a href="{{ route('notifications.index') }}" class="cw-button-secondary text-center cw-nav-control">
                         Notifications
                         @if(auth()->user()->unreadNotifications()->count() > 0)
                             ({{ auth()->user()->unreadNotifications()->count() }})
                         @endif
                     </a>
                     @if(auth()->user()->isAdmin() || auth()->user()->isMod())
-                        <a href="{{ url('/admin') }}" class="cw-button-secondary text-center">Admin</a>
+                        <a href="{{ url('/admin') }}" class="cw-button-secondary text-center cw-nav-control">Admin</a>
                     @elseif(auth()->user()->isEmployer())
-                        <a href="{{ url('/employer') }}" class="cw-button-secondary text-center">Dashboard</a>
+                        <a href="{{ url('/employer') }}" class="cw-button-secondary text-center cw-nav-control">Dashboard</a>
                     @else
-                        <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary text-center">Dashboard</a>
+                        <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary text-center cw-nav-control">Dashboard</a>
                     @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button class="cw-button-secondary w-full">Logout</button>
+                        <button class="cw-button-secondary w-full cw-nav-control">Logout</button>
                     </form>
                 @else
-                    <a href="{{ route('access.show') }}" class="cw-button-primary text-center">Get started</a>
+                    <a href="{{ route('access.show') }}" class="cw-button-primary text-center cw-nav-control">Get started</a>
                 @endauth
             </div>
         </div>

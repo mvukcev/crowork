@@ -94,7 +94,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.cwTrack?.('resource_page_view', {
+                window.cwTrack?.('page_view', {
                     page_type: 'resource_detail',
                     resource_slug: @json($resource['slug'])
                 });

@@ -28,7 +28,7 @@
         <div class="cw-container">
             <div class="cw-content-wide">
                 <p class="cw-kicker mb-3">Croatia Work Guide</p>
-                <h1 class="cw-display text-4xl md:text-6xl mb-4">Resources for working and relocating to Croatia.</h1>
+                <h1 class="cw-display text-3xl md:text-5xl mb-4">Resources for working and relocating to Croatia.</h1>
                 <p class="text-base text-slate-600 leading-relaxed cw-measure-md">Use these guides to prepare documents, understand employer responsibilities, evaluate housing support, and reduce uncertainty before you move.</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-10">
@@ -57,7 +57,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.cwTrack?.('resource_page_view', {
+                window.cwTrack?.('page_view', {
                     page_type: 'resources_index',
                     resource_count: {{ count($resources) }}
                 });

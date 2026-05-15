@@ -300,12 +300,12 @@ Route::middleware(['auth', 'admin.access'])->get('content/{slug}/preview/{locale
 require __DIR__.'/auth.php';
 
 Route::get('/export-candidates', function () {
-    return Excel::download(new CandidateExport, 'candidates.xlsx');
+    return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\CandidateExport, 'candidates.xlsx');
 })->name('export.candidates');
 
-Route::get('/user/export', [UserDataExportController::class, 'export'])->middleware('auth')->name('user.export');
+Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::class, 'export'])->middleware('auth')->name('user.export');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/privacy-requests', [AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
-    Route::put('/privacy-requests/{deletionRequest}', [AdminPrivacyRequestController::class, 'update'])->name('admin.privacy_requests.update');
+    Route::get('/privacy-requests', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
+    Route::put('/privacy-requests/{deletionRequest}', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'update'])->name('admin.privacy_requests.update');
 });
