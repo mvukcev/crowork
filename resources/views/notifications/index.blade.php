@@ -9,11 +9,11 @@
                     <h1 class="cw-display text-4xl md:text-5xl">Your notifications</h1>
                     <p class="text-sm text-slate-600 mt-2">Unread: {{ $unreadCount }}</p>
                 </div>
-                <form method="POST" action="{{ route('notifications.read-all') }}">
+                <form method="POST" action="{{ route('notifications.read-all') }}" data-cw-track-submit="notification_mark_all_read">
                     @csrf
                     <button type="submit" class="cw-button-secondary">Mark all as read</button>
                 </form>
-                <a href="{{ route('notifications.preferences') }}" class="cw-button-secondary">Preferences</a>
+                <a href="{{ route('notifications.preferences') }}" class="cw-button-secondary" data-cw-track-click="navigation_click">Preferences</a>
             </div>
 
             <div class="flex gap-2 mb-4">
@@ -50,7 +50,7 @@
                                         <p class="text-xs text-slate-500 mt-1">{{ $notification->created_at?->diffForHumans() }}</p>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2">
-                                        <a href="{{ route('notifications.open', $notification->id) }}" class="cw-button-secondary">Open</a>
+                                        <a href="{{ route('notifications.open', $notification->id) }}" class="cw-button-secondary" data-cw-track-click="notification_open">Open</a>
                                         @if($notification->read_at === null)
                                             <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
                                                 @csrf

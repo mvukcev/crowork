@@ -6,14 +6,74 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="robots" content="noindex,nofollow">
         <title>Continue to CroWork</title>
+        <x-theme-init />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="h-full cw-page">
+    @php
+        $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
+        $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
+        $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+    @endphp
+    <body
+        class="h-full cw-page"
+        data-cw-consent-required="{{ $consentRequired ? '1' : '0' }}"
+        data-cw-analytics-enabled="{{ $analyticsEnabled ? '1' : '0' }}"
+        data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
+    >
+        @php
+            $enabledLocales = collect(setting('enabled_locales', ['en', 'hr']))
+                ->filter(fn ($locale) => is_string($locale) && $locale !== '')
+                ->map(fn ($locale) => strtolower(trim((string) $locale)))
+                ->values()
+                ->all();
+
+            if ($enabledLocales === []) {
+                $enabledLocales = ['en'];
+            }
+
+            $activeLocale = strtolower((string) app()->getLocale());
+            if (! in_array($activeLocale, $enabledLocales, true)) {
+                $activeLocale = $enabledLocales[0];
+            }
+
+            $themePreference = strtolower((string) (session('theme') ?? request()->cookie('cw_theme') ?? 'system'));
+            if (! in_array($themePreference, ['light', 'dark', 'system'], true)) {
+                $themePreference = 'system';
+            }
+
+            $currentUrl = request()->fullUrl();
+            $localeLabels = ['en' => 'EN', 'hr' => 'HR'];
+        @endphp
         <div class="min-h-screen flex flex-col">
             <header class="cw-container py-4">
-                <a href="{{ route('home') }}" class="inline-flex items-center h-8">
-                    <img src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-full" loading="lazy">
-                </a>
+                <div class="flex items-center justify-between gap-3">
+                    <a href="{{ route('home') }}" class="inline-flex items-center h-8">
+                        <img src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-full cw-logo-on-light" loading="lazy">
+                        <img src="{{ asset('assets/branding/CW-Logo-Light.svg') }}" alt="CroWork" class="h-full cw-logo-on-dark" loading="lazy">
+                    </a>
+                    <div class="flex items-center gap-2">
+                        <form method="POST" action="{{ route('preferences.locale') }}">
+                            @csrf
+                            <input type="hidden" name="redirect" value="{{ $currentUrl }}">
+                            <label class="sr-only" for="access-locale-switch">Language</label>
+                            <select id="access-locale-switch" name="locale" class="cw-control-select" onchange="this.form.submit()">
+                                @foreach($enabledLocales as $locale)
+                                    <option value="{{ $locale }}" @selected($activeLocale === $locale)>{{ $localeLabels[$locale] ?? strtoupper($locale) }}</option>
+                                @endforeach
+                            </select>
+                        </form>
+                        <form method="POST" action="{{ route('preferences.theme') }}">
+                            @csrf
+                            <input type="hidden" name="redirect" value="{{ $currentUrl }}">
+                            <label class="sr-only" for="access-theme-switch">Theme</label>
+                            <select id="access-theme-switch" name="theme" class="cw-control-select" data-cw-theme-switcher onchange="window.cwTheme?.setPreference(this.value); this.form.submit()">
+                                <option value="system" @selected($themePreference === 'system')>System</option>
+                                <option value="light" @selected($themePreference === 'light')>Light</option>
+                                <option value="dark" @selected($themePreference === 'dark')>Dark</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
             </header>
 
             <main class="cw-container flex-1 flex items-start sm:items-center justify-center pb-8 sm:pb-12">
@@ -44,7 +104,7 @@
 
                     {{-- ─── Stage: LOGIN ──────────────────────────────────────── --}}
                     @elseif ($stage === 'login')
-                        <form method="POST" action="{{ route('access.login') }}" class="space-y-4">
+                        <form method="POST" action="{{ route('access.login') }}" class="space-y-4" data-cw-track-submit="login">
                             @csrf
                             <div>
                                 <label class="cw-label" for="email">Email</label>
@@ -60,7 +120,7 @@
                                 Remember me
                             </label>
                             <button type="submit" class="cw-button-primary w-full">Sign in</button>
-                            <form method="POST" action="{{ route('access.reset') }}" class="w-full">
+                            <form method="POST" action="{{ route('access.reset') }}" class="w-full" data-cw-track-submit="auth_back_to_email">
                                 @csrf
                                 <button type="submit" class="inline-flex justify-center w-full text-sm text-slate-600 hover:text-slate-900">Use a different email</button>
                             </form>
@@ -101,7 +161,7 @@
                             @enderror
 
                             {{-- Verify form --}}
-                            <form method="POST" action="{{ route('access.verify-code') }}" @submit="onSubmit($event)" class="space-y-5">
+                            <form method="POST" action="{{ route('access.verify-code') }}" @submit="onSubmit($event)" class="space-y-5" data-cw-track-submit="email_verification_completed">
                                 @csrf
                                 <input type="hidden" name="email" value="{{ $email }}">
                                 <input type="hidden" name="intent_type" value="{{ $intentType ?? 'worker' }}">
@@ -151,7 +211,7 @@
                             </form>
 
                             {{-- Resend form (separate element, submitted programmatically) --}}
-                            <form method="POST" action="{{ route('access.resend-code') }}" id="cwResendForm">
+                            <form method="POST" action="{{ route('access.resend-code') }}" id="cwResendForm" data-cw-track-submit="email_verification_resend">
                                 @csrf
                                 <input type="hidden" name="email" value="{{ $email }}">
                                 <input type="hidden" name="intent_type" value="{{ $intentType ?? 'worker' }}">
@@ -179,7 +239,7 @@
 
                     {{-- ─── Stage: REGISTER ───────────────────────────────────── --}}
                     @else
-                        <form method="POST" action="{{ route('access.register') }}" class="space-y-4">
+                        <form method="POST" action="{{ route('access.register') }}" class="space-y-4" data-cw-track-submit="registration_complete">
                             @csrf
                             <div>
                                 <label class="cw-label" for="email">Email</label>

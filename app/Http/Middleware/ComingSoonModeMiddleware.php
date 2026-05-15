@@ -44,6 +44,7 @@ class ComingSoonModeMiddleware
             'coming-soon-preview/*',
             'access',
             'access/*',
+            'preferences/*',
             'login',
             'register',
             'logout',

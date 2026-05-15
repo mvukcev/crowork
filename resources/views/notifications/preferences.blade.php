@@ -16,7 +16,7 @@
             @endif
 
             <div class="cw-surface p-6">
-                <form method="POST" action="{{ route('notifications.preferences.update') }}" class="space-y-5">
+                <form method="POST" action="{{ route('notifications.preferences.update') }}" class="space-y-5" data-cw-track-submit="notification_preferences_save">
                     @csrf
                     @method('PATCH')
 

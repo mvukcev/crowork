@@ -19,7 +19,7 @@
 
             <div class="flex flex-wrap gap-2 mt-8">
                 <a href="{{ url('/employer/register') }}" class="cw-button-primary" data-cw-track-click="employer_cta_click">Create employer account</a>
-                <a href="{{ url('/contact') }}" class="cw-button-secondary">Talk to CroWork</a>
+                <a href="{{ url('/contact') }}" class="cw-button-secondary" data-cw-track-click="contact_submit">Talk to CroWork</a>
             </div>
             </div>
         </div>

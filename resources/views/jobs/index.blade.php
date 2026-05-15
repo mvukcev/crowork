@@ -24,17 +24,6 @@
             </div>
 
             @php
-                $hasAdvancedFilters = filled($filters['category'] ?? null)
-                    || filled($filters['employment_type'] ?? null)
-                    || filled($filters['experience_level'] ?? null)
-                    || filled($filters['salary_min'] ?? null)
-                    || request()->input('accommodation') == '1'
-                    || request()->input('visa_support') == '1'
-                    || request()->input('featured') == '1'
-                    || request()->input('urgent') == '1'
-                    || filled($filters['language'] ?? null)
-                    || filled($filters['education_required'] ?? null);
-
                 $removeFilterQuery = function (string $key): array {
                     $query = request()->query();
                     unset($query[$key], $query['page']);
@@ -145,9 +134,10 @@
             <form
                 method="GET"
                 action="{{ route('jobs.index') }}"
+                data-cw-track-submit="job_search"
                 class="mb-6"
                 x-data="{
-                    desktopAdvancedOpen: {{ $hasAdvancedFilters ? 'true' : 'false' }},
+                    desktopAdvancedOpen: false,
                     mobilePanelOpen: false,
                     submitting: false,
                     isDesktop() {
@@ -172,7 +162,7 @@
                                 <span>{{ \Illuminate\Support\Str::plural('result', $jobs->total()) }}</span>
                             </div>
                             @if(count($activeChips) > 0)
-                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary !px-3 !py-2 text-xs">Clear all</a>
+                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary !px-3 !py-2 text-xs" data-cw-track-click="job_filter_reset">Clear all</a>
                             @endif
                         </div>
 
@@ -191,9 +181,15 @@
                                 </select>
                             </div>
                             <div class="flex items-end gap-2">
-                                <button class="cw-button-primary min-w-[120px]" type="submit" :disabled="submitting">
-                                    <span x-show="!submitting">Search</span>
-                                    <span x-show="submitting" x-cloak>Updating...</span>
+                                <button
+                                    class="cw-button-primary min-w-[120px]"
+                                    type="submit"
+                                    :disabled="submitting"
+                                    wire:loading.attr="disabled"
+                                    wire:target="q,city"
+                                >
+                                    <span x-show="!submitting" wire:loading.remove wire:target="q,city">Search</span>
+                                    <span x-show="submitting" x-cloak wire:loading wire:target="q,city">Updating...</span>
                                 </button>
                                 <button
                                     type="button"
@@ -201,6 +197,7 @@
                                     aria-controls="job-advanced-filters"
                                     :aria-expanded="desktopAdvancedOpen ? 'true' : 'false'"
                                     @click="desktopAdvancedOpen = !desktopAdvancedOpen"
+                                    data-cw-track-click="job_filter_open"
                                 >
                                     <span>More filters</span>
                                     <span class="ml-1 text-xs text-slate-500" x-text="desktopAdvancedOpen ? 'Hide' : 'Show'"></span>
@@ -213,6 +210,7 @@
                                 type="button"
                                 class="cw-button-secondary w-full"
                                 @click="mobilePanelOpen = true"
+                                    data-cw-track-click="job_filter_open"
                                 aria-controls="job-advanced-filters"
                                 :aria-expanded="mobilePanelOpen ? 'true' : 'false'"
                             >
@@ -344,11 +342,18 @@
                             </div>
 
                             <div class="mt-5 flex flex-wrap items-center gap-2">
-                                <button class="cw-button-primary" type="submit" :disabled="submitting">
-                                    <span x-show="!submitting">Apply filters</span>
-                                    <span x-show="submitting" x-cloak>Applying...</span>
+                                <button
+                                    class="cw-button-primary"
+                                    type="submit"
+                                    data-cw-track-click="job_filter_apply"
+                                    :disabled="submitting"
+                                    wire:loading.attr="disabled"
+                                    wire:target="category,employment_type,experience_level,salary_min,accommodation,visa_support,featured,urgent,language,education_required"
+                                >
+                                    <span x-show="!submitting" wire:loading.remove wire:target="category,employment_type,experience_level,salary_min,accommodation,visa_support,featured,urgent,language,education_required">Apply filters</span>
+                                    <span x-show="submitting" x-cloak wire:loading wire:target="category,employment_type,experience_level,salary_min,accommodation,visa_support,featured,urgent,language,education_required">Applying...</span>
                                 </button>
-                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary">Reset</a>
+                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary" data-cw-track-click="job_filter_reset">Reset</a>
                                 <button type="button" class="cw-button-secondary md:hidden" @click="mobilePanelOpen = false">Done</button>
                             </div>
                         </div>
@@ -376,7 +381,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.cwTrack?.('jobs_list_view', {
+                window.cwTrack?.('job_search_results_view', {
                     page: {{ $jobs->currentPage() }},
                     total_results: {{ $jobs->total() }}
                 });

@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ForceHttpsInProduction::class,
             \App\Http\Middleware\SecureHeaders::class,
             \App\Http\Middleware\ComingSoonModeMiddleware::class,
+            \App\Http\Middleware\SetFrontendLocale::class,
         ]);
 
         $middleware->alias([

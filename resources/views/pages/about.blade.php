@@ -16,7 +16,7 @@
             </div>
 
             <div class="mt-8">
-                <a href="{{ route('contact') }}" class="cw-button-primary">Contact us</a>
+                <a href="{{ route('contact') }}" class="cw-button-primary" data-cw-track-click="contact_submit">Contact us</a>
             </div>
             </div>
         </div>

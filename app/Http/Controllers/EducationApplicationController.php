@@ -6,8 +6,10 @@ use App\Models\Education;
 use App\Models\EducationApplication;
 use App\Models\WorkerProfile;
 use App\Notifications\EducationApplicationSubmitted;
+use App\Services\MetaConversionsAPIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class EducationApplicationController extends Controller
 {
@@ -76,6 +78,15 @@ class EducationApplicationController extends Controller
 
         $application->loadMissing('worker');
         $application->worker?->notify(new EducationApplicationSubmitted($application));
+
+        try {
+            app(MetaConversionsAPIService::class)->trackEducationApplicationSubmitted($application);
+        } catch (\Throwable $exception) {
+            Log::warning('Meta CAPI education application tracking failed', [
+                'application_id' => $application->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('educations.show', $education)

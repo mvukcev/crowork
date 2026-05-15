@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\WorkerProfile;
 use App\Notifications\AdminNewEmployerPending;
 use App\Services\ApprovalService;
+use App\Services\MetaConversionsAPIService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -293,6 +294,15 @@ class AccessController extends Controller
             'password' => Hash::make($data['password']),
             'role'     => $data['account_type'],
         ]);
+
+            try {
+                app(MetaConversionsAPIService::class)->trackCompleteRegistration($user, $data['account_type']);
+            } catch (\Throwable $exception) {
+                Log::warning('Meta CAPI registration tracking failed', [
+                    'user_id' => $user->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
 
         $this->clearAccessSessionState();
 

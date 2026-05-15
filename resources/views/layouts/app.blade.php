@@ -34,6 +34,8 @@
     <meta name="twitter:description" content="{{ $ogDescription }}">
     <meta name="twitter:image" content="{{ $ogImage }}">
 
+    <x-theme-init />
+
     @php
         $organizationSchema = [
             '@context' => 'https://schema.org',
@@ -86,10 +88,19 @@
 
     $useBrandDisplay = request()->routeIs($brandDisplayRoutes);
 @endphp
+@php
+    $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
+    $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
+    $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+@endphp
 <body @class([
     'h-full cw-page' => true,
     'cw-brand-display' => $useBrandDisplay,
-]) x-data>
+])
+data-cw-consent-required="{{ $consentRequired ? '1' : '0' }}"
+data-cw-analytics-enabled="{{ $analyticsEnabled ? '1' : '0' }}"
+data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
+x-data>
     @php($isHome = request()->routeIs('home'))
     @php($isImpersonating = session('impersonation_original_admin_id'))
     <div class="min-h-screen flex flex-col">
@@ -170,7 +181,13 @@
                     <img
                         src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
                         alt="CroWork"
-                        class="h-7 w-auto"
+                        class="h-7 w-auto cw-logo-on-light"
+                        onerror="this.style.display='none';"
+                    >
+                    <img
+                        src="{{ asset('assets/branding/CW-Logo-Light.svg') }}"
+                        alt="CroWork"
+                        class="h-7 w-auto cw-logo-on-dark"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
                     >
                     <span class="hidden text-lg font-semibold text-slate-900">CroWork</span>
@@ -179,13 +196,13 @@
                     </div>
                 </a>
                 <div class="flex flex-wrap items-center gap-4 md:gap-5">
-                    <a href="{{ route('jobs.index') }}" class="cw-footer-link">Jobs</a>
-                    <a href="{{ route('educations.index') }}" class="cw-footer-link">Educations</a>
-                    <a href="{{ route('resources.index') }}" class="cw-footer-link">Resources</a>
+                    <a href="{{ route('jobs.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">Jobs</a>
+                    <a href="{{ route('educations.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">Educations</a>
+                    <a href="{{ route('resources.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">Resources</a>
                     <a href="{{ route('resources.show', 'work-permits') }}" class="cw-footer-link">Work Permits</a>
                     <a href="{{ route('resources.show', 'faq-foreign-workers') }}" class="cw-footer-link">Worker FAQ</a>
-                    <a href="{{ route('for-employers') }}" class="cw-footer-link">For Employers</a>
-                    <a href="{{ route('about') }}" class="cw-footer-link">About</a>
+                    <a href="{{ route('for-employers') }}" class="cw-footer-link" data-cw-track-click="navigation_click">For Employers</a>
+                    <a href="{{ route('about') }}" class="cw-footer-link" data-cw-track-click="navigation_click">About</a>
                     <a href="{{ route('privacy') }}" class="cw-footer-link">Privacy</a>
                     <a href="{{ route('terms') }}" class="cw-footer-link">Terms</a>
                 </div>

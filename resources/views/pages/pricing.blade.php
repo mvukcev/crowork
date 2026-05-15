@@ -13,19 +13,19 @@
                     <h2 class="text-xl font-semibold text-slate-900 mb-2">Starter</h2>
                     <p class="text-3xl font-semibold text-slate-900 mb-3">EUR 0</p>
                     <p class="text-slate-600 mb-4">For early exploration and pilot workflows.</p>
-                    <a href="{{ url('/employer/register') }}" class="cw-button-secondary w-full">Get started</a>
+                    <a href="{{ url('/employer/register') }}" class="cw-button-secondary w-full" data-cw-track-click="employer_cta_click">Get started</a>
                 </article>
                 <article class="cw-surface p-6 border-amber-300">
                     <h2 class="text-xl font-semibold text-slate-900 mb-2">Growth</h2>
                     <p class="text-3xl font-semibold text-slate-900 mb-3">EUR 149/mo</p>
                     <p class="text-slate-600 mb-4">For active teams hiring across multiple roles.</p>
-                    <a href="{{ url('/contact') }}" class="cw-button-accent w-full">Talk to sales</a>
+                    <a href="{{ url('/contact') }}" class="cw-button-accent w-full" data-cw-track-click="contact_submit">Talk to sales</a>
                 </article>
                 <article class="cw-surface p-6">
                     <h2 class="text-xl font-semibold text-slate-900 mb-2">Enterprise</h2>
                     <p class="text-3xl font-semibold text-slate-900 mb-3">Custom</p>
                     <p class="text-slate-600 mb-4">For high-volume recruitment and integrations.</p>
-                    <a href="{{ url('/contact') }}" class="cw-button-secondary w-full">Contact us</a>
+                    <a href="{{ url('/contact') }}" class="cw-button-secondary w-full" data-cw-track-click="contact_submit">Contact us</a>
                 </article>
             </div>
         </div>

@@ -363,7 +363,7 @@
                         @endif
 
                         <div class="flex flex-col gap-2 mt-3">
-                            <a href="{{ route('jobs.apply', $job) }}" class="cw-button-primary w-full text-center" data-cw-track-click="job_apply_click">Apply now</a>
+                            <a href="{{ route('jobs.apply', $job) }}" class="cw-button-primary w-full text-center" data-cw-track-click="apply_start">Apply now</a>
                             @if($companyProfileUrl)
                                 <a href="{{ $companyProfileUrl }}" class="cw-button-secondary w-full text-center">Company profile</a>
                             @endif
@@ -382,7 +382,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.cwTrack?.('job_detail_view', {
+                window.cwTrack?.('job_view', {
                     job_slug: @json($job->slug),
                     company_slug: @json($job->employer?->slug),
                     has_salary: {{ (!is_null($job->salary_min) || !is_null($job->salary_max)) ? 'true' : 'false' }}

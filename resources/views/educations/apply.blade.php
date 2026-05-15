@@ -23,7 +23,7 @@
                         <h1 class="cw-display text-3xl md:text-5xl mb-3">Apply for {{ $education->title }}</h1>
                         <p class="text-slate-600 mb-6">Send your application and include a short motivation message.</p>
 
-                        <form method="POST" action="{{ route('educations.apply.store', $education) }}" class="space-y-4">
+                        <form method="POST" action="{{ route('educations.apply.store', $education) }}" class="space-y-4" data-cw-track-submit="education_application_submit">
                             @csrf
                             <div>
                                 <label class="cw-label" for="message">Motivation message (optional)</label>

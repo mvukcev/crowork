@@ -96,6 +96,55 @@ class MetaConversionsAPIService
     }
 
     /**
+     * Track an education application submission event.
+     */
+    public function trackEducationApplicationSubmitted(
+        $educationApplication,
+        ?string $eventId = null
+    ): array {
+        return $this->trackEvent(
+            'SubmitApplication',
+            [
+                'em' => $educationApplication->worker?->email,
+            ],
+            [
+                'value' => 0,
+                'currency' => 'EUR',
+                'content_name' => 'Education application submitted',
+                'content_type' => 'education_application',
+                'content_id' => (string) $educationApplication->id,
+            ],
+            $eventId
+        );
+    }
+
+    /**
+     * Track completed registration events.
+     */
+    public function trackCompleteRegistration(
+        $user,
+        string $accountType,
+        ?string $eventId = null
+    ): array {
+        return $this->trackEvent(
+            'CompleteRegistration',
+            [
+                'em' => $user->email,
+                'external_id' => (string) $user->id,
+            ],
+            [
+                'value' => 0,
+                'currency' => 'EUR',
+                'content_name' => 'Account registration completed',
+                'content_type' => 'registration',
+                'account_type' => $accountType,
+                'content_id' => (string) $user->id,
+            ],
+            $eventId
+        );
+    }
+
+    /**
      * Track a job application status change event
      */
     public function trackApplicationStatusChange(

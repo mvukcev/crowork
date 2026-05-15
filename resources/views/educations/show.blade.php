@@ -63,9 +63,20 @@
                         <p class="text-sm text-slate-700 mb-2"><strong>Capacity:</strong> {{ $education->capacity }}</p>
                     @endif
 
-                    <a href="{{ route('educations.apply', $education) }}" class="cw-button-primary w-full mt-3">Apply now</a>
+                    <a href="{{ route('educations.apply', $education) }}" class="cw-button-primary w-full mt-3" data-cw-track-click="apply_start">Apply now</a>
                 </aside>
             </div>
         </div>
     </section>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                window.cwTrack?.('education_view', {
+                    education_slug: @json($education->slug),
+                    provider: @json($provider ?? ($education->createdByUser?->name ?? null))
+                });
+            });
+        </script>
+    @endpush
 </x-app-layout>

@@ -175,10 +175,10 @@
 
                         <div class="flex flex-col gap-2 mt-4">
                             @if($openJobsCount > 0)
-                                <a href="#company-open-jobs" class="cw-button-primary w-full text-center">View open jobs</a>
+                                <a href="#company-open-jobs" class="cw-button-primary w-full text-center" data-cw-track-click="navigation_click">View open jobs</a>
                             @endif
                             @if($primaryJob)
-                                <a href="{{ route('jobs.show', $primaryJob) }}" class="cw-button-secondary w-full text-center">Apply to a role</a>
+                                <a href="{{ route('jobs.show', $primaryJob) }}" class="cw-button-secondary w-full text-center" data-cw-track-click="apply_start">Apply to a role</a>
                             @endif
                             @if($company->website)
                                 <a href="{{ $company->website }}" target="_blank" rel="noopener noreferrer" class="cw-button-secondary w-full text-center">Visit website</a>
@@ -193,7 +193,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.cwTrack?.('company_page_view', {
+                window.cwTrack?.('company_view', {
                     company_slug: @json($company->slug),
                     open_jobs: {{ $openJobsCount }}
                 });

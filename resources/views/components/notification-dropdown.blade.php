@@ -57,6 +57,7 @@
             x-ref="button"
             class="relative inline-flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 bg-white text-slate-800"
             @click.stop="toggle()"
+            data-cw-track-click="notification_open"
             aria-label="Notifications"
             :aria-expanded="open"
         >
@@ -84,7 +85,7 @@
             >
                 <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                     <p class="text-sm font-semibold text-slate-900">Notifications</p>
-                    <a href="{{ route('notifications.index') }}" class="text-xs text-slate-600 hover:text-slate-900" @click="close()">View all</a>
+                    <a href="{{ route('notifications.index') }}" class="text-xs text-slate-600 hover:text-slate-900" data-cw-track-click="notification_open" @click="close()">View all</a>
                 </div>
 
                 @if($notificationItems->isEmpty())
@@ -98,7 +99,7 @@
                                 $message = $payload['message'] ?? 'You have a new notification.';
                                 $importance = $payload['importance'] ?? 'normal';
                             @endphp
-                            <a href="{{ route('notifications.open', $notification->id) }}" class="block px-4 py-3 hover:bg-slate-50 {{ $notification->read_at ? '' : 'bg-blue-50/40' }}" @click="close()">
+                            <a href="{{ route('notifications.open', $notification->id) }}" class="block px-4 py-3 hover:bg-slate-50 {{ $notification->read_at ? '' : 'bg-blue-50/40' }}" data-cw-track-click="notification_open" @click="close()">
                                 <div class="flex items-center justify-between gap-2 mb-1">
                                     <p class="text-sm font-semibold text-slate-900 truncate">{{ $title }}</p>
                                     @if($importance === 'high')
@@ -113,7 +114,7 @@
                 @endif
 
                 <div class="p-3 border-t border-slate-100 flex items-center justify-between">
-                    <form method="POST" action="{{ route('notifications.read-all') }}" @submit="close()">
+                    <form method="POST" action="{{ route('notifications.read-all') }}" data-cw-track-submit="notification_mark_all_read" @submit="close()">
                         @csrf
                         <button type="submit" class="text-xs text-slate-600 hover:text-slate-900">Mark all as read</button>
                     </form>

@@ -17,6 +17,7 @@ use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
 use App\Http\Controllers\Auth\AccessController;
 use App\Http\Controllers\Auth\EmployerRegisterController;
+use App\Http\Controllers\FrontendPreferenceController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Models\Job;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
@@ -149,6 +150,9 @@ Route::get('/_install-crowork', function (Request $request) use ($guardDeploymen
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/preferences/locale', [FrontendPreferenceController::class, 'locale'])->name('preferences.locale');
+Route::post('/preferences/theme', [FrontendPreferenceController::class, 'theme'])->name('preferences.theme');
+
 Route::middleware('guest')->group(function () {
     Route::get('/access', [AccessController::class, 'show'])->name('access.show');
     Route::post('/access/email', [AccessController::class, 'checkEmail'])->name('access.email');

@@ -10,12 +10,24 @@
         <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
 
+        <x-theme-init />
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <!-- Analytics & Tracking -->
         @include('components.analytics-head')
     </head>
-    <body class="h-full cw-page overflow-x-hidden">
+    @php
+        $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
+        $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
+        $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+    @endphp
+    <body
+        class="h-full cw-page overflow-x-hidden"
+        data-cw-consent-required="{{ $consentRequired ? '1' : '0' }}"
+        data-cw-analytics-enabled="{{ $analyticsEnabled ? '1' : '0' }}"
+        data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
+    >
         <div class="min-h-screen flex flex-col">
             <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8 cw-section-atmosphere">
                 <span class="cw-corner-glow cw-orb-blue hidden lg:block" style="width: 360px; height: 360px; top: -110px; right: 14%;"></span>
@@ -28,7 +40,13 @@
                                 <img
                                     src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
                                     alt="CroWork"
-                                    class="h-6 w-auto"
+                                    class="h-6 w-auto cw-logo-on-light"
+                                    onerror="this.style.display='none';"
+                                >
+                                <img
+                                    src="{{ asset('assets/branding/CW-Logo-Light.svg') }}"
+                                    alt="CroWork"
+                                    class="h-6 w-auto cw-logo-on-dark"
                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
                                 >
                                 <span class="hidden text-base font-semibold">CroWork</span>
@@ -50,7 +68,13 @@
                                 <img
                                     src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
                                     alt="CroWork"
-                                    class="h-5 w-auto"
+                                    class="h-5 w-auto cw-logo-on-light"
+                                    onerror="this.style.display='none';"
+                                >
+                                <img
+                                    src="{{ asset('assets/branding/CW-Logo-Light.svg') }}"
+                                    alt="CroWork"
+                                    class="h-5 w-auto cw-logo-on-dark"
                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
                                 >
                                 <span class="hidden text-[15px] font-semibold text-slate-900">CroWork</span>
