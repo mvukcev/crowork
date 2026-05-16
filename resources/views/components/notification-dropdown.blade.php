@@ -16,7 +16,8 @@
             data-cw-dropdown-trigger="cw-header-notification-menu"
         >
             <svg class="cw-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M6.5 16.5h11l-1.2-1.2a2.3 2.3 0 01-.68-1.62V11.4a3.6 3.6 0 00-7.2 0v2.28c0 .61-.24 1.2-.67 1.63L6.5 16.5zM10.2 18.2a1.8 1.8 0 003.6 0"/>
+                <path d="M15 17h5l-1.41-1.41a2 2 0 0 1-.59-1.42V11a6 6 0 1 0-12 0v3.17a2 2 0 0 1-.59 1.42L4 17h5"/>
+                <path d="M9.5 17a2.5 2.5 0 0 0 5 0"/>
             </svg>
             @if($notificationUnreadCount > 0)
                 <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[rgb(255,85,0)] text-white text-[10px] leading-[18px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
@@ -36,7 +37,12 @@
             </div>
 
             @if($notificationItems->isEmpty())
-                <p class="px-4 py-6 text-sm text-slate-500">No notifications yet.</p>
+                <div class="px-4 py-8 text-center">
+                    <svg class="mx-auto h-6 w-6 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.41-1.41a2 2 0 0 1-.59-1.42V11a6 6 0 1 0-12 0v3.17a2 2 0 0 1-.59 1.42L4 17h5"></path>
+                    </svg>
+                    <p class="text-sm text-slate-600">You're all caught up! No new notifications.</p>
+                </div>
             @else
                 <div class="max-h-96 overflow-auto divide-y divide-slate-100">
                     @foreach($notificationItems as $notification)

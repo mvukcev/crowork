@@ -1,5 +1,5 @@
 @php
-    $notificationUser = auth()->user();
+    $notificationUser = filament()->auth()->user();
 @endphp
 
 @if($notificationUser)
@@ -9,7 +9,7 @@
     @endphp
 
     <div
-        class="relative z-[180] shrink-0"
+        class="relative z-[180] shrink-0 inline-flex items-center"
         x-data="{
             id: 'cw-filament-notifications',
             open: false,
@@ -29,33 +29,26 @@
         <button
             type="button"
             x-ref="button"
-            class="cw-dashboard-icon-button relative"
+            class="relative inline-flex h-8 w-8 min-h-8 min-w-8 shrink-0 items-center justify-center rounded-full border-0 bg-transparent p-0 text-gray-700 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
             @click.prevent.stop="toggle()"
             aria-label="Notifications"
             aria-haspopup="true"
             :aria-expanded="open.toString()"
         >
-            <svg class="cw-dashboard-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M6.5 16.5h11l-1.2-1.2a2.3 2.3 0 01-.68-1.62V11.4a3.6 3.6 0 00-7.2 0v2.28c0 .61-.24 1.2-.67 1.63L6.5 16.5zM10.2 18.2a1.8 1.8 0 003.6 0"/>
+            <svg class="block shrink-0" style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 17h5l-1.41-1.41a2 2 0 0 1-.59-1.42V11a6 6 0 1 0-12 0v3.17a2 2 0 0 1-.59 1.42L4 17h5"/>
+                <path d="M9.5 17a2.5 2.5 0 0 0 5 0"/>
             </svg>
             @if($notificationUnreadCount > 0)
-                <span class="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[rgb(255,85,0)] text-white text-[10px] leading-[16px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
+                <span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 rounded-full bg-[rgb(255,85,0)] text-white text-[9px] leading-[14px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
             @endif
         </button>
 
         <div
-            x-show="open"
             x-cloak
             @click.stop
-            style="display: none;"
-            x-transition.origin.top.right
-            x-transition:enter="transition ease-out duration-180"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-130"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            class="absolute right-0 top-full mt-2 w-[22rem] max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden z-[220] dark:border-white/10 dark:bg-black max-md:fixed max-md:left-4 max-md:right-4 max-md:top-16 max-md:mt-0"
+            x-bind:style="open ? 'display: block; position: fixed; top: 4.25rem; right: 1rem; width: min(22rem, calc(100vw - 2rem));' : 'display: none;'"
+            class="cw-admin-notification-panel rounded-xl border border-gray-200 bg-white text-gray-900 shadow-xl overflow-hidden z-[260]"
         >
             <div class="px-3 py-2 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
                 <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Notifications</p>
@@ -80,5 +73,39 @@
                 </div>
             @endif
         </div>
+
+        <style>
+            .cw-admin-notification-panel {
+                max-height: min(32rem, calc(100vh - 5.5rem));
+            }
+
+            .dark .cw-admin-notification-panel {
+                background-color: rgb(3 7 18);
+                border-color: rgba(255, 255, 255, 0.14);
+                color: rgb(243 244 246);
+            }
+
+            .dark .cw-admin-notification-panel .border-gray-100 {
+                border-color: rgba(255, 255, 255, 0.14) !important;
+            }
+
+            .dark .cw-admin-notification-panel .text-gray-900 {
+                color: rgb(243 244 246) !important;
+            }
+
+            .dark .cw-admin-notification-panel .text-gray-600,
+            .dark .cw-admin-notification-panel .text-gray-500 {
+                color: rgb(209 213 219) !important;
+            }
+
+            @media (max-width: 767px) {
+                .cw-admin-notification-panel {
+                    right: 1rem !important;
+                    left: 1rem !important;
+                    width: auto !important;
+                    top: 4rem !important;
+                }
+            }
+        </style>
     </div>
 @endif

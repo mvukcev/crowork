@@ -48,6 +48,8 @@ class SystemHealth extends Page
             $this->checkQueueConnection(),
             $this->checkFailedJobsCount(),
             $this->checkSchedulerLastRun(),
+            $this->checkSchedulerCronCommand(),
+            $this->checkQueueWorkerCommand(),
             $this->checkMailConfiguration(),
             $this->checkMailTestStatus(),
             $this->checkSitemapStatus(),
@@ -415,10 +417,10 @@ class SystemHealth extends Page
 
         if (! $lastRun) {
             return [
-                'label' => 'Scheduler Last Run',
+                'label' => __('system.scheduler_last_run'),
                 'status' => 'warn',
-                'value' => 'Unknown',
-                'details' => 'No scheduler heartbeat key found in cache.',
+                'value' => __('system.missing'),
+                'details' => __('system.no_heartbeat') . ' ' . __('system.configure_cron'),
             ];
         }
 
@@ -428,19 +430,45 @@ class SystemHealth extends Page
             $status = $minutes <= 5 ? 'ok' : 'warn';
 
             return [
-                'label' => 'Scheduler Last Run',
+                'label' => __('system.scheduler_last_run'),
                 'status' => $status,
-                'value' => $date->toDateTimeString(),
-                'details' => sprintf('%d minute(s) ago.', $minutes),
+                'value' => $minutes <= 5 ? __('system.healthy') : __('system.stale'),
+                'details' => sprintf('%s. %s', $date->toDateTimeString(), __('system.cron_command') . ': * * * * * cd /home/crowork/htdocs/crowork.hr && php artisan schedule:run >> /dev/null 2>&1'),
             ];
         } catch (\Throwable) {
             return [
-                'label' => 'Scheduler Last Run',
+                'label' => __('system.scheduler_last_run'),
                 'status' => 'warn',
-                'value' => 'Unknown',
-                'details' => 'Heartbeat value exists but could not be parsed.',
+                'value' => __('system.missing'),
+                'details' => __('system.no_heartbeat'),
             ];
         }
+    }
+
+    /**
+     * @return array{label: string, status: string, value: string, details: string}
+     */
+    protected function checkSchedulerCronCommand(): array
+    {
+        return [
+            'label' => __('system.scheduler_cron'),
+            'status' => 'ok',
+            'value' => __('system.cron_command'),
+            'details' => '* * * * * cd /home/crowork/htdocs/crowork.hr && php artisan schedule:run >> /dev/null 2>&1',
+        ];
+    }
+
+    /**
+     * @return array{label: string, status: string, value: string, details: string}
+     */
+    protected function checkQueueWorkerCommand(): array
+    {
+        return [
+            'label' => __('system.queue_worker'),
+            'status' => 'warn',
+            'value' => __('system.queue_command_label'),
+            'details' => 'cd /home/crowork/htdocs/crowork.hr && php artisan queue:work --tries=3 --timeout=90 --memory=256',
+        ];
     }
 
     /**

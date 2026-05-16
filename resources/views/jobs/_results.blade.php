@@ -32,8 +32,16 @@
         {{ $jobs->links() }}
     </div>
 @else
-    <div class="cw-surface p-8 text-center">
+    <div class="cw-surface p-12 text-center rounded-2xl border-2 border-dashed border-slate-200">
+        <svg class="mx-auto h-12 w-12 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
         <h3 class="text-xl font-semibold text-slate-900 mb-2">No jobs found</h3>
-        <p class="text-slate-600">Try adjusting search filters or check back later.</p>
+        <p class="text-slate-600 mb-2">We couldn't find roles matching your filters.</p>
+        <p class="text-sm text-slate-500 mb-6">Tip: remove one filter first. CroWork listings include relocation-focused details like accommodation and visa support.</p>
+        <div class="flex flex-wrap gap-3 justify-center">
+            <a href="{{ route('jobs.index') }}" class="cw-button-secondary">Clear filters</a>
+            <a href="{{ route('home') }}" class="cw-button-primary">Browse featured jobs</a>
+        </div>
     </div>
 @endif

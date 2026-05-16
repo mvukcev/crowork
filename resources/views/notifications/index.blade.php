@@ -3,17 +3,19 @@
 
     <section class="cw-section">
         <div class="cw-container cw-content-wide">
-            <div class="flex items-center justify-between gap-3 mb-6">
-                <div>
+            <div class="flex flex-col items-start gap-4 mb-6 md:flex-row md:items-center md:justify-between">
+                <div class="min-w-0 flex-1">
                     <p class="cw-kicker mb-1">Notification center</p>
-                    <h1 class="cw-display text-4xl md:text-5xl">Your notifications</h1>
+                    <h1 class="cw-display text-4xl leading-tight md:text-5xl break-words">Your notifications</h1>
                     <p class="text-sm text-slate-600 mt-2">Unread: {{ $unreadCount }}</p>
                 </div>
-                <form method="POST" action="{{ route('notifications.read-all') }}" data-cw-track-submit="notification_mark_all_read">
-                    @csrf
-                    <button type="submit" class="cw-button-secondary">Mark all as read</button>
-                </form>
-                <a href="{{ route('notifications.preferences') }}" class="cw-button-secondary" data-cw-track-click="navigation_click">Preferences</a>
+                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center md:justify-end">
+                    <form method="POST" action="{{ route('notifications.read-all') }}" class="w-full md:w-auto" data-cw-track-submit="notification_mark_all_read">
+                        @csrf
+                        <button type="submit" class="cw-button-secondary w-full md:w-auto">Mark all as read</button>
+                    </form>
+                    <a href="{{ route('notifications.preferences') }}" class="cw-button-secondary w-full md:w-auto text-center" data-cw-track-click="navigation_click">Preferences</a>
+                </div>
             </div>
 
             <div class="flex gap-2 mb-4">
@@ -24,7 +26,18 @@
 
             <div class="cw-surface overflow-hidden">
                 @if($notifications->count() === 0)
-                    <div class="p-8 text-center text-slate-600">No notifications found.</div>
+                    <div class="p-12 text-center">
+                        <svg class="mx-auto h-10 w-10 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.41-1.41a2 2 0 0 1-.59-1.42V11a6 6 0 1 0-12 0v3.17a2 2 0 0 1-.59 1.42L4 17h5"></path>
+                        </svg>
+                        <h2 class="text-lg font-semibold text-slate-900 mt-2">You're all caught up</h2>
+                        <p class="text-slate-600 mt-1">No notifications matching this filter.</p>
+                        <p class="text-sm text-slate-500 mt-1">When your application status changes, updates will appear here.</p>
+                        <div class="mt-4 flex flex-wrap justify-center gap-2">
+                            <a href="{{ route('notifications.index', ['filter' => 'all']) }}" class="cw-button-secondary">View all notifications</a>
+                            <a href="{{ route('jobs.index') }}" class="cw-button-primary">Browse jobs</a>
+                        </div>
+                    </div>
                 @else
                     <div class="divide-y divide-slate-100">
                         @foreach($notifications as $notification)

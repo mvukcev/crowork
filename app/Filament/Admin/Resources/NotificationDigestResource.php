@@ -41,21 +41,23 @@ class NotificationDigestResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('scheduled_for')
-                    ->label('Scheduled For')
+                    ->label(__('admin.scheduled_for'))
                     ->date('Y-m-d')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('period')
                     ->badge()
+                    ->formatStateUsing(fn (?string $state): string => $state ? __('admin.' . $state) : '-')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn (?string $state): string => $state ? __('admin.' . $state) : '-')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.email')
-                    ->label('User')
+                    ->label(__('admin.user'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sent_at')
-                    ->label('Sent At')
+                    ->label(__('admin.sent_at'))
                     ->dateTime('Y-m-d H:i:s')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
@@ -63,14 +65,14 @@ class NotificationDigestResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('period')
                     ->options([
-                        'daily' => 'Daily',
-                        'weekly' => 'Weekly',
+                        'daily' => __('admin.daily'),
+                        'weekly' => __('admin.weekly'),
                     ]),
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'pending' => 'Pending',
-                        'sent' => 'Sent',
-                        'failed' => 'Failed',
+                        'pending' => __('admin.pending'),
+                        'sent' => __('admin.sent'),
+                        'failed' => __('admin.failed'),
                     ]),
             ])
             ->actions([])

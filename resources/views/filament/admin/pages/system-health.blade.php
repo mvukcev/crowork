@@ -4,10 +4,10 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-white/5">
                     <tr>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Check</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Status</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Value</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Details</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">{{ __('system.check') }}</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">{{ __('system.status') }}</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">{{ __('system.value') }}</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">{{ __('system.details') }}</th>
                     </tr>
                 </thead>
                 <tbody>

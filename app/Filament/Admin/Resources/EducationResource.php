@@ -22,7 +22,7 @@ class EducationResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                    Forms\Components\Section::make(__('educations.basic_information'))
                     ->schema([
                         Forms\Components\TextInput::make('title')
                             ->required()
@@ -31,11 +31,11 @@ class EducationResource extends Resource
                             ->maxLength(255),
                         Forms\Components\Select::make('status')
                             ->options([
-                                'draft' => 'Draft',
-                                'pending' => 'Pending',
-                                'published' => 'Published',
-                                'delisted' => 'Delisted',
-                                'expired' => 'Expired',
+                                    'draft' => __('educations.draft'),
+                                    'pending' => __('educations.pending'),
+                                    'published' => __('educations.published'),
+                                    'delisted' => __('educations.delisted'),
+                                    'expired' => __('educations.expired'),
                             ])
                             ->required()
                             ->default('pending'),
@@ -46,14 +46,14 @@ class EducationResource extends Resource
                             ->required()
                             ->columnSpanFull(),
                     ]),
-                Forms\Components\Section::make('Location')
+                Forms\Components\Section::make(__('educations.location'))
                     ->schema([
                         Forms\Components\TextInput::make('city')
                             ->maxLength(255),
                         Forms\Components\Toggle::make('is_online')
                             ->default(false),
                     ]),
-                Forms\Components\Section::make('Pricing & Capacity')
+                Forms\Components\Section::make(__('educations.pricing_and_capacity'))
                     ->schema([
                         Forms\Components\TextInput::make('price_cents')
                             ->numeric(),
@@ -63,7 +63,7 @@ class EducationResource extends Resource
                         Forms\Components\TextInput::make('capacity')
                             ->numeric(),
                     ])->columns(3),
-                Forms\Components\Section::make('Dates')
+                Forms\Components\Section::make(__('educations.dates'))
                     ->schema([
                         Forms\Components\DatePicker::make('start_date'),
                         Forms\Components\DateTimePicker::make('published_at'),
@@ -87,6 +87,7 @@ class EducationResource extends Resource
                     ->money('EUR', divideBy: 100)
                     ->sortable(),
                 Tables\Columns\BadgeColumn::make('status')
+                    ->formatStateUsing(fn (?string $state): string => $state ? __('educations.' . $state) : '-')
                     ->colors([
                         'secondary' => 'draft',
                         'warning' => 'pending',
@@ -104,14 +105,14 @@ class EducationResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'draft' => 'Draft',
-                        'pending' => 'Pending',
-                        'published' => 'Published',
-                        'delisted' => 'Delisted',
-                        'expired' => 'Expired',
+                        'draft' => __('educations.draft'),
+                        'pending' => __('educations.pending'),
+                        'published' => __('educations.published'),
+                        'delisted' => __('educations.delisted'),
+                        'expired' => __('educations.expired'),
                     ]),
                 Tables\Filters\TernaryFilter::make('is_online')
-                    ->label('Online')
+                    ->label(__('educations.online'))
                     ->boolean(),
             ])
             ->actions([

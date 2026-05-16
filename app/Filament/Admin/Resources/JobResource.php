@@ -25,7 +25,7 @@ class JobResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                Forms\Components\Section::make(__('jobs.basic_information'))
                     ->schema([
                         Forms\Components\TextInput::make('title')
                             ->required()
@@ -37,17 +37,17 @@ class JobResource extends Resource
                             ->searchable()
                             ->preload(),
                         Forms\Components\TextInput::make('location_city')
-                            ->label('City')
+                            ->label(__('jobs.city'))
                             ->maxLength(255),
                         Forms\Components\TextInput::make('category')
                             ->maxLength(255),
                         Forms\Components\Select::make('status')
                             ->options([
-                                'draft' => 'Draft',
-                                'pending' => 'Pending',
-                                'published' => 'Published',
-                                'delisted' => 'Delisted',
-                                'expired' => 'Expired',
+                                'draft' => __('jobs.draft'),
+                                'pending' => __('jobs.pending'),
+                                'published' => __('jobs.published'),
+                                'delisted' => __('jobs.delisted'),
+                                'expired' => __('jobs.expired'),
                             ])
                             ->required()
                             ->default('pending'),
@@ -56,10 +56,10 @@ class JobResource extends Resource
                         Forms\Components\Toggle::make('is_urgent')
                             ->default(false),
                     ])->columns(2),
-                Forms\Components\Section::make('Job Content')
+                Forms\Components\Section::make(__('jobs.job_content'))
                     ->schema([
                         Forms\Components\RichEditor::make('description')
-                            ->label('About this job')
+                            ->label(__('jobs.about_this_job'))
                             ->required()
                             ->columnSpanFull(),
                         Forms\Components\Textarea::make('responsibilities')
@@ -72,26 +72,26 @@ class JobResource extends Resource
                             ->rows(5)
                             ->columnSpanFull(),
                     ]),
-                Forms\Components\Section::make('Employment and Compensation')
+                Forms\Components\Section::make(__('jobs.employment_and_compensation'))
                     ->schema([
                         Forms\Components\Select::make('contract_type')
-                            ->label('Employment type')
+                            ->label(__('jobs.employment_type'))
                             ->options([
-                                'full-time' => 'Full-time',
-                                'part-time' => 'Part-time',
-                                'seasonal' => 'Seasonal',
-                                'contract' => 'Contract',
-                                'temporary' => 'Temporary',
-                                'internship' => 'Internship',
+                                'full-time' => __('jobs.full_time'),
+                                'part-time' => __('jobs.part_time'),
+                                'seasonal' => __('jobs.seasonal'),
+                                'contract' => __('jobs.contract'),
+                                'temporary' => __('jobs.temporary'),
+                                'internship' => __('jobs.internship'),
                             ])
                             ->native(false),
                         Forms\Components\Select::make('experience_level')
                             ->options([
-                                'entry' => 'Entry level',
-                                'junior' => 'Junior',
-                                'mid' => 'Mid',
-                                'senior' => 'Senior',
-                                'lead' => 'Lead',
+                                'entry' => __('jobs.entry_level'),
+                                'junior' => __('jobs.junior'),
+                                'mid' => __('jobs.mid'),
+                                'senior' => __('jobs.senior'),
+                                'lead' => __('jobs.lead'),
                             ])
                             ->default('mid')
                             ->native(false),
@@ -103,24 +103,21 @@ class JobResource extends Resource
                         Forms\Components\TextInput::make('salary_min')
                             ->numeric()
                             ->minValue(0),
-                        Forms\Components\TextInput::make('salary_max')
-                            ->numeric()
-                            ->minValue(0),
                         Forms\Components\TextInput::make('salary_currency')
                             ->default('EUR')
                             ->maxLength(3),
                         Forms\Components\Select::make('salary_period')
                             ->options([
-                                'hour' => 'Hour',
-                                'month' => 'Month',
+                                'hour' => __('jobs.hour'),
+                                'month' => __('jobs.month'),
                             ])
                             ->default('month')
                             ->native(false),
                         Forms\Components\TagsInput::make('languages')
-                            ->label('Language requirements')
+                            ->label(__('jobs.language_requirements'))
                             ->placeholder('EN, HR, DE'),
                     ])->columns(3),
-                Forms\Components\Section::make('Operations and Mobility')
+                Forms\Components\Section::make(__('jobs.operations_and_mobility'))
                     ->schema([
                         Forms\Components\DatePicker::make('start_date'),
                         Forms\Components\TextInput::make('start_flexibility')
@@ -149,7 +146,7 @@ class JobResource extends Resource
                             ->rows(3)
                             ->columnSpanFull(),
                     ])->columns(3),
-                Forms\Components\Section::make('Application and Dates')
+                Forms\Components\Section::make(__('jobs.application_and_dates'))
                     ->schema([
                         Forms\Components\Textarea::make('application_instructions')
                             ->rows(4)
@@ -157,6 +154,12 @@ class JobResource extends Resource
                         Forms\Components\DateTimePicker::make('published_at'),
                         Forms\Components\DateTimePicker::make('expires_at'),
                     ])->columns(2),
+                Forms\Components\Section::make(__('jobs.publishing'))
+                    ->schema([
+                        Forms\Components\Placeholder::make('status_hint')
+                            ->label(__('jobs.current_status'))
+                            ->content(fn (?Job $record): string => $record ? __('jobs.' . $record->status) : __('jobs.draft_created_automatically')),
+                    ]),
             ]);
     }
 
@@ -175,7 +178,7 @@ class JobResource extends Resource
                 Tables\Columns\TextColumn::make('category')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('contract_type')
-                    ->label('Employment')
+                    ->label(__('jobs.employment_type'))
                     ->formatStateUsing(fn (?string $state): string => $state ? str($state)->replace(['-', '_'], ' ')->title() : '-')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('experience_level')
@@ -184,18 +187,19 @@ class JobResource extends Resource
                 Tables\Columns\TextColumn::make('education_required')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('positions_available')
-                    ->label('Positions')
+                    ->label(__('jobs.positions'))
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('start_date')
                     ->date()
                     ->toggleable(),
                 Tables\Columns\IconColumn::make('is_urgent')
-                    ->label('Urgent')
+                    ->label(__('jobs.urgent'))
                     ->boolean(),
                 Tables\Columns\IconColumn::make('is_featured')
-                    ->label('Featured')
+                    ->label(__('jobs.featured'))
                     ->boolean(),
                 Tables\Columns\BadgeColumn::make('status')
+                    ->formatStateUsing(fn (?string $state): string => $state ? __('jobs.' . $state) : '-')
                     ->colors([
                         'secondary' => 'draft',
                         'warning' => 'pending',
@@ -213,18 +217,18 @@ class JobResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'draft' => 'Draft',
-                        'pending' => 'Pending',
-                        'published' => 'Published',
-                        'delisted' => 'Delisted',
-                        'expired' => 'Expired',
+                        'draft' => __('jobs.draft'),
+                        'pending' => __('jobs.pending'),
+                        'published' => __('jobs.published'),
+                        'delisted' => __('jobs.delisted'),
+                        'expired' => __('jobs.expired'),
                     ]),
                 Tables\Filters\SelectFilter::make('location_city')
                     ->options(fn () => Job::query()->distinct()->pluck('location_city', 'location_city')->toArray()),
                 Tables\Filters\SelectFilter::make('category')
                     ->options(fn () => Job::query()->distinct()->pluck('category', 'category')->toArray()),
                 Tables\Filters\SelectFilter::make('contract_type')
-                    ->label('Employment type')
+                    ->label(__('jobs.employment_type'))
                     ->options(fn () => Job::query()->whereNotNull('contract_type')->distinct()->pluck('contract_type', 'contract_type')->toArray()),
                 Tables\Filters\SelectFilter::make('experience_level')
                     ->options(fn () => Job::query()->whereNotNull('experience_level')->distinct()->pluck('experience_level', 'experience_level')->toArray()),

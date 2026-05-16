@@ -44,21 +44,21 @@ class JobApplicationResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\Select::make('status')
                     ->options([
-                        'new' => 'New',
-                        'reviewed' => 'Reviewed',
-                        'shortlisted' => 'Shortlisted',
-                        'rejected' => 'Rejected',
+                        'new' => __('applications.new'),
+                        'reviewed' => __('applications.reviewed'),
+                        'shortlisted' => __('applications.shortlisted'),
+                        'rejected' => __('applications.rejected'),
                     ])
                     ->disabled()
                     ->dehydrated(false),
                 Forms\Components\Textarea::make('profile_snapshot_display')
-                    ->label('Profile Snapshot (Read-Only - For Reference Only)')
+                    ->label(__('applications.profile_snapshot'))
                     ->disabled()
                     ->formatStateUsing(fn (JobApplication $record): string => json_encode($record->profile_snapshot ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))
                     ->rows(12)
                     ->columnSpanFull(),
                 Forms\Components\Textarea::make('job_snapshot_display')
-                    ->label('Job Snapshot (Read-Only - For Reference Only)')
+                    ->label(__('applications.job_snapshot'))
                     ->disabled()
                     ->formatStateUsing(fn (JobApplication $record): string => json_encode($record->job_snapshot ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))
                     ->rows(8)
@@ -77,12 +77,13 @@ class JobApplicationResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('profile_snapshot.first_name')
-                    ->label('First Name')
+                    ->label(__('applications.first_name'))
                     ->getStateUsing(fn ($record) => $record->profile_snapshot['first_name'] ?? '-'),
                 Tables\Columns\TextColumn::make('profile_snapshot.last_name')
-                    ->label('Last Name')
+                    ->label(__('applications.last_name'))
                     ->getStateUsing(fn ($record) => $record->profile_snapshot['last_name'] ?? '-'),
                 Tables\Columns\BadgeColumn::make('status')
+                    ->formatStateUsing(fn (?string $state): string => $state ? __('applications.' . $state) : '-')
                     ->colors([
                         'warning' => 'new',
                         'info' => 'reviewed',
@@ -96,10 +97,10 @@ class JobApplicationResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'new' => 'New',
-                        'reviewed' => 'Reviewed',
-                        'shortlisted' => 'Shortlisted',
-                        'rejected' => 'Rejected',
+                        'new' => __('applications.new'),
+                        'reviewed' => __('applications.reviewed'),
+                        'shortlisted' => __('applications.shortlisted'),
+                        'rejected' => __('applications.rejected'),
                     ]),
                 Tables\Filters\SelectFilter::make('job_id')
                     ->relationship('job', 'title')
@@ -109,10 +110,10 @@ class JobApplicationResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('viewSnapshot')
                     ->icon('heroicon-o-eye')
-                    ->modalHeading('Worker Profile Snapshot')
+                    ->modalHeading(__('applications.worker_profile_snapshot'))
                     ->modalContent(fn (JobApplication $record) => view('filament.admin.view-snapshot', ['snapshot' => $record->profile_snapshot]))
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close'),
+                    ->modalCancelActionLabel(__('applications.close')),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

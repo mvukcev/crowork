@@ -58,9 +58,17 @@
                     </table>
                     <div class="p-4">{{ $jobs->links() }}</div>
                 @else
-                    <div class="p-8 text-center">
-                        <h2 class="text-xl font-semibold text-slate-900 mb-2">No jobs yet</h2>
-                        <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">Create your first job</a>
+                    <div class="p-12 text-center rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-blue-50 to-white">
+                        <svg class="mx-auto h-12 w-12 text-blue-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <h2 class="text-xl font-semibold text-slate-900 mb-2">Post your first job</h2>
+                        <p class="text-slate-600 mb-2">Start finding qualified candidates today.</p>
+                        <p class="text-sm text-slate-500 mb-6">For better trust and conversion, complete your company profile before publishing your first listing.</p>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary inline-block">Create your first job</a>
+                            <a href="{{ route('employer.settings.profile') }}" class="cw-button-secondary inline-block">Complete company profile</a>
+                        </div>
                     </div>
                 @endif
             </div>

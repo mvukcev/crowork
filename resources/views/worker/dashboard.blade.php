@@ -16,6 +16,13 @@
                 </div>
             </div>
 
+            @if($totalJobApplications === 0 && $totalEducationApplications === 0)
+                <div class="cw-surface p-4 mb-6 border border-blue-200 bg-blue-50">
+                    <p class="text-sm text-blue-900 font-semibold">First steps</p>
+                    <p class="text-sm text-blue-800 mt-1">Finish your profile, apply to one job, and track updates in your timeline. Your profile snapshot is shared only when you submit an application.</p>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
                 <article class="cw-surface p-5 lg:col-span-2">
                     <div class="flex items-center justify-between mb-2">
@@ -100,7 +107,12 @@
                 </div>
 
                 @if($applicationTimeline->isEmpty())
-                    <p class="text-sm text-slate-600">No timeline events yet. Your updates will appear here after you apply.</p>
+                    <div class="p-6 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                        <svg class="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-sm text-slate-600">No timeline events yet. After you apply to jobs, status updates will appear here to help track your journey.</p>
+                    </div>
                 @else
                     <div class="space-y-3">
                         @foreach($applicationTimeline as $event)
@@ -126,7 +138,12 @@
                 <article class="cw-surface p-5">
                     <h2 class="text-lg font-semibold text-slate-900 mb-3">Latest job application statuses</h2>
                     @if($latestJobApplications->isEmpty())
-                        <p class="text-sm text-slate-600">No job applications yet.</p>
+                        <div class="p-6 text-center border border-slate-200 rounded-xl bg-gradient-to-br from-slate-50 to-white">
+                            <svg class="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <p class="text-sm text-slate-600">No job applications yet. <a href="{{ route('jobs.index') }}" class="font-semibold text-blue-600 hover:underline">Browse and apply to jobs</a> to start your journey.</p>
+                        </div>
                     @else
                         <div class="space-y-3">
                             @foreach($latestJobApplications as $application)
@@ -146,7 +163,12 @@
                 <article class="cw-surface p-5">
                     <h2 class="text-lg font-semibold text-slate-900 mb-3">Education applications</h2>
                     @if($latestEducationApplications->isEmpty())
-                        <p class="text-sm text-slate-600">No education applications yet.</p>
+                        <div class="p-6 text-center border border-slate-200 rounded-xl bg-gradient-to-br from-slate-50 to-white">
+                            <svg class="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 1 10.334 1 15.25c0 4.915 5.5 9 11 9s11-4.085 11-9c0-4.916-5.5-8.997-11-9.25m0 13V6.253m9-4.5H3"></path>
+                            </svg>
+                            <p class="text-sm text-slate-600"><a href="{{ route('educations.index') }}" class="font-semibold text-blue-600 hover:underline">Explore education and training programs</a> to strengthen your applications.</p>
+                        </div>
                     @else
                         <div class="space-y-3">
                             @foreach($latestEducationApplications as $application)
@@ -167,7 +189,12 @@
             <article class="cw-surface p-5">
                 <h2 class="text-lg font-semibold text-slate-900 mb-3">Recommended jobs</h2>
                 @if($recommendedJobs->isEmpty())
-                    <p class="text-sm text-slate-600">No recommendations yet. Try adding your desired city and roles in your profile.</p>
+                    <div class="p-6 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                        <svg class="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <p class="text-sm text-slate-600"><a href="{{ route('worker.profile.edit') }}" class="font-semibold text-blue-600 hover:underline">Complete your profile</a> to get better job recommendations based on your skills and preferences.</p>
+                    </div>
                 @else
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($recommendedJobs as $job)

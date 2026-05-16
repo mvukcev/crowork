@@ -59,7 +59,7 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => view('filament.partials.view-site-link')->render()
             )
             ->renderHook(
-                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
+                PanelsRenderHook::USER_MENU_BEFORE,
                 fn (): string => view('filament.partials.notification-center-dropdown')->render()
             )
             ->middleware([

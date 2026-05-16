@@ -15,13 +15,17 @@
                 <div class="cw-surface p-6 text-center">
                     <h1 class="text-2xl font-semibold text-slate-900 mb-2">Application already submitted</h1>
                     <p class="text-slate-600 mb-4">You have already applied to this role{{ $existingApplication?->created_at ? ' on '.$existingApplication->created_at->format('M j, Y') : '' }}.</p>
-                    <a href="{{ route('jobs.show', $job) }}" class="cw-button-secondary">Back to job</a>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <a href="{{ route('jobs.show', $job) }}" class="cw-button-secondary">Back to job</a>
+                        <a href="{{ route('worker.applications.index') }}" class="cw-button-primary">Track my applications</a>
+                    </div>
                 </div>
             @else
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <div class="lg:col-span-2 cw-surface p-6">
                         <h1 class="cw-display text-3xl md:text-5xl mb-3">Apply for {{ $job->title }}</h1>
-                        <p class="text-slate-600 mb-6">Review your CV snapshot, add motivation, and submit your application.</p>
+                        <p class="text-slate-600 mb-2">Review your CV snapshot, add motivation, and submit your application.</p>
+                        <p class="text-sm text-slate-500 mb-6">After submission, you can track every status change in your worker dashboard.</p>
 
                         <form method="POST" action="{{ route('jobs.apply.store', $job) }}" class="space-y-4">
                             @csrf

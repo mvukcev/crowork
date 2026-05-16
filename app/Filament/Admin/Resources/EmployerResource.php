@@ -23,7 +23,7 @@ class EmployerResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Account')
+                Forms\Components\Section::make(__('admin.account'))
                     ->schema([
                         Forms\Components\Select::make('user_id')
                             ->relationship('user', 'name')
@@ -31,9 +31,9 @@ class EmployerResource extends Resource
                             ->preload()
                             ->required(),
                         Forms\Components\DateTimePicker::make('approved_at')
-                            ->label('Approval Date'),
+                            ->label(__('admin.approval_date')),
                     ]),
-                Forms\Components\Section::make('Company Info')
+                Forms\Components\Section::make(__('admin.company_info'))
                     ->schema([
                         Forms\Components\TextInput::make('company_name')
                             ->required()
@@ -41,15 +41,15 @@ class EmployerResource extends Resource
                         Forms\Components\TextInput::make('city')
                             ->maxLength(255),
                     ]),
-                Forms\Components\Section::make('Approval Settings')
-                    ->description('Override global approval requirements for this employer')
+                Forms\Components\Section::make(__('admin.approval_settings'))
+                    ->description(__('admin.override_global_approval_requirements'))
                     ->schema([
                         Forms\Components\Select::make('require_approval_override')
-                            ->label('Require Approval for Listings')
+                            ->label(__('settings.require_approval'))
                             ->options([
-                                null => 'Use Global Setting',
-                                true => 'Require Approval',
-                                false => 'Auto-publish',
+                                null => __('settings.use_global_setting'),
+                                true => __('settings.require_approval'),
+                                false => __('settings.auto_publish'),
                             ])
                             ->native(false),
                     ]),
@@ -71,7 +71,7 @@ class EmployerResource extends Resource
                 Tables\Columns\TextColumn::make('city')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('approved_at')
-                    ->label('Approved')
+                    ->label(__('admin.approved'))
                     ->boolean()
                     ->getStateUsing(fn ($record) => $record->approved_at !== null)
                     ->sortable(),
@@ -107,8 +107,8 @@ class EmployerResource extends Resource
                     ->icon('heroicon-o-arrow-left-on-rectangle')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Login as Employer')
-                    ->modalDescription('You will be logged in as this employer. An impersonation banner will appear. End impersonation to return to admin.')
+                    ->modalHeading(__('admin.login_as_employer'))
+                    ->modalDescription(__('admin.impersonation_description'))
                     ->action(function (Employer $record) {
                         return redirect('/admin/impersonate/' . $record->user_id);
                     })

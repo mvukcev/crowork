@@ -22,8 +22,12 @@
         {{ $educations->links() }}
     </div>
 @else
-    <div class="cw-surface p-8 text-center">
+    <div class="cw-surface p-10 text-center rounded-2xl border-2 border-dashed border-slate-200">
         <h3 class="text-xl font-semibold text-slate-900 mb-2">No educations found</h3>
-        <p class="text-slate-600">Try changing filters or broaden your search.</p>
+        <p class="text-slate-600 mb-5">Try broader filters to find language, onboarding, and certification programs.</p>
+        <div class="flex flex-wrap justify-center gap-2">
+            <a href="{{ route('educations.index') }}" class="cw-button-secondary">Clear filters</a>
+            <a href="{{ route('jobs.index') }}" class="cw-button-primary">Explore jobs</a>
+        </div>
     </div>
 @endif

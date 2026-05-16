@@ -1,4 +1,28 @@
 <x-filament-panels::page>
+    <div class="mb-4 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div class="grid gap-3 md:grid-cols-2">
+            <label class="block">
+                <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Search</span>
+                <input
+                    type="search"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Key, source, or translation"
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary-400 focus:ring-1 focus:ring-primary-400"
+                >
+            </label>
+            <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                <input type="checkbox" wire:model.live="missingOnly" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                <span>Show missing only</span>
+            </label>
+        </div>
+
+        <div class="text-xs text-gray-500">
+            <span>{{ count($this->getGroupRows()) }} total strings</span>
+            <span class="mx-2">·</span>
+            <span>{{ count($this->getFilteredGroupRows()) }} visible</span>
+        </div>
+    </div>
+
     {{-- Group tabs --}}
     <div class="mb-6 flex flex-wrap gap-2">
         @foreach($this->getAvailableGroups() as $group)
@@ -27,7 +51,7 @@
             </div>
         </div>
 
-        @php $rows = $this->getGroupRows(); @endphp
+        @php $rows = $this->getFilteredGroupRows(); @endphp
 
         @forelse($rows as $index => $row)
             <div @class([
@@ -44,11 +68,13 @@
 
                 {{-- EN source --}}
                 <div class="px-4 py-3 border-l border-gray-100 text-sm text-gray-700 self-center">
+                    <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Source</div>
                     {{ $row['en'] }}
                 </div>
 
                 {{-- HR override --}}
                 <div class="px-4 py-2.5 border-l border-gray-100">
+                    <div class="mb-1 text-[11px] uppercase tracking-wide text-gray-400">Target</div>
                     <textarea
                         wire:model.defer="overrides.{{ $row['key'] }}"
                         rows="1"

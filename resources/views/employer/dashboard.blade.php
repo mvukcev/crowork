@@ -23,6 +23,17 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @if($activeJobs === 0 && $pendingJobs === 0 && $totalApplications === 0)
+            <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <p class="text-sm font-semibold text-blue-900">First-time setup</p>
+                <p class="text-sm text-blue-800 mt-1">Complete your company profile and publish your first job to open your hiring pipeline.</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <a href="{{ route('employer.settings.profile') }}" class="cw-button-secondary">Complete company profile</a>
+                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">Create first job</a>
+                </div>
+            </div>
+        @endif
+
         @if($pendingJobs > 0)
             <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -132,7 +143,12 @@
                 </div>
 
                 @if($recentCandidates->isEmpty())
-                    <p class="text-sm text-neutral-600">No candidates yet.</p>
+                    <div class="p-4 text-center border border-neutral-200 rounded-lg bg-gradient-to-br from-neutral-50 to-white">
+                        <svg class="w-8 h-8 text-neutral-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <p class="text-sm text-neutral-600">No applications yet. <a href="{{ route('employer.jobs.create') }}" class="font-semibold text-blue-600 hover:underline">Post a job</a> to start receiving candidates.</p>
+                    </div>
                 @else
                     <div class="space-y-3">
                         @foreach($recentCandidates as $application)
@@ -154,7 +170,12 @@
             <article class="cw-surface border border-neutral-200 rounded-lg p-5">
                 <h2 class="cw-heading-3 mb-3">Expiring jobs</h2>
                 @if($expiringJobs->isEmpty())
-                    <p class="text-sm text-neutral-600">No jobs expiring in the next 14 days.</p>
+                    <div class="p-4 text-center border border-neutral-200 rounded-lg bg-gradient-to-br from-neutral-50 to-white">
+                        <svg class="w-8 h-8 text-neutral-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-sm text-neutral-600">No jobs expiring soon. Your listings are active and running well.</p>
+                    </div>
                 @else
                     <div class="space-y-2">
                         @foreach($expiringJobs as $job)
@@ -174,7 +195,13 @@
         <div class="mb-8">
             <h2 class="cw-heading-2 mb-4">Job performance cards</h2>
             @if($jobPerformance->isEmpty())
-                <div class="cw-surface border border-neutral-200 rounded-lg p-6 text-sm text-neutral-600">No published job performance data yet.</div>
+                <div class="cw-surface border-2 border-dashed border-neutral-200 rounded-lg p-8 text-center bg-gradient-to-br from-neutral-50 to-white">
+                    <svg class="w-10 h-10 text-neutral-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <h3 class="font-semibold text-neutral-900 mb-1">No performance data yet</h3>
+                    <p class="text-sm text-neutral-600"><a href="{{ route('employer.jobs.create') }}" class="font-semibold text-blue-600 hover:underline">Post a job</a> to start tracking applications and hires.</p>
+                </div>
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     @foreach($jobPerformance as $job)
@@ -251,10 +278,11 @@
                 </div>
             @else
                 <div class="cw-surface border border-neutral-200 rounded-lg p-8 text-center">
-                    <p class="text-neutral-600">No active job listings yet.</p>
-                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary mt-4 inline-flex">
-                        Create Your First Job
-                    </a>
+                    <p class="text-neutral-600">No active job listings yet. Publish your first listing to start receiving verified candidate applications.</p>
+                    <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                        <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary inline-flex">Create your first job</a>
+                        <a href="{{ route('employer.settings.profile') }}" class="cw-button-secondary inline-flex">Complete company profile</a>
+                    </div>
                 </div>
             @endif
         </div>

@@ -22,6 +22,10 @@ class TranslationManager extends Page
 
     protected static string $view = 'filament.admin.pages.translation-manager';
 
+    public string $search = '';
+
+    public bool $missingOnly = false;
+
     public string $activeGroup = 'common';
 
     public string $targetLocale = 'hr';
@@ -31,7 +35,12 @@ class TranslationManager extends Page
 
     public function mount(): void
     {
-        $this->activeGroup = request()->query('group', 'common');
+        $this->activeGroup = (string) request()->query('group', 'common');
+
+        if (! in_array($this->activeGroup, $this->getAvailableGroups(), true)) {
+            $this->activeGroup = $this->getAvailableGroups()[0] ?? 'common';
+        }
+
         $this->loadOverrides();
     }
 
@@ -58,6 +67,29 @@ class TranslationManager extends Page
             ->sort()
             ->values()
             ->toArray();
+    }
+
+    public function getFilteredGroupRows(): array
+    {
+        $search = trim($this->search);
+
+        return array_values(array_filter($this->getGroupRows(), function (array $row) use ($search): bool {
+            if ($this->missingOnly && trim((string) $row['current']) !== '') {
+                return false;
+            }
+
+            if ($search === '') {
+                return true;
+            }
+
+            $haystack = strtolower(implode(' ', [
+                (string) $row['key'],
+                (string) $row['en'],
+                (string) $row['current'],
+            ]));
+
+            return str_contains($haystack, strtolower($search));
+        }));
     }
 
     public function getSourceTranslations(): array
@@ -91,11 +123,14 @@ class TranslationManager extends Page
         foreach ($source as $key => $enValue) {
             $override = $this->overrides[$key] ?? null;
             $fileValue = $fileTranslations[$key] ?? null;
+            $current = $override ?? $fileValue ?? '';
             $rows[] = [
                 'key' => $key,
                 'en' => is_string($enValue) ? $enValue : json_encode($enValue),
-                'current' => $override ?? $fileValue ?? '',
+                'file_value' => is_string($fileValue) ? $fileValue : json_encode($fileValue),
+                'current' => $current,
                 'has_override' => $override !== null,
+                'is_missing' => trim((string) $current) === '',
                 'field' => "overrides.{$key}",
             ];
         }
@@ -130,8 +165,8 @@ class TranslationManager extends Page
         }
 
         Notification::make()
-            ->title('Translations saved')
-            ->body("Changes to '{$this->activeGroup}' saved successfully.")
+            ->title(__('ui.admin.translations_saved'))
+            ->body(__('ui.admin.translations_saved_body', ['group' => $this->activeGroup]))
             ->success()
             ->send();
     }
@@ -140,7 +175,7 @@ class TranslationManager extends Page
     {
         return [
             Action::make('save')
-                ->label('Save Changes')
+                ->label(__('ui.admin.save_changes'))
                 ->icon('heroicon-o-check')
                 ->color('primary')
                 ->action('saveTranslations'),

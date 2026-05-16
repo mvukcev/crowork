@@ -34,14 +34,14 @@ class EducationApplicationResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\Select::make('status')
                     ->options([
-                        'new' => 'New',
-                        'reviewed' => 'Reviewed',
-                        'shortlisted' => 'Shortlisted',
-                        'rejected' => 'Rejected',
+                        'new' => __('applications.new'),
+                        'reviewed' => __('applications.reviewed'),
+                        'shortlisted' => __('applications.shortlisted'),
+                        'rejected' => __('applications.rejected'),
                     ])
                     ->required(),
                 Forms\Components\KeyValue::make('profile_snapshot')
-                    ->label('Profile Snapshot')
+                    ->label(__('applications.profile_snapshot'))
                     ->columnSpanFull(),
             ]);
     }
@@ -57,12 +57,13 @@ class EducationApplicationResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('profile_snapshot.first_name')
-                    ->label('First Name')
+                    ->label(__('applications.first_name'))
                     ->getStateUsing(fn ($record) => $record->profile_snapshot['first_name'] ?? '-'),
                 Tables\Columns\TextColumn::make('profile_snapshot.last_name')
-                    ->label('Last Name')
+                    ->label(__('applications.last_name'))
                     ->getStateUsing(fn ($record) => $record->profile_snapshot['last_name'] ?? '-'),
                 Tables\Columns\BadgeColumn::make('status')
+                    ->formatStateUsing(fn (?string $state): string => $state ? __('applications.' . $state) : '-')
                     ->colors([
                         'warning' => 'new',
                         'info' => 'reviewed',
@@ -76,10 +77,10 @@ class EducationApplicationResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'new' => 'New',
-                        'reviewed' => 'Reviewed',
-                        'shortlisted' => 'Shortlisted',
-                        'rejected' => 'Rejected',
+                        'new' => __('applications.new'),
+                        'reviewed' => __('applications.reviewed'),
+                        'shortlisted' => __('applications.shortlisted'),
+                        'rejected' => __('applications.rejected'),
                     ]),
                 Tables\Filters\SelectFilter::make('education_id')
                     ->relationship('education', 'title')
@@ -89,10 +90,10 @@ class EducationApplicationResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('viewSnapshot')
                     ->icon('heroicon-o-eye')
-                    ->modalHeading('Worker Profile Snapshot')
+                    ->modalHeading(__('applications.worker_profile_snapshot'))
                     ->modalContent(fn (EducationApplication $record) => view('filament.admin.view-snapshot', ['snapshot' => $record->profile_snapshot]))
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close'),
+                    ->modalCancelActionLabel(__('applications.close')),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

@@ -158,11 +158,17 @@
                 </div>
             </div>
         @else
-            <div class="cw-surface border border-neutral-200 rounded-lg p-8 text-center">
+            <div class="cw-surface border-2 border-dashed border-neutral-200 rounded-lg p-12 text-center bg-gradient-to-br from-neutral-50 to-white">
                 <svg class="w-12 h-12 text-neutral-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <p class="text-neutral-600">No applications found matching your filters.</p>
+                <h3 class="text-lg font-semibold text-neutral-900 mb-2">No applications yet</h3>
+                <p class="text-neutral-600 mb-2">You don't have applications matching these filters yet.</p>
+                <p class="text-sm text-neutral-500 mb-6">Publish at least one active listing to open your candidate pipeline, then return here to triage statuses.</p>
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">Post a job</a>
+                    <a href="{{ route('employer.applications.pipeline') }}" class="cw-button-secondary">Clear filters</a>
+                </div>
             </div>
         @endif
     </div>

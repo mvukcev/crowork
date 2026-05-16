@@ -1,59 +1,59 @@
 <x-app-layout>
-    <x-slot name="title">Create Job</x-slot>
+    <x-slot name="title">{{ __('ui.jobs.create') }}</x-slot>
 
     <section class="cw-section">
         <div class="cw-container max-w-4xl">
-            <h1 class="cw-display text-4xl md:text-6xl mb-6">Create a job listing</h1>
+            <h1 class="cw-display text-4xl md:text-6xl mb-6">{{ __('ui.jobs.create_heading') }}</h1>
 
             <form method="POST" action="{{ route('employer.jobs.store') }}" class="cw-surface p-6 space-y-4">
                 @csrf
 
                 <div>
-                    <label class="cw-label" for="title">Job title</label>
+                    <label class="cw-label" for="title">{{ __('ui.jobs.title') }}</label>
                     <input id="title" name="title" class="cw-field" value="{{ old('title') }}" required>
                     <x-input-error :messages="$errors->get('title')" class="mt-1" />
                 </div>
 
                 <div>
-                    <label class="cw-label" for="company_name">Company name</label>
+                    <label class="cw-label" for="company_name">{{ __('ui.employer.company_name') }}</label>
                     <input id="company_name" name="company_name" class="cw-field" value="{{ old('company_name') }}" required>
                     <x-input-error :messages="$errors->get('company_name')" class="mt-1" />
                 </div>
 
                 <div>
-                    <label class="cw-label" for="description">Description</label>
+                    <label class="cw-label" for="description">{{ __('ui.jobs.description') }}</label>
                     <textarea id="description" name="description" rows="7" class="cw-field" required>{{ old('description') }}</textarea>
                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
                 </div>
 
                 <div>
-                    <label class="cw-label" for="responsibilities">Responsibilities</label>
+                    <label class="cw-label" for="responsibilities">{{ __('ui.jobs.responsibilities') }}</label>
                     <textarea id="responsibilities" name="responsibilities" rows="5" class="cw-field">{{ old('responsibilities') }}</textarea>
                 </div>
 
                 <div>
-                    <label class="cw-label" for="requirements">Requirements</label>
+                    <label class="cw-label" for="requirements">{{ __('ui.jobs.requirements') }}</label>
                     <textarea id="requirements" name="requirements" rows="5" class="cw-field">{{ old('requirements') }}</textarea>
                 </div>
 
                 <div>
-                    <label class="cw-label" for="benefits">Benefits</label>
+                    <label class="cw-label" for="benefits">{{ __('ui.jobs.benefits') }}</label>
                     <textarea id="benefits" name="benefits" rows="5" class="cw-field">{{ old('benefits') }}</textarea>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="cw-label" for="location">Location</label>
+                        <label class="cw-label" for="location">{{ __('ui.jobs.location') }}</label>
                         <input id="location" name="location" class="cw-field" value="{{ old('location') }}" required>
                         <x-input-error :messages="$errors->get('location')" class="mt-1" />
                     </div>
                     <div>
-                        <label class="cw-label" for="job_type">Job type</label>
+                        <label class="cw-label" for="job_type">{{ __('ui.jobs.type') }}</label>
                         <select id="job_type" name="job_type" class="cw-field" required>
-                            <option value="full_time" @selected(old('job_type') === 'full_time')>Full-time</option>
-                            <option value="part_time" @selected(old('job_type') === 'part_time')>Part-time</option>
-                            <option value="contract" @selected(old('job_type') === 'contract')>Contract</option>
-                            <option value="seasonal" @selected(old('job_type') === 'seasonal')>Seasonal</option>
+                            <option value="full_time" @selected(old('job_type') === 'full_time')>{{ __('ui.jobs.full_time') }}</option>
+                            <option value="part_time" @selected(old('job_type') === 'part_time')>{{ __('ui.jobs.part_time') }}</option>
+                            <option value="contract" @selected(old('job_type') === 'contract')>{{ __('ui.jobs.contract') }}</option>
+                            <option value="seasonal" @selected(old('job_type') === 'seasonal')>{{ __('ui.jobs.seasonal') }}</option>
                         </select>
                     </div>
                 </div>

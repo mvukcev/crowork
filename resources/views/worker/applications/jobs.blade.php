@@ -16,7 +16,8 @@
 
             <div class="cw-surface overflow-hidden">
                 @if($applications->count() > 0)
-                    <table class="cw-table">
+                    <div class="overflow-x-auto">
+                    <table class="cw-table min-w-[860px]">
                         <thead>
                             <tr>
                                 <th>Job</th>
@@ -52,11 +53,20 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                     <div class="p-4">{{ $applications->links() }}</div>
                 @else
-                    <div class="p-8 text-center">
-                        <h2 class="text-xl font-semibold text-slate-900 mb-2">No job applications yet</h2>
-                        <a href="{{ route('jobs.index') }}" class="cw-button-primary">Browse jobs</a>
+                    <div class="p-12 text-center rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-slate-50 to-white">
+                        <svg class="mx-auto h-12 w-12 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                        <h2 class="text-xl font-semibold text-slate-900 mb-2">Start your job search</h2>
+                        <p class="text-slate-600 mb-2">You haven't applied to any jobs yet.</p>
+                        <p class="text-sm text-slate-500 mb-6">Your profile details are shared only when you submit an application.</p>
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <a href="{{ route('jobs.index') }}" class="cw-button-primary">Browse jobs</a>
+                            <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">Complete your profile first</a>
+                        </div>
                     </div>
                 @endif
             </div>

@@ -15,13 +15,17 @@
                 <div class="cw-surface p-6 text-center">
                     <h1 class="text-2xl font-semibold text-slate-900 mb-2">Application already sent</h1>
                     <p class="text-slate-600 mb-4">You have already applied{{ $existingApplication?->created_at ? ' on '.$existingApplication->created_at->format('M j, Y') : '' }}.</p>
-                    <a href="{{ route('worker.education-applications.index') }}" class="cw-button-secondary">View my applications</a>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <a href="{{ route('worker.education-applications.index') }}" class="cw-button-primary">View my applications</a>
+                        <a href="{{ route('educations.show', $education) }}" class="cw-button-secondary">Back to program</a>
+                    </div>
                 </div>
             @else
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <div class="lg:col-span-2 cw-surface p-6 md:p-7">
                         <h1 class="cw-display text-3xl md:text-5xl mb-3">Apply for {{ $education->title }}</h1>
-                        <p class="text-slate-600 mb-6">Send your application and include a short motivation message.</p>
+                        <p class="text-slate-600 mb-2">Send your application and include a short motivation message.</p>
+                        <p class="text-sm text-slate-500 mb-6">You can follow updates from providers in your education applications list.</p>
 
                         <form method="POST" action="{{ route('educations.apply.store', $education) }}" class="space-y-4" data-cw-track-submit="education_application_submit">
                             @csrf

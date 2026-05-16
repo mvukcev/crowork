@@ -1,0 +1,19 @@
+<?php
+
+return [
+    'home' => 'Home',
+    'jobs' => 'Jobs',
+    'educations' => 'Educations',
+    'resources' => 'Resources',
+    'about' => 'About',
+    'for_employers' => 'For Employers',
+    'login' => 'Login',
+    'logout' => 'Logout',
+    'dashboard' => 'Dashboard',
+    'settings' => 'Settings',
+    'notifications' => 'Notifications',
+    'admin' => 'Admin',
+    'profile' => 'Profile',
+    'company_profile' => 'Company Profile',
+    'applications' => 'Applications',
+];

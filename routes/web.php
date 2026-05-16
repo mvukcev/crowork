@@ -308,4 +308,17 @@ Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::clas
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/privacy-requests', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
     Route::put('/privacy-requests/{deletionRequest}', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'update'])->name('admin.privacy_requests.update');
+
+// Test routes for development/testing
+if (app()->environment('local')) {
+    Route::get('/test-login/{userId}', function ($userId) {
+        auth()->loginUsingId($userId);
+        return redirect('/');
+    })->name('test.login');
+
+    Route::get('/test-logout', function () {
+        auth()->logout();
+        return redirect('/');
+    })->name('test.logout');
+}
 });

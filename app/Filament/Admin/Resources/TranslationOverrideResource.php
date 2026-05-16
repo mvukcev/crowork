@@ -27,10 +27,10 @@ class TranslationOverrideResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Translation Override')
+                Forms\Components\Section::make(__('admin.translation_manager'))
                     ->schema([
                         Forms\Components\Select::make('locale')
-                            ->label('Language')
+                            ->label(__('ui.settings.language'))
                             ->options([
                                 'en' => 'English',
                                 'hr' => 'Croatian',
@@ -39,20 +39,20 @@ class TranslationOverrideResource extends Resource
                             ->required()
                             ->native(false),
                         Forms\Components\TextInput::make('group')
-                            ->label('Translation Group')
+                            ->label(__('ui.admin.translations_group'))
                             ->required()
                             ->maxLength(191)
-                            ->helperText('e.g., auth, dashboard, common, worker, employer'),
+                            ->helperText(__('ui.admin.translations_group_helper')),
                         Forms\Components\TextInput::make('key')
-                            ->label('Translation Key')
+                            ->label(__('ui.admin.translations_key'))
                             ->required()
                             ->maxLength(191)
-                            ->helperText('e.g., welcome, login_button, page_title'),
+                            ->helperText(__('ui.admin.translations_key_helper')),
                         Forms\Components\Textarea::make('value')
-                            ->label('Translation Value')
+                            ->label(__('ui.admin.translations_value'))
                             ->required()
                             ->rows(3)
-                            ->helperText('This text will override the default translation file value.'),
+                            ->helperText(__('ui.admin.translations_value_helper')),
                     ]),
             ]);
     }
@@ -62,25 +62,25 @@ class TranslationOverrideResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('locale')
-                    ->label('Language')
+                    ->label(__('ui.settings.language'))
                     ->sortable()
                     ->badge()
                     ->color('blue'),
                 Tables\Columns\TextColumn::make('group')
-                    ->label('Group')
+                    ->label(__('ui.admin.translations_group'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('key')
-                    ->label('Key')
+                    ->label(__('ui.admin.translations_key'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('value')
-                    ->label('Value')
+                    ->label(__('ui.admin.translations_value'))
                     ->searchable()
                     ->limit(60)
                     ->wrap(),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label(__('ui.admin.updated'))
                     ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -94,11 +94,21 @@ class TranslationOverrideResource extends Resource
                     ]),
                 Tables\Filters\SelectFilter::make('group')
                     ->options([
+                        'admin' => 'admin',
+                        'applications' => 'applications',
                         'auth' => 'auth',
-                        'dashboard' => 'dashboard',
                         'common' => 'common',
-                        'worker' => 'worker',
+                        'dashboard' => 'dashboard',
+                        'educations' => 'educations',
                         'employer' => 'employer',
+                        'jobs' => 'jobs',
+                        'navigation' => 'navigation',
+                        'notifications' => 'notifications',
+                        'settings' => 'settings',
+                        'system' => 'system',
+                        'validation' => 'validation',
+                        'worker' => 'worker',
+                        'ui' => 'ui',
                     ]),
             ])
             ->actions([

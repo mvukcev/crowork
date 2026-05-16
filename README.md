@@ -2,6 +2,14 @@
 
 CroWork is a modern job platform for Croatia focused on foreign workers and employers. Built with Laravel 11, it features SEO-first public job listings, fast search with filters, employer dashboards for job management, and a scalable backend designed for long-term growth.
 
+## Canonical Docs
+
+- [DESIGN.md](DESIGN.md): Brand system and visual direction
+- [CHANGELOG.md](CHANGELOG.md): Release notes and major platform changes
+- [DEPLOYMENT.md](DEPLOYMENT.md): Production deployment steps and server setup
+- [OPERATIONS.md](OPERATIONS.md): Scheduler, queue, validation, and admin operations
+- [SECURITY.md](SECURITY.md): Security practices and production safeguards
+
 ## Features
 
 - **SEO-Optimized Public Pages**: Server-side rendered Blade templates with meta tags for search engines
@@ -169,6 +177,11 @@ The application will be available at `http://localhost:8000`
 - **Job Applications**: List and filter applications, view worker profile snapshots
 - **Educations**: Manage education listings with publish/delist actions
 - **Education Applications**: View and manage education program applications
+
+## Production Notes
+
+- Scheduler cron and queue worker setup are documented in [OPERATIONS.md](OPERATIONS.md)
+- Deployment steps and cache/build commands are documented in [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ### Employer Panel
 

@@ -16,7 +16,8 @@
 
             <div class="cw-surface overflow-hidden">
                 @if($applications->count() > 0)
-                    <table class="cw-table">
+                    <div class="overflow-x-auto">
+                    <table class="cw-table min-w-[760px]">
                         <thead>
                             <tr>
                                 <th>Program</th>
@@ -50,11 +51,16 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                     <div class="p-4">{{ $applications->links() }}</div>
                 @else
-                    <div class="p-8 text-center">
+                    <div class="p-10 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-gradient-to-br from-slate-50 to-white">
                         <h2 class="text-xl font-semibold text-slate-900 mb-2">No education applications yet</h2>
-                        <a href="{{ route('educations.index') }}" class="cw-button-primary">Browse educations</a>
+                        <p class="text-sm text-slate-600 mb-5">Start one program application to strengthen your relocation readiness.</p>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            <a href="{{ route('educations.index') }}" class="cw-button-primary">Browse educations</a>
+                            <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">Review profile</a>
+                        </div>
                     </div>
                 @endif
             </div>
