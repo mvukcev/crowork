@@ -74,6 +74,8 @@
             <form
                 method="GET"
                 action="{{ route('educations.index') }}"
+                data-cw-filter-form
+                data-cw-filter-panel-id="education-advanced-filters"
                 data-cw-track-submit="education_search"
                 class="mb-6"
                 x-data="{
@@ -126,11 +128,12 @@
                                     type="submit"
                                     :disabled="submitting"
                                 >
-                                    <span x-text="submitting ? 'Updating...' : 'Search'" aria-live="polite"></span>
+                                    <span data-cw-submit-label data-default-label="Search" data-loading-label="Updating..." aria-live="polite">Search</span>
                                 </button>
                                 <button
                                     type="button"
                                     class="cw-button-secondary hidden md:inline-flex"
+                                    data-cw-filter-toggle
                                     aria-controls="education-advanced-filters"
                                     :aria-expanded="desktopAdvancedOpen ? 'true' : 'false'"
                                     @click="desktopAdvancedOpen = !desktopAdvancedOpen"
@@ -146,6 +149,7 @@
                             <button
                                 type="button"
                                 class="cw-button-secondary w-full"
+                                data-cw-filter-open
                                 @click="mobilePanelOpen = true"
                                     data-cw-track-click="education_filter_open"
                                 aria-controls="education-advanced-filters"
@@ -159,13 +163,14 @@
                     </div>
 
                     <div class="md:hidden" x-cloak>
-                        <div class="cw-filter-overlay" x-show="mobilePanelOpen" x-transition.opacity @click="mobilePanelOpen = false"></div>
+                        <div class="cw-filter-overlay" data-cw-filter-overlay x-show="mobilePanelOpen" x-transition.opacity @click="mobilePanelOpen = false"></div>
                     </div>
 
                     <div
                         id="education-advanced-filters"
                         x-cloak
                         x-show="shouldShowPanel()"
+                        style="display: none;"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 translate-y-2"
                         x-transition:enter-end="opacity-100 translate-y-0"
@@ -178,7 +183,7 @@
                         <div class="cw-filter-panel p-4 md:p-5" :class="isDesktop() ? '' : 'rounded-b-none border-b-0 pb-6'">
                             <div class="flex items-center justify-between mb-3 md:hidden">
                                 <h2 class="text-sm font-semibold text-slate-900">Advanced filters</h2>
-                                <button type="button" class="cw-button-secondary !px-3 !py-2 text-xs" @click="mobilePanelOpen = false">Close</button>
+                                <button type="button" class="cw-button-secondary !px-3 !py-2 text-xs" data-cw-filter-close aria-controls="education-advanced-filters" @click="mobilePanelOpen = false">Close</button>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -210,16 +215,16 @@
                                     data-cw-track-click="education_filter_apply"
                                     :disabled="submitting"
                                 >
-                                    <span x-text="submitting ? 'Applying...' : 'Apply filters'" aria-live="polite"></span>
+                                    <span data-cw-submit-label data-default-label="Apply filters" data-loading-label="Applying..." aria-live="polite">Apply filters</span>
                                 </button>
                                 <a href="{{ route('educations.index') }}" class="cw-button-secondary" data-cw-track-click="education_filter_reset">Reset</a>
-                                <button type="button" class="cw-button-secondary md:hidden" @click="mobilePanelOpen = false">Done</button>
+                                <button type="button" class="cw-button-secondary md:hidden" data-cw-filter-close aria-controls="education-advanced-filters" @click="mobilePanelOpen = false">Done</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <button type="button" class="cw-button-primary cw-filter-fab md:hidden" @click="mobilePanelOpen = true">
+                <button type="button" class="cw-button-primary cw-filter-fab md:hidden" data-cw-filter-open aria-controls="education-advanced-filters" @click="mobilePanelOpen = true">
                     Filters
                 </button>
             </form>

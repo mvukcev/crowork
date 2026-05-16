@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\AdminAccessMiddleware;
+use App\Http\Middleware\EnsureAdminPanelSessionIsPrivileged;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -32,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('CroWork')
             ->brandLogo(asset('assets/branding/CW-Logo-Dark.svg'))
             ->darkModeBrandLogo(asset('assets/branding/CW-Logo-Light.svg'))
-            ->brandLogoHeight('2rem')
+            ->brandLogoHeight('1.45rem')
             ->colors([
                 'primary' => Color::Blue,
             ])
@@ -46,13 +47,26 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
             ])
             ->renderHook(
-                PanelsRenderHook::TOPBAR_END,
+                PanelsRenderHook::HEAD_START,
+                fn (): string => view('components.theme-init')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => view('filament.partials.topbar-overlay-fix')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_START,
+                fn (): string => view('filament.partials.view-site-link')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
                 fn (): string => view('filament.partials.notification-center-dropdown')->render()
             )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
+                EnsureAdminPanelSessionIsPrivileged::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,

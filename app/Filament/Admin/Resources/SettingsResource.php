@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\SettingsResource\Pages;
 use App\Models\Setting;
+use App\Support\ComingSoonMode;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -56,6 +57,8 @@ class SettingsResource extends Resource
                             ->label('Value')
                             ->statePath('value')
                             ->default(false)
+                            ->helperText(fn (?Setting $record) => self::comingSoonControlHelperText($record))
+                            ->disabled(fn (?Setting $record) => self::comingSoonEnvLock($record))
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'boolean')
                             ->dehydrateStateUsing(fn ($state) => (bool) $state),
                         Forms\Components\Select::make('value_select')
@@ -219,5 +222,26 @@ class SettingsResource extends Resource
         ];
 
         return $helpers[$key] ?? '';
+    }
+
+    private static function comingSoonEnvLock(?Setting $record): bool
+    {
+        return ($record?->key === 'coming_soon_enabled') && ComingSoonMode::isEnvControlled();
+    }
+
+    private static function comingSoonControlHelperText(?Setting $record): ?string
+    {
+        if ($record?->key !== 'coming_soon_enabled') {
+            return null;
+        }
+
+        $mode = ComingSoonMode::mode();
+        $base = sprintf('This setting is used only when COMING_SOON_MODE=admin. Current mode: %s.', $mode);
+
+        if (ComingSoonMode::isEnvControlled()) {
+            return $base.' ENV currently controls Coming Soon mode via COMING_SOON_ENABLED, so this field is read-only.';
+        }
+
+        return $base;
     }
 }

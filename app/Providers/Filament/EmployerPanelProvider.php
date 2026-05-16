@@ -61,11 +61,23 @@ class EmployerPanelProvider extends PanelProvider
                 ExpiringJobsTable::class,
             ])
             ->renderHook(
+                PanelsRenderHook::HEAD_START,
+                fn (): string => view('components.theme-init')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => view('filament.partials.topbar-overlay-fix')->render()
+            )
+            ->renderHook(
                 PanelsRenderHook::TOPBAR_START,
                 fn (): string => view('filament.partials.impersonation-banner')->render()
             )
             ->renderHook(
-                PanelsRenderHook::TOPBAR_END,
+                PanelsRenderHook::TOPBAR_START,
+                fn (): string => view('filament.partials.view-site-link')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
                 fn (): string => view('filament.partials.notification-center-dropdown')->render()
             )
             ->middleware([

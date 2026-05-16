@@ -9,12 +9,15 @@
                     <h1 class="cw-heading-1">ATS Dashboard</h1>
                     <p class="text-neutral-600 mt-1">Welcome back, {{ $employer->company_name ?? auth()->user()->name }}</p>
                 </div>
-                <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Create Job
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('home') }}" class="cw-button-secondary">Back to homepage</a>
+                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Create Job
+                    </a>
+                </div>
             </div>
         </div>
     </div>

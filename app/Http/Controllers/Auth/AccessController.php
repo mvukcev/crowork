@@ -59,17 +59,25 @@ class AccessController extends Controller
 
     public function checkEmail(Request $request): RedirectResponse
     {
-        // Rate limit: Max 10 email checks per minute per IP to prevent enumeration
-        $rateLimitKey = 'cw_email_check_' . $request->ip();
-        if (Cache::has($rateLimitKey)) {
-            $attempts = Cache::get($rateLimitKey, 0);
-            if ($attempts >= 10) {
-                return redirect()->route('access.show')
-                    ->withErrors(['email' => 'Too many email checks. Please try again in 1 minute.']);
+        // Rate limit: Max 10 email checks per minute per IP to prevent enumeration.
+        // Never fail hard if cache infrastructure has a transient issue.
+        try {
+            $rateLimitKey = 'cw_email_check_' . $request->ip();
+            if (Cache::has($rateLimitKey)) {
+                $attempts = Cache::get($rateLimitKey, 0);
+                if ($attempts >= 10) {
+                    return redirect()->route('access.show')
+                        ->withErrors(['email' => 'Too many email checks. Please try again in 1 minute.']);
+                }
+                Cache::put($rateLimitKey, $attempts + 1, now()->addMinute());
+            } else {
+                Cache::put($rateLimitKey, 1, now()->addMinute());
             }
-            Cache::put($rateLimitKey, $attempts + 1, now()->addMinute());
-        } else {
-            Cache::put($rateLimitKey, 1, now()->addMinute());
+        } catch (\Throwable $exception) {
+            Log::warning('Access email rate-limit cache unavailable', [
+                'ip' => $request->ip(),
+                'error' => $exception->getMessage(),
+            ]);
         }
 
         $data = $request->validate([
@@ -108,11 +116,23 @@ class AccessController extends Controller
         }
 
         // New email → send code (respect cooldown in case of double-submit)
-        if (! Cache::has($this->resendCooldownKey($email))) {
-            $code = $this->sendVerificationCode($email);
-            if ($this->isDevMode()) {
-                session(['cw_dev_code' => $code]);
+        try {
+            if (! Cache::has($this->resendCooldownKey($email))) {
+                $code = $this->sendVerificationCode($email);
+                if ($this->isDevMode()) {
+                    session(['cw_dev_code' => $code]);
+                }
             }
+        } catch (\Throwable $exception) {
+            Log::error('Access verification code dispatch failed', [
+                'email' => $email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            session(['access_stage' => 'email']);
+
+            return redirect()->route('access.show')
+                ->withErrors(['email' => 'We could not start verification right now. Please try again in a moment.']);
         }
 
         session(['access_stage' => 'verify_code']);
@@ -197,27 +217,37 @@ class AccessController extends Controller
         session(['access_email' => $email, 'access_intent_type' => $intentType, 'access_stage' => 'verify_code']);
 
         // Rate limit: Max 3 resend attempts per 5 minutes per email
-        $rateLimitKey = 'cw_resend_limit_' . $email;
-        $resendCount = Cache::get($rateLimitKey, 0);
-        
-        if ($resendCount >= 3) {
+        try {
+            $rateLimitKey = 'cw_resend_limit_' . $email;
+            $resendCount = Cache::get($rateLimitKey, 0);
+
+            if ($resendCount >= 3) {
+                return redirect()->route('access.show')
+                    ->withErrors(['resend' => 'Too many resend requests. Please try again in 5 minutes.']);
+            }
+
+            if (Cache::has($this->resendCooldownKey($email))) {
+                return redirect()->route('access.show')
+                    ->withErrors(['resend' => 'Please wait 60 seconds before requesting a new code.']);
+            }
+
+            $code = $this->sendVerificationCode($email);
+
+            if ($this->isDevMode()) {
+                session(['cw_dev_code' => $code]);
+            }
+
+            // Increment resend counter with 5-minute expiry
+            Cache::put($rateLimitKey, $resendCount + 1, now()->addMinutes(5));
+        } catch (\Throwable $exception) {
+            Log::error('Access resend verification failed', [
+                'email' => $email,
+                'error' => $exception->getMessage(),
+            ]);
+
             return redirect()->route('access.show')
-                ->withErrors(['resend' => 'Too many resend requests. Please try again in 5 minutes.']);
+                ->withErrors(['resend' => 'We could not resend the code right now. Please try again shortly.']);
         }
-
-        if (Cache::has($this->resendCooldownKey($email))) {
-            return redirect()->route('access.show')
-                ->withErrors(['resend' => 'Please wait 60 seconds before requesting a new code.']);
-        }
-
-        $code = $this->sendVerificationCode($email);
-
-        if ($this->isDevMode()) {
-            session(['cw_dev_code' => $code]);
-        }
-
-        // Increment resend counter with 5-minute expiry
-        Cache::put($rateLimitKey, $resendCount + 1, now()->addMinutes(5));
 
         return redirect()->route('access.show')
             ->with('resend_success', 'A new code has been sent to ' . $email . '.');

@@ -34,7 +34,7 @@ class SecureHeaders
         // Inline scripts disabled except for nonces; external scripts from same origin
         $csp = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com",
             "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net",
             "img-src 'self' data: https:",

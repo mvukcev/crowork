@@ -32,7 +32,7 @@
         </div>
     </section>
 
-    <section class="cw-section bg-white cw-section-atmosphere">
+    <section class="cw-section cw-section-atmosphere">
         <span class="cw-orb cw-orb-blue hidden md:block" style="width: 280px; height: 280px; right: -110px; top: 220px;"></span>
         <div class="cw-container space-y-12 md:space-y-14">
             <article class="grid grid-cols-1 lg:grid-cols-2 gap-7 items-center scroll-fade-in">
@@ -104,7 +104,7 @@
         </div>
     </section>
 
-    <section class="cw-section bg-slate-50 cw-section-atmosphere">
+    <section class="cw-section cw-section-atmosphere">
         <span class="cw-orb cw-orb-orange hidden md:block" style="width: 250px; height: 250px; left: -80px; top: 26px;"></span>
         <div class="cw-container">
             <div class="cw-surface p-7 md:p-10 text-center scroll-fade-in">

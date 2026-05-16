@@ -103,7 +103,12 @@ data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
 x-data>
     @php($isHome = request()->routeIs('home'))
     @php($isImpersonating = session('impersonation_original_admin_id'))
-    <div class="min-h-screen flex flex-col">
+    <div class="min-h-screen flex flex-col cw-page-shell">
+    <div class="cw-page-ambient cw-organic-bg" aria-hidden="true">
+        <span class="cw-orb cw-orb-blue hidden md:block" style="width: 420px; height: 420px; left: -140px; top: 5rem;"></span>
+        <span class="cw-orb cw-orb-orange hidden md:block" style="width: 360px; height: 360px; right: -120px; top: 16rem;"></span>
+        <span class="cw-orb cw-orb-yellow hidden lg:block" style="width: 240px; height: 240px; right: 18%; bottom: 8rem;"></span>
+    </div>
     <x-site-header />
     @include('components.impersonation-banner')
 
@@ -156,7 +161,7 @@ x-data>
 
         @if(session('info'))
             <div class="cw-container mt-6 mb-6">
-                <div class="cw-surface p-4 bg-slate-50" role="alert">
+                <div class="cw-surface p-4" role="alert">
                     <div class="flex items-start">
                         <svg class="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

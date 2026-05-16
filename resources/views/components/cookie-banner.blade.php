@@ -3,23 +3,23 @@
 @endphp
 
 @if(ConsentConfigService::isBannerEnabled())
-    <div id="cookie-banner" class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 shadow-lg z-50" style="display:none;">
+    <div id="cookie-banner" class="fixed bottom-0 left-0 right-0 bg-black text-white p-4 shadow-lg z-50" style="display:none;">
         <div class="cw-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
                 <p class="text-sm">
                     We use cookies to enhance your experience. By continuing, you consent to our use of cookies.
                     @if(ConsentConfigService::getCookieStatementUrl())
-                        <a href="{{ ConsentConfigService::getCookieStatementUrl() }}" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-200">
+                        <a href="{{ ConsentConfigService::getCookieStatementUrl() }}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white/80">
                             Learn more
                         </a>
                     @endif
                 </p>
             </div>
             <div class="flex gap-2 flex-shrink-0">
-                <button id="cookie-reject" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm whitespace-nowrap">
+                <button id="cookie-reject" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded text-sm whitespace-nowrap border border-white/20">
                     Reject
                 </button>
-                <button id="cookie-accept" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm whitespace-nowrap font-semibold">
+                <button id="cookie-accept" class="px-4 py-2 bg-[rgb(255,85,0)] hover:bg-[rgb(232,78,0)] rounded text-sm whitespace-nowrap font-semibold">
                     Accept All
                 </button>
             </div>

@@ -7,11 +7,11 @@
         'neutral' => 'cw-chip',
         'info' => 'cw-chip text-blue-700 bg-blue-50 border-blue-200',
         'success' => 'cw-chip text-emerald-700 bg-emerald-50 border-emerald-200',
-        'warning' => 'cw-chip text-amber-700 bg-amber-50 border-amber-200',
+        'warning' => 'cw-chip text-orange-700 bg-orange-50 border-orange-200',
         'danger' => 'cw-chip text-red-700 bg-red-50 border-red-200',
         'primary' => 'cw-chip text-slate-900 bg-slate-100 border-slate-200',
         'secondary' => 'cw-chip',
-        'accent' => 'cw-chip text-amber-800 bg-amber-50 border-amber-200',
+        'accent' => 'cw-chip text-orange-700 bg-orange-50 border-orange-200',
     ];
 @endphp
 

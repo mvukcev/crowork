@@ -28,7 +28,12 @@
         data-cw-analytics-enabled="{{ $analyticsEnabled ? '1' : '0' }}"
         data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
     >
-        <div class="min-h-screen flex flex-col">
+        <div class="min-h-screen flex flex-col cw-page-shell">
+            <div class="cw-page-ambient cw-organic-bg" aria-hidden="true">
+                <span class="cw-orb cw-orb-blue hidden md:block" style="width: 360px; height: 360px; left: -120px; top: 5rem;"></span>
+                <span class="cw-orb cw-orb-orange hidden md:block" style="width: 300px; height: 300px; right: -90px; top: 12rem;"></span>
+                <span class="cw-orb cw-orb-yellow hidden lg:block" style="width: 180px; height: 180px; right: 15%; bottom: 5rem;"></span>
+            </div>
             <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8 cw-section-atmosphere">
                 <span class="cw-corner-glow cw-orb-blue hidden lg:block" style="width: 360px; height: 360px; top: -110px; right: 14%;"></span>
                 <span class="cw-corner-glow cw-orb-cyan hidden lg:block" style="width: 300px; height: 300px; bottom: -130px; left: 9%;"></span>
@@ -57,7 +62,7 @@
                             <div class="absolute inset-x-0 bottom-0 h-[240px] rounded-2xl bg-white/55 border border-white/70 overflow-hidden">
                                 <span class="cw-orb cw-orb-violet" style="width: 180px; height: 180px; left: -40px; bottom: 14px;"></span>
                                 <span class="cw-orb cw-orb-orange" style="width: 140px; height: 140px; right: -30px; top: 16px;"></span>
-                                <span class="cw-orb cw-orb-cyan" style="width: 120px; height: 120px; right: 58px; bottom: -28px;"></span>
+                                <span class="cw-orb cw-orb-yellow" style="width: 120px; height: 120px; right: 58px; bottom: -28px;"></span>
                             </div>
                         </div>
                     </aside>

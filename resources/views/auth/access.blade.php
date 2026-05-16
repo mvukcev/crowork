@@ -42,36 +42,81 @@
             }
 
             $currentUrl = request()->fullUrl();
-            $localeLabels = ['en' => 'EN', 'hr' => 'HR'];
+            $localeLabels = ['en' => 'English', 'hr' => 'Hrvatski'];
         @endphp
-        <div class="min-h-screen flex flex-col">
+        <div class="min-h-screen flex flex-col cw-page-shell">
+            <div class="cw-page-ambient cw-organic-bg" aria-hidden="true">
+                <span class="cw-orb cw-orb-blue hidden md:block" style="width: 320px; height: 320px; left: -96px; top: 5rem;"></span>
+                <span class="cw-orb cw-orb-orange hidden md:block" style="width: 260px; height: 260px; right: -80px; top: 10rem;"></span>
+            </div>
             <header class="cw-container py-4">
-                <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center justify-between gap-3" data-cw-dropdown-root>
                     <a href="{{ route('home') }}" class="inline-flex items-center h-8">
                         <img src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-full cw-logo-on-light" loading="lazy">
                         <img src="{{ asset('assets/branding/CW-Logo-Light.svg') }}" alt="CroWork" class="h-full cw-logo-on-dark" loading="lazy">
                     </a>
                     <div class="flex items-center gap-2">
-                        <form method="POST" action="{{ route('preferences.locale') }}">
+                        <form method="POST" action="{{ route('preferences.locale') }}" data-cw-locale-form>
                             @csrf
                             <input type="hidden" name="redirect" value="{{ $currentUrl }}">
-                            <label class="sr-only" for="access-locale-switch">Language</label>
-                            <select id="access-locale-switch" name="locale" class="cw-control-select" onchange="this.form.submit()">
+                            <input type="hidden" name="locale" data-cw-locale-input value="{{ $activeLocale }}">
+                        </form>
+
+                        <form method="POST" action="{{ route('preferences.theme') }}" data-cw-theme-form>
+                            @csrf
+                            <input type="hidden" name="redirect" value="{{ $currentUrl }}">
+                            <input type="hidden" name="theme" data-cw-theme-input value="{{ $themePreference }}">
+                        </form>
+
+                        <div class="relative">
+                            <button type="button" class="cw-icon-control cw-icon-ghost" aria-label="Open language menu" aria-expanded="false" aria-controls="cw-access-language-menu" data-cw-dropdown-trigger="cw-access-language-menu">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path stroke-linecap="round" d="M3 12h18M12 3c2.2 2.3 3.3 5.3 3.3 9S14.2 18.7 12 21M12 3C9.8 5.3 8.7 8.3 8.7 12s1.1 6.7 3.3 9"/>
+                                </svg>
+                            </button>
+                            <div id="cw-access-language-menu" data-cw-dropdown-panel aria-hidden="true" style="display: none;" class="cw-dropdown-panel absolute right-0 mt-2 z-50">
                                 @foreach($enabledLocales as $locale)
-                                    <option value="{{ $locale }}" @selected($activeLocale === $locale)>{{ $localeLabels[$locale] ?? strtoupper($locale) }}</option>
+                                    <button
+                                        type="button"
+                                        class="cw-dropdown-item {{ $activeLocale === $locale ? 'cw-dropdown-item-active' : '' }}"
+                                        data-cw-dropdown-select="locale"
+                                        data-cw-locale-value="{{ $locale }}"
+                                        data-cw-language-option="{{ $locale }}"
+                                    >
+                                        <span>{{ $localeLabels[$locale] ?? strtoupper($locale) }}</span>
+                                        @if($activeLocale === $locale)
+                                            <span class="text-[11px]">✓</span>
+                                        @endif
+                                    </button>
                                 @endforeach
-                            </select>
-                        </form>
-                        <form method="POST" action="{{ route('preferences.theme') }}">
-                            @csrf
-                            <input type="hidden" name="redirect" value="{{ $currentUrl }}">
-                            <label class="sr-only" for="access-theme-switch">Theme</label>
-                            <select id="access-theme-switch" name="theme" class="cw-control-select" data-cw-theme-switcher onchange="window.cwTheme?.setPreference(this.value); this.form.submit()">
-                                <option value="system" @selected($themePreference === 'system')>System</option>
-                                <option value="light" @selected($themePreference === 'light')>Light</option>
-                                <option value="dark" @selected($themePreference === 'dark')>Dark</option>
-                            </select>
-                        </form>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <button type="button" class="cw-icon-control cw-icon-ghost" aria-label="Open theme menu" aria-expanded="false" aria-controls="cw-access-theme-menu" data-cw-dropdown-trigger="cw-access-theme-menu">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.2M12 18.8V21M5.64 5.64l1.56 1.56M16.8 16.8l1.56 1.56M3 12h2.2M18.8 12H21M5.64 18.36l1.56-1.56M16.8 7.2l1.56-1.56"/>
+                                    <circle cx="12" cy="12" r="3.8"/>
+                                </svg>
+                            </button>
+                            <div id="cw-access-theme-menu" data-cw-dropdown-panel aria-hidden="true" style="display: none;" class="cw-dropdown-panel absolute right-0 mt-2 z-50">
+                                @foreach(['system' => 'System', 'light' => 'Light', 'dark' => 'Dark'] as $value => $label)
+                                    <button
+                                        type="button"
+                                        class="cw-dropdown-item {{ $themePreference === $value ? 'cw-dropdown-item-active' : '' }}"
+                                        data-cw-dropdown-select="theme"
+                                        data-cw-theme-value="{{ $value }}"
+                                        data-cw-theme-option="{{ $value }}"
+                                    >
+                                        <span>{{ $label }}</span>
+                                        @if($themePreference === $value)
+                                            <span class="text-[11px]">✓</span>
+                                        @endif
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -217,15 +262,16 @@
                                 <input type="hidden" name="intent_type" value="{{ $intentType ?? 'worker' }}">
                             </form>
 
-                            <div class="mt-4 text-center text-sm" x-data="cwResendTimer({{ ($canResendImmediately ?? false) ? 0 : 60 }})">
-                                <span x-show="seconds > 0" class="text-slate-500">
-                                    Resend available in <span x-text="seconds" class="font-medium tabular-nums"></span>s
+                            <div class="mt-4 text-center text-sm" id="cwResendWrap">
+                                <span id="cwResendCountdown" class="text-slate-500">
+                                    Resend available in <span id="cwResendSeconds" class="font-medium tabular-nums">{{ ($canResendImmediately ?? false) ? 0 : 60 }}</span>s
                                 </span>
                                 <button
                                     type="button"
-                                    x-show="seconds === 0"
-                                    @click="document.getElementById('cwResendForm').submit()"
+                                    id="cwResendBtn"
+                                    onclick="document.getElementById('cwResendForm').submit()"
                                     class="text-slate-700 hover:text-slate-900 underline"
+                                    style="display:none"
                                 >Resend code</button>
                             </div>
 
@@ -353,9 +399,14 @@
                     },
 
                     onSubmit(e) {
-                        if (this.fullCode.length < 6) {
+                        const code = this.fullCode;
+                        if (code.length < 6) {
                             e.preventDefault();
+                            return;
                         }
+                        // Ensure the hidden input has the value regardless of binding timing
+                        const codeInput = e.target.querySelector('input[name="code"]');
+                        if (codeInput) codeInput.value = code;
                     },
                 };
             }
@@ -379,6 +430,40 @@
                     },
                 };
             }
+            // Vanilla fallback: populate hidden code input from digit fields if Alpine hasn't done it
+            document.addEventListener('DOMContentLoaded', function () {
+                // Resend countdown timer
+                var secondsEl = document.getElementById('cwResendSeconds');
+                var countdownEl = document.getElementById('cwResendCountdown');
+                var resendBtn = document.getElementById('cwResendBtn');
+                if (secondsEl && countdownEl && resendBtn) {
+                    var seconds = parseInt(secondsEl.textContent, 10) || 0;
+                    if (seconds <= 0) {
+                        countdownEl.style.display = 'none';
+                        resendBtn.style.display = '';
+                    } else {
+                        var iv = setInterval(function () {
+                            seconds--;
+                            secondsEl.textContent = seconds;
+                            if (seconds <= 0) {
+                                clearInterval(iv);
+                                countdownEl.style.display = 'none';
+                                resendBtn.style.display = '';
+                            }
+                        }, 1000);
+                    }
+                }
+                const verifyForm = document.querySelector('form[action*="verify-code"]');
+                if (!verifyForm) return;
+                verifyForm.addEventListener('submit', function () {
+                    const codeInput = verifyForm.querySelector('input[name="code"]');
+                    if (!codeInput || codeInput.value.length === 6) return;
+                    const digits = Array.from(
+                        verifyForm.querySelectorAll('.grid input[type="text"]')
+                    ).map(function (el) { return el.value; }).join('');
+                    codeInput.value = digits;
+                });
+            });
         </script>
     </body>
 </html>

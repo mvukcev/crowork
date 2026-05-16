@@ -15,45 +15,39 @@
 
 </head>
 <body class="h-full cw-page cw-brand-display antialiased overflow-x-hidden">
-    <div class="cw-orb cw-orb-blue" style="width: 290px; height: 290px; top: -80px; right: -60px;"></div>
-    <div class="cw-orb cw-orb-cyan" style="width: 250px; height: 250px; bottom: -90px; left: -50px;"></div>
+    <div class="min-h-screen flex flex-col cw-page-shell cw-preview-shell">
+        <div class="cw-page-ambient cw-organic-bg" aria-hidden="true">
+            <span class="cw-orb cw-orb-blue" style="width: 360px; height: 360px; top: -120px; right: -110px;"></span>
+            <span class="cw-orb cw-orb-orange" style="width: 300px; height: 300px; top: 16%; left: -120px;"></span>
+            <span class="cw-orb cw-orb-cyan" style="width: 260px; height: 260px; bottom: -90px; left: 16%;"></span>
+        </div>
 
-    <div class="relative z-10 min-h-screen flex flex-col">
-        <header class="pt-5 px-4 sm:px-6">
+        <header class="pt-8 px-4 sm:px-6 md:pt-10">
             <div class="cw-container flex justify-end">
                 <a href="{{ route('login') }}" class="cw-button-secondary">Admin / Mod Sign in</a>
             </div>
         </header>
 
-        <main class="flex-1 flex items-center justify-center px-4 py-8 sm:px-6">
-            <div class="w-full max-w-xl cw-product-window p-7 sm:p-9 cw-soft-reveal">
-                <div class="flex items-center gap-3 mb-6">
-                    <img
-                        src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
-                        alt="CroWork"
-                        class="h-8 w-auto"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
-                    >
-                    <span class="hidden text-lg font-semibold text-slate-900">CroWork</span>
-                    <div>
-                        <p class="text-[11px] uppercase tracking-[0.08em] text-slate-500 mb-0">Private preview</p>
-                    </div>
+        <main class="flex-1 flex items-center justify-center px-4 py-12 sm:px-6 sm:py-16 md:py-20">
+            <div class="w-full max-w-2xl cw-preview-card cw-soft-reveal">
+                <div class="cw-preview-header">
+                    <p class="cw-preview-eyebrow">Private preview</p>
                 </div>
 
-                <h1 class="cw-display text-3xl md:text-4xl text-slate-900 leading-tight mb-3">CroWork is preparing its public launch.</h1>
-                <p class="text-sm md:text-base text-slate-600 mb-6">Approved partners can access the cinematic preview environment using credentials provided by the CroWork team.</p>
+                <h1 class="cw-preview-title">CroWork is preparing its public launch.</h1>
+                <p class="cw-preview-copy">Approved partners can access the cinematic preview environment using credentials provided by the CroWork team.</p>
 
                 @if($errors->has('preview'))
-                    <div class="mb-4 p-3 rounded-xl border border-red-300 bg-red-50 text-sm text-red-700">
+                    <div class="cw-preview-error">
                         {{ $errors->first('preview') }}
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('coming-soon-preview.login') }}" class="space-y-4">
+                <form method="POST" action="{{ route('coming-soon-preview.login') }}" class="cw-preview-form">
                     @csrf
 
-                    <div>
-                        <label for="username" class="block text-sm font-semibold text-slate-900 mb-1.5">Preview username</label>
+                    <div class="cw-preview-field-group">
+                        <label for="username" class="cw-label">Preview username</label>
                         <input
                             id="username"
                             name="username"
@@ -61,25 +55,25 @@
                             required
                             value="{{ old('username') }}"
                             autocomplete="username"
-                            class="cw-input"
+                            class="cw-input cw-preview-input"
                             placeholder="Enter username"
                         >
                     </div>
 
-                    <div>
-                        <label for="password" class="block text-sm font-semibold text-slate-900 mb-1.5">Preview password</label>
+                    <div class="cw-preview-field-group">
+                        <label for="password" class="cw-label">Preview password</label>
                         <input
                             id="password"
                             name="password"
                             type="password"
                             required
                             autocomplete="current-password"
-                            class="cw-input"
+                            class="cw-input cw-preview-input"
                             placeholder="Enter password"
                         >
                     </div>
 
-                    <button type="submit" class="w-full cw-button-primary py-3">Enter preview</button>
+                    <button type="submit" class="w-full cw-button-primary cw-preview-cta">Enter preview</button>
                 </form>
             </div>
         </main>

@@ -15,13 +15,13 @@ class VerificationCodeMail extends Mailable
 
     public function __construct(
         public readonly string $code,
-        public readonly ?string $locale = null,
+        public readonly ?string $mailLocale = null,
         public readonly ?string $name = null,
     ) {}
 
     public function envelope(): Envelope
     {
-        $rendered = app(EmailTemplateService::class)->render('verification_code', $this->locale, [
+        $rendered = app(EmailTemplateService::class)->render('verification_code', $this->mailLocale, [
             'name' => $this->name ?: 'there',
             'code' => $this->code,
         ]);
@@ -33,7 +33,7 @@ class VerificationCodeMail extends Mailable
 
     public function content(): Content
     {
-        $rendered = app(EmailTemplateService::class)->render('verification_code', $this->locale, [
+        $rendered = app(EmailTemplateService::class)->render('verification_code', $this->mailLocale, [
             'name' => $this->name ?: 'there',
             'code' => $this->code,
         ]);

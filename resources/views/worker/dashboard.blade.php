@@ -10,6 +10,7 @@
                     <p class="text-slate-600 mt-2">Complete your profile, follow your timeline, and act on the next best steps.</p>
                 </div>
                 <div class="flex gap-2">
+                    <a href="{{ route('home') }}" class="cw-button-secondary">Homepage</a>
                     <a href="{{ route('worker.profile.edit') }}" class="cw-button-primary">Update profile</a>
                     <a href="{{ route('jobs.index') }}" class="cw-button-secondary">Browse jobs</a>
                 </div>

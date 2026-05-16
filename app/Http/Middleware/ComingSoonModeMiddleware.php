@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Support\ComingSoonMode;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -13,7 +14,7 @@ class ComingSoonModeMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $this->isComingSoonEnabled()) {
+        if (! ComingSoonMode::enabled()) {
             return $next($request);
         }
 
@@ -50,28 +51,21 @@ class ComingSoonModeMiddleware
             'logout',
             'admin',
             'admin/*',
+            '_update-crowork',
+            '_update-crowork/*',
+            '_install-crowork',
+            '_install-crowork/*',
+            'assets',
+            'assets/*',
+            'build',
             'build/*',
+            'livewire',
+            'livewire/*',
+            'filament',
+            'filament/*',
             'storage/*',
             'favicon.ico',
             'robots.txt'
         );
-    }
-
-    private function isComingSoonEnabled(): bool
-    {
-        try {
-            // Only use DB setting if a record is explicitly stored; otherwise fall back to ENV.
-            // This prevents a DB default of false from silently overriding COMING_SOON_ENABLED=true in ENV.
-            $record = \App\Models\Setting::query()->where('key', 'coming_soon_enabled')->first();
-
-            if ($record !== null) {
-                return \App\Models\Setting::getBool('coming_soon_enabled', false);
-            }
-
-            // No DB record – honour ENV / config value
-            return (bool) config('crowork.coming_soon.enabled', false);
-        } catch (\Throwable) {
-            return (bool) config('crowork.coming_soon.enabled', false);
-        }
     }
 }

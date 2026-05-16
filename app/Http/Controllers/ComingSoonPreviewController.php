@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Setting;
+use App\Support\ComingSoonMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -56,10 +56,6 @@ class ComingSoonPreviewController extends Controller
 
     private function isComingSoonEnabled(): bool
     {
-        try {
-            return Setting::getBool('coming_soon_enabled', config('crowork.coming_soon.enabled', false));
-        } catch (\Throwable) {
-            return (bool) config('crowork.coming_soon.enabled', false);
-        }
+        return ComingSoonMode::enabled();
     }
 }

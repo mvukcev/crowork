@@ -4,7 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminAccessMiddleware
@@ -27,6 +29,19 @@ class AdminAccessMiddleware
                 'path' => $request->path(),
                 'ip' => $request->ip(),
             ]);
+
+            // If a non-admin is already authenticated, clear session and return to admin login.
+            if ($user) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                $loginUrl = Route::has('filament.admin.auth.login')
+                    ? route('filament.admin.auth.login')
+                    : url('/admin/login');
+
+                return redirect()->to($loginUrl);
+            }
 
             abort(403, 'Access denied. Admin or moderator role required.');
         }
