@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\WorkerProfile;
 use App\Notifications\AdminNewEmployerPending;
 use App\Services\ApprovalService;
+use App\Services\ConsentHistoryService;
 use App\Services\MetaConversionsAPIService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -291,6 +292,20 @@ class AccessController extends Controller
         $this->clearAccessSessionState();
 
         $user = Auth::user();
+
+        if ($user->pending_deletion) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            session(['access_stage' => 'login', 'access_email' => $email]);
+
+            return redirect()->route('access.show')
+                ->withErrors(['email' => __('auth.status_account_pending_deletion')]);
+        }
+
+        $user->forceFill(['last_login_at' => now()])->save();
+
         $this->queueTrackEvent('login_success', [
             'source' => 'access_login',
             'role' => $user->role,
@@ -328,6 +343,8 @@ class AccessController extends Controller
             'name'         => ['required', 'string', 'max:255'],
             'account_type' => ['required', Rule::in([User::ROLE_WORKER, User::ROLE_EMPLOYER])],
             'password'     => ['required', 'confirmed', Rules\Password::defaults()],
+            'accept_terms' => ['accepted'],
+            'accept_privacy' => ['accepted'],
         ]);
 
         if (! $this->isRegistrationEnabled($data['account_type'])) {
@@ -343,6 +360,8 @@ class AccessController extends Controller
             'password' => Hash::make($data['password']),
             'role'     => $data['account_type'],
         ]);
+
+        app(ConsentHistoryService::class)->recordRegistrationConsents($user, $request);
 
             try {
                 app(MetaConversionsAPIService::class)->trackCompleteRegistration($user, $data['account_type']);

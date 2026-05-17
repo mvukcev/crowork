@@ -155,7 +155,10 @@
                             <a href="{{ route('employer.applications.candidate', $application) }}" class="block cw-card-shell-interactive p-3">
                                 <div class="flex items-center justify-between gap-2">
                                     <div>
-                                        <p class="text-sm font-semibold text-neutral-900">{{ $application->worker?->name ?? __('employer.dashboard.candidate_fallback') }}</p>
+                                        @php($candidateName = ($application->worker && ! $application->worker->pending_deletion)
+                                            ? $application->worker->name
+                                            : __('employer.dashboard.candidate_fallback'))
+                                        <p class="text-sm font-semibold text-neutral-900">{{ $candidateName }}</p>
                                         <p class="text-xs text-neutral-500">{{ $application->job?->title ?? __('employer.dashboard.job_unavailable') }}</p>
                                     </div>
                                     @php($statusKey = 'employer.dashboard.pipeline.' . $application->status)

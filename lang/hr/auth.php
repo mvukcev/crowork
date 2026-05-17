@@ -76,6 +76,8 @@ return [
     'create_one' => 'Kreirajte ga',
     'signin_here' => 'Prijavite se ovdje',
     'accept_terms' => 'Prihvaćam Uvjete korištenja',
+    'accept_terms_prefix' => 'Procitao/la sam i prihvacam',
+    'accept_privacy_prefix' => 'Procitao/la sam i prihvacam',
     'agree_terms' => 'Slazem se s dokumentom :terms.',
     'agree_privacy' => 'Slazem se s pravilima :privacy.',
     'terms_of_use' => 'Uvjeti koristenja',
@@ -122,6 +124,7 @@ return [
     'status_too_many_incorrect_attempts' => 'Previse netocnih pokusaja. Pokrenite postupak ispocetka.',
     'status_registration_disabled' => 'Registracije za ovu vrstu racuna su trenutno onemogucene.',
     'status_registration_disabled_new' => 'Nove registracije za ovu vrstu racuna su trenutno onemogucene.',
+    'status_account_pending_deletion' => 'Za ovaj racun postoji zahtjev za brisanje i prijava vise nije dostupna.',
     'status_profile_updated' => 'Profil je uspjesno azuriran.',
     'status_account_created_verify_pending' => 'Racun je uspjesno kreiran! Potvrdite e-mail adresu. Nakon potvrde, racun mora biti odobren prije objave poslova.',
 

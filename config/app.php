@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'gdpr_consent_version' => env('GDPR_CONSENT_VERSION', '2026-05-17'),
+
 ];

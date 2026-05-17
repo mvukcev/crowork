@@ -317,6 +317,25 @@
                                 <label class="cw-label" for="password_confirmation">{{ __('auth.confirm_password') }}</label>
                                 <input id="password_confirmation" class="cw-field w-full" type="password" name="password_confirmation" required autocomplete="new-password">
                             </div>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-2 text-sm text-slate-700">
+                                    <input type="checkbox" name="accept_terms" value="1" @checked(old('accept_terms')) required class="mt-1 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                                    <span>
+                                        {{ __('auth.accept_terms_prefix') }}
+                                        <a href="{{ route('terms') }}" class="underline text-slate-900" target="_blank" rel="noopener">{{ __('footer.terms') }}</a>
+                                    </span>
+                                </label>
+                                @error('accept_terms')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+
+                                <label class="flex items-start gap-2 text-sm text-slate-700">
+                                    <input type="checkbox" name="accept_privacy" value="1" @checked(old('accept_privacy')) required class="mt-1 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                                    <span>
+                                        {{ __('auth.accept_privacy_prefix') }}
+                                        <a href="{{ route('privacy') }}" class="underline text-slate-900" target="_blank" rel="noopener">{{ __('footer.privacy') }}</a>
+                                    </span>
+                                </label>
+                                @error('accept_privacy')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                            </div>
                             <button type="submit" class="cw-button-primary w-full">{{ __('auth.create_account') }}</button>
                             <button type="submit" form="cwAccessResetFormRegister" class="inline-flex justify-center w-full text-sm text-slate-600 hover:text-slate-900">{{ __('auth.use_different_email') }}</button>
                         </form>

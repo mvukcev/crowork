@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Employer;
 use App\Models\Setting;
+use App\Models\User;
 
 /**
  * Service for managing application visibility and masking rules
@@ -112,6 +113,15 @@ class ApplicationVisibilityService
             'anonymous' => $this->applyAnonymousVisibility($profileSnapshot),
             default => $this->applyLimitedVisibility($profileSnapshot, $employer),
         };
+    }
+
+    public function maskSnapshotForWorker(array $profileSnapshot, Employer $employer, ?User $worker): array
+    {
+        if ($worker && ($worker->pending_deletion || $worker->trashed())) {
+            return $this->applyAnonymousVisibility($profileSnapshot);
+        }
+
+        return $this->maskSnapshot($profileSnapshot, $employer);
     }
 
     /**

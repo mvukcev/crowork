@@ -188,9 +188,10 @@ class ApplicationController extends Controller
 
         // Mask applications based on visibility
         $applications->getCollection()->transform(function ($application) use ($employer) {
-            $application->masked_profile = $this->visibilityService->maskSnapshot(
+            $application->masked_profile = $this->visibilityService->maskSnapshotForWorker(
                 $application->profile_snapshot ?? [],
-                $employer
+                $employer,
+                $application->worker
             );
             return $application;
         });
@@ -219,9 +220,10 @@ class ApplicationController extends Controller
         $application->load(['job', 'worker']);
 
         // Mask profile snapshot based on visibility
-        $maskedProfile = $this->visibilityService->maskSnapshot(
+        $maskedProfile = $this->visibilityService->maskSnapshotForWorker(
             $application->profile_snapshot ?? [],
-            $employer
+            $employer,
+            $application->worker
         );
 
         return view('employer.applications.candidate', [

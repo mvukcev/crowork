@@ -10,12 +10,14 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable implements MustVerifyEmail, FilamentUser, HasLocalePreference
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     const ROLE_WORKER = 'worker';
     const ROLE_EMPLOYER = 'employer';
@@ -83,6 +85,11 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         return $this->hasMany(JobApplication::class, 'worker_id');
     }
 
+    public function applicationComments(): HasMany
+    {
+        return $this->hasMany(ApplicationComment::class);
+    }
+
     public function notificationPreferences(): HasMany
     {
         return $this->hasMany(NotificationPreference::class);
@@ -91,6 +98,16 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     public function educationApplications()
     {
         return $this->hasMany(EducationApplication::class, 'worker_id');
+    }
+
+    public function consentHistories(): HasMany
+    {
+        return $this->hasMany(ConsentHistory::class);
+    }
+
+    public function accountDeletionRequests(): HasMany
+    {
+        return $this->hasMany(AccountDeletionRequest::class);
     }
 
     public function isEmployer()
@@ -127,7 +144,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         $this->update([
             'name' => 'Anonymous',
             'email' => 'anonymous_' . $this->id . '@local.crowork.internal',
-            'password' => bcrypt(str_random(40)),
+            'password' => bcrypt(Str::random(40)),
         ]);
     }
 

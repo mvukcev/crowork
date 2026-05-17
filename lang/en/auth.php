@@ -76,6 +76,8 @@ return [
     'create_one' => 'Create one',
     'signin_here' => 'Sign in here',
     'accept_terms' => 'I accept the Terms & Conditions',
+    'accept_terms_prefix' => 'I have read and accept the',
+    'accept_privacy_prefix' => 'I have read and accept the',
     'agree_terms' => 'I agree to the :terms.',
     'agree_privacy' => 'I agree to the :privacy.',
     'terms_of_use' => 'Terms of Use',
@@ -122,6 +124,7 @@ return [
     'status_too_many_incorrect_attempts' => 'Too many incorrect attempts. Please start over.',
     'status_registration_disabled' => 'Registrations for this account type are currently disabled.',
     'status_registration_disabled_new' => 'New registrations are currently disabled for this account type.',
+    'status_account_pending_deletion' => 'This account has a pending deletion request and cannot be used to sign in.',
     'status_profile_updated' => 'Profile updated successfully.',
     'status_account_created_verify_pending' => 'Account created successfully! Please verify your email. After verification, your account must be approved before you can post jobs.',
 

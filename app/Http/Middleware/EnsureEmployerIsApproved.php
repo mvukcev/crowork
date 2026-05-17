@@ -28,7 +28,7 @@ class EnsureEmployerIsApproved
 
         // Check if email is verified
         if (!auth()->user()->hasVerifiedEmail()) {
-            return redirect('/email/verify');
+            return redirect()->route('verification.notice');
         }
 
         // Check if employer is approved only when global policy requires it.

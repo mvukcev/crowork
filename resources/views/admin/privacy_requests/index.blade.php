@@ -22,8 +22,8 @@
                             @method('PUT')
                             <select name="status">
                                 <option value="pending" {{ $request->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="approved" {{ $request->status === 'approved' ? 'selected' : '' }}>Approved</option>
-                                <option value="rejected" {{ $request->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                <option value="completed" {{ $request->status === 'completed' ? 'selected' : '' }}>Completed</option>
+                                <option value="cancelled" {{ $request->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                             </select>
                             <button type="submit">Update</button>
                         </form>

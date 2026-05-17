@@ -13,7 +13,17 @@ class ConsentHistory extends Model
     protected $fillable = [
         'user_id',
         'consent_type',
+        'consent_version',
+        'source',
         'given',
+        'accepted_at',
+        'ip_address',
+        'user_agent',
+    ];
+
+    protected $casts = [
+        'given' => 'boolean',
+        'accepted_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

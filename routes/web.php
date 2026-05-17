@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\WorkerProfileController;
+use App\Http\Controllers\WorkerPrivacyController;
 use App\Http\Controllers\WorkerSettingsController;
 use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
@@ -268,6 +269,9 @@ Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () 
     Route::get('/settings', [WorkerSettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings/profile', [WorkerSettingsController::class, 'updateProfile'])->name('settings.profile');
     Route::patch('/settings/password', [WorkerSettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::get('/privacy', [WorkerPrivacyController::class, 'show'])->name('privacy.show');
+    Route::patch('/privacy/visibility', [WorkerPrivacyController::class, 'updateVisibility'])->name('privacy.visibility');
+    Route::post('/privacy/request-deletion', [WorkerPrivacyController::class, 'requestDeletion'])->name('privacy.request-deletion');
     Route::get('/applications', [WorkerApplicationController::class, 'jobApplications'])->name('applications.index');
     Route::get('/education-applications', [WorkerApplicationController::class, 'educationApplications'])->name('education-applications.index');
 });

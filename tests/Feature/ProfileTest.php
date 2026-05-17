@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -63,6 +64,8 @@ class ProfileTest extends TestCase
 
     public function test_user_can_delete_their_account(): void
     {
+        Queue::fake();
+
         $user = User::factory()->create();
 
         $response = $this
@@ -76,7 +79,14 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'pending_deletion' => true,
+        ]);
+        $this->assertDatabaseHas('account_deletion_requests', [
+            'user_id' => $user->id,
+            'status' => 'pending',
+        ]);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
