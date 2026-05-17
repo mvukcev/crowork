@@ -176,7 +176,7 @@
                             </div>
                             <div class="w-full">
                                 <label class="cw-label" for="password">{{ __('auth.password') }}</label>
-                                <input id="password" class="cw-field" type="password" name="password" required autocomplete="current-password" autofocus>
+                                <input id="password" class="cw-field w-full" type="password" name="password" required autocomplete="current-password" autofocus>
                                 @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                             </div>
                             <label class="inline-flex items-center gap-2 text-sm text-slate-700">

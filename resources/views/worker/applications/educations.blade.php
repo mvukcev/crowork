@@ -54,11 +54,15 @@
                     </div>
                     <div class="p-4">{{ $applications->links() }}</div>
                 @else
-                    <div class="p-10 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
-                        <h2 class="text-xl font-semibold text-slate-900 mb-2">{{ __('worker.application_pages.educations.empty.title') }}</h2>
-                        <p class="text-sm text-slate-600 mb-5">{{ __('worker.application_pages.educations.empty.body') }}</p>
-                        <div class="flex flex-wrap justify-center gap-2">
-                            <a href="{{ route('educations.index') }}" class="cw-button-primary">{{ __('worker.application_pages.educations.empty.browse') }}</a>
+                    <div class="p-6 md:p-8">
+                        <x-empty-state
+                            icon="calendar"
+                            :title="__('worker.application_pages.educations.empty.title')"
+                            :description="__('worker.application_pages.educations.empty.body')"
+                            :actionHref="route('educations.index')"
+                            :actionLabel="__('worker.application_pages.educations.empty.browse')"
+                        />
+                        <div class="mt-4 flex justify-center">
                             <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">{{ __('worker.application_pages.educations.empty.review_profile') }}</a>
                         </div>
                     </div>

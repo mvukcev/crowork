@@ -60,7 +60,7 @@
                             <div class="mt-3 flex items-center gap-4">
                                 <div class="h-20 w-20 rounded-full border border-slate-200 overflow-hidden bg-slate-50 shadow-sm" data-logo-preview>
                                     @if($employer->logo_path)
-                                        <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover" data-logo-preview-image>
+                                        <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover" data-logo-preview-image data-cw-logo-image data-cw-fallback-text="{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}" data-cw-fallback-label="{{ $employer->company_name }}">
                                     @else
                                         <div class="h-full w-full grid place-items-center text-sm font-semibold text-slate-500" data-logo-preview-fallback>
                                             {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}
@@ -80,6 +80,7 @@
                                        name="contact_email"
                                        class="cw-field"
                                        value="{{ old('contact_email', $employer->contact_email) }}"
+                                        autocomplete="email"
                                         placeholder="{{ __('employer.settings.contact_email_placeholder') }}">
                             </div>
 
@@ -89,6 +90,8 @@
                                        name="contact_phone"
                                        class="cw-field"
                                        value="{{ old('contact_phone', $employer->contact_phone) }}"
+                                        autocomplete="tel"
+                                        inputmode="tel"
                                        placeholder="{{ __('employer.settings.contact_phone_placeholder') }}">
                             </div>
                         </div>

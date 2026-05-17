@@ -56,15 +56,16 @@
                     </div>
                     <div class="p-4">{{ $applications->links() }}</div>
                 @else
-                    <div class="p-12 text-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
-                        <svg class="mx-auto h-12 w-12 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                        </svg>
-                        <h2 class="text-xl font-semibold text-slate-900 mb-2">{{ __('worker.application_pages.jobs.empty.title') }}</h2>
-                        <p class="text-slate-600 mb-2">{{ __('worker.application_pages.jobs.empty.body') }}</p>
-                        <p class="text-sm text-slate-500 mb-6">{{ __('worker.application_pages.jobs.empty.note') }}</p>
-                        <div class="flex flex-wrap gap-3 justify-center">
-                            <a href="{{ route('jobs.index') }}" class="cw-button-primary">{{ __('worker.application_pages.jobs.empty.browse') }}</a>
+                    <div class="p-6 md:p-8">
+                        <x-empty-state
+                            icon="inbox"
+                            :title="__('worker.application_pages.jobs.empty.title')"
+                            :description="__('worker.application_pages.jobs.empty.body')"
+                            :actionHref="route('jobs.index')"
+                            :actionLabel="__('worker.application_pages.jobs.empty.browse')"
+                        />
+                        <p class="text-sm text-slate-500 mt-4 text-center">{{ __('worker.application_pages.jobs.empty.note') }}</p>
+                        <div class="mt-4 flex justify-center">
                             <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">{{ __('worker.application_pages.jobs.empty.complete_profile') }}</a>
                         </div>
                     </div>

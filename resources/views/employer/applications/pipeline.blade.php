@@ -15,6 +15,8 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <p id="pipelineStatusNotice" class="sr-only" aria-live="polite"></p>
+
         <!-- Filters -->
         <div class="mb-6 flex flex-col gap-4 lg:flex-row">
             <form method="GET" class="flex flex-col gap-4 flex-1 lg:flex-row" id="filterForm">

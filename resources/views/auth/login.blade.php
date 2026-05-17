@@ -18,8 +18,8 @@
 
             <div x-show="step === 1" x-transition.opacity.duration.150ms>
                 <label for="email" class="cw-label">{{ __('auth.email') }}</label>
-                <input id="email" class="cw-field" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="alex@example.com" />
-                @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                <input id="email" class="cw-field" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="alex@example.com" @if($errors->has('email')) aria-invalid="true" @endif />
+                <x-input-error :messages="$errors->get('email')" />
 
                 <button type="button" class="cw-button-primary mt-4" @click="step = 2">{{ __('auth.continue') }}</button>
             </div>
@@ -28,8 +28,8 @@
                 <div class="mb-3 text-xs text-slate-500">{!! __('auth.signing_in_as', ['account' => '<span class="font-medium text-slate-700">' . (old('email') ?: __('auth.your_account')) . '</span>']) !!}</div>
 
                 <label for="password" class="cw-label">{{ __('auth.password') }}</label>
-                <input id="password" class="cw-field" type="password" name="password" required autocomplete="current-password" />
-                @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                <input id="password" class="cw-field" type="password" name="password" required autocomplete="current-password" @if($errors->has('password')) aria-invalid="true" @endif />
+                <x-input-error :messages="$errors->get('password')" />
 
                 <label class="inline-flex items-center gap-2 text-sm text-slate-700 mt-3">
                     <input type="checkbox" name="remember" class="rounded border-slate-300" />

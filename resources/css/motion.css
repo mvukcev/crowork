@@ -15,6 +15,28 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+
+    .cw-hover-lift:hover,
+    .cw-press:active,
+    .scroll-fade-in,
+    .scroll-fade-in.visible {
+        transform: none !important;
+    }
+
+    .cw-fade-in,
+    .cw-enter-up,
+    .motion-fade-in,
+    .motion-enter,
+    .motion-window,
+    .cw-skeleton,
+    .cw-float-subtle,
+    .cw-orb {
+        animation: none !important;
+    }
+
+    .scroll-fade-in {
+        opacity: 1 !important;
+    }
 }
 
 .cw-fade-in {

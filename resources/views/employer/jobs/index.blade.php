@@ -58,15 +58,16 @@
                     </table>
                     <div class="p-4">{{ $jobs->links() }}</div>
                 @else
-                    <div class="p-12 text-center rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-blue-50 to-white">
-                        <svg class="mx-auto h-12 w-12 text-blue-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <h2 class="text-xl font-semibold text-slate-900 mb-2">{{ __('employer.jobs_index.empty_title') }}</h2>
-                        <p class="text-slate-600 mb-2">{{ __('employer.jobs_index.empty_body') }}</p>
-                        <p class="text-sm text-slate-500 mb-6">{{ __('employer.jobs_index.empty_note') }}</p>
-                        <div class="flex flex-wrap justify-center gap-2">
-                            <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary inline-block">{{ __('employer.jobs_index.empty_create') }}</a>
+                    <div class="p-6 md:p-8">
+                        <x-empty-state
+                            icon="file"
+                            :title="__('employer.jobs_index.empty_title')"
+                            :description="__('employer.jobs_index.empty_body')"
+                            :actionHref="route('employer.jobs.create')"
+                            :actionLabel="__('employer.jobs_index.empty_create')"
+                        />
+                        <p class="text-sm text-slate-500 mt-4 text-center">{{ __('employer.jobs_index.empty_note') }}</p>
+                        <div class="mt-4 flex justify-center">
                             <a href="{{ route('employer.settings.profile') }}" class="cw-button-secondary inline-block">{{ __('employer.dashboard.complete_company_profile') }}</a>
                         </div>
                     </div>

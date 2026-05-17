@@ -8,19 +8,19 @@
 
         <div>
             <label class="cw-label" for="update_password_current_password">{{ __('auth.current_password') }}</label>
-            <input id="update_password_current_password" name="current_password" type="password" class="cw-field" autocomplete="current-password">
+            <input id="update_password_current_password" name="current_password" type="password" class="cw-field w-full" autocomplete="current-password">
             <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-1" />
         </div>
 
         <div>
             <label class="cw-label" for="update_password_password">{{ __('auth.new_password') }}</label>
-            <input id="update_password_password" name="password" type="password" class="cw-field" autocomplete="new-password">
+            <input id="update_password_password" name="password" type="password" class="cw-field w-full" autocomplete="new-password">
             <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-1" />
         </div>
 
         <div>
             <label class="cw-label" for="update_password_password_confirmation">{{ __('auth.confirm_password') }}</label>
-            <input id="update_password_password_confirmation" name="password_confirmation" type="password" class="cw-field" autocomplete="new-password">
+            <input id="update_password_password_confirmation" name="password_confirmation" type="password" class="cw-field w-full" autocomplete="new-password">
             <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-1" />
         </div>
 

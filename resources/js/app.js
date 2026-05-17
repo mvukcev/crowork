@@ -377,6 +377,97 @@ const cwTrack = (eventName, payload = {}) => {
 window.cwTrack = cwTrack;
 
 const initCroworkUi = () => {
+	const applyLogoFallback = (img) => {
+		if (!(img instanceof HTMLImageElement) || img.dataset.cwFallbackApplied === '1') {
+			return;
+		}
+
+		const fallbackText = (img.getAttribute('data-cw-fallback-text') || 'CW').trim().slice(0, 2).toUpperCase();
+		const fallbackLabel = img.getAttribute('data-cw-fallback-label') || img.alt || 'Company';
+		const logoContainer = img.closest('.cw-employer-logo');
+
+		if (!logoContainer) {
+			img.dataset.cwFallbackApplied = '1';
+			img.style.display = 'none';
+			return;
+		}
+
+		img.dataset.cwFallbackApplied = '1';
+		img.remove();
+
+		const fallback = document.createElement('span');
+		fallback.className = 'cw-logo-fallback-initials';
+		fallback.textContent = fallbackText || 'CW';
+		logoContainer.setAttribute('aria-label', fallbackLabel);
+		logoContainer.appendChild(fallback);
+	};
+
+	const bindLogoFallback = (img) => {
+		if (!(img instanceof HTMLImageElement) || img.dataset.cwLogoFallbackBound === '1') {
+			return;
+		}
+
+		img.dataset.cwLogoFallbackBound = '1';
+		img.addEventListener('error', () => applyLogoFallback(img), { once: true });
+	};
+
+	const initLogoFallbacks = () => {
+		document.querySelectorAll('img[data-cw-logo-image]').forEach((img) => bindLogoFallback(img));
+	};
+
+	const setTreeInteractiveState = (element, isInteractive) => {
+		if (!element) {
+			return;
+		}
+
+		element.setAttribute('aria-hidden', isInteractive ? 'false' : 'true');
+
+		if ('inert' in element) {
+			element.inert = !isInteractive;
+		}
+
+		element.querySelectorAll('a[href], button, input, select, textarea, [tabindex]').forEach((node) => {
+			if (isInteractive) {
+				const previousTabindex = node.getAttribute('data-cw-prev-tabindex');
+				if (previousTabindex !== null) {
+					node.setAttribute('tabindex', previousTabindex);
+					node.removeAttribute('data-cw-prev-tabindex');
+				} else if (node.getAttribute('tabindex') === '-1' && node.hasAttribute('data-cw-force-untabbable')) {
+					node.removeAttribute('tabindex');
+					node.removeAttribute('data-cw-force-untabbable');
+				}
+				return;
+			}
+
+			if (node.hasAttribute('tabindex')) {
+				node.setAttribute('data-cw-prev-tabindex', node.getAttribute('tabindex') || '0');
+			} else {
+				node.setAttribute('data-cw-force-untabbable', '1');
+			}
+			node.setAttribute('tabindex', '-1');
+		});
+	};
+
+	const updateBodyScrollLock = () => {
+		const body = document.body;
+		if (!body) {
+			return;
+		}
+
+		const hasMobileLock = body.dataset.cwMobileNavScrollLock === '1';
+		const hasFilterLock = body.dataset.cwFilterScrollLock === '1';
+		body.style.overflow = hasMobileLock || hasFilterLock ? 'hidden' : '';
+	};
+
+	const setBodyScrollLock = (key, locked) => {
+		if (!document.body) {
+			return;
+		}
+
+		document.body.dataset[key] = locked ? '1' : '0';
+		updateBodyScrollLock();
+	};
+
 	const initPublicNav = () => {
 		const nav = document.querySelector('[data-cw-public-nav]');
 		if (!nav) return;
@@ -411,16 +502,21 @@ const initCroworkUi = () => {
 
 		if (!mobileToggle || !mobilePanel) return;
 
+		const isDesktopViewport = () => window.matchMedia('(min-width: 1024px)').matches;
+
 		let setMobileOpen = (nextOpen) => {
 			mobileToggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
 			mobilePanel.hidden = !nextOpen;
+			mobilePanel.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
 			mobilePanel.style.display = nextOpen ? 'flex' : 'none';
-			document.body.style.overflow = nextOpen ? 'hidden' : '';
+			setBodyScrollLock('cwMobileNavScrollLock', nextOpen);
+			setTreeInteractiveState(mobilePanel, nextOpen);
 			if (nextOpen) {
 				lastFocused = document.activeElement;
 				mobilePanel.setAttribute('tabindex', '-1');
 				mobilePanel.focus();
 			} else {
+				mobilePanel.removeAttribute('tabindex');
 				if (lastFocused && typeof lastFocused.focus === 'function') {
 					lastFocused.focus();
 				}
@@ -467,6 +563,12 @@ const initCroworkUi = () => {
 		// Close on Escape key
 		window.addEventListener('keydown', (event) => {
 			if (event.key === 'Escape' && mobilePanel.style.display === 'flex') {
+				setMobileOpen(false);
+			}
+		});
+
+		window.addEventListener('resize', () => {
+			if (isDesktopViewport() && mobileToggle.getAttribute('aria-expanded') === 'true') {
 				setMobileOpen(false);
 			}
 		});
@@ -527,10 +629,31 @@ const initCroworkUi = () => {
 					   panel.style.transform = 'translateX(0)';
 					   panel.style.opacity = '1';
 					   panel.style.pointerEvents = 'auto';
+					   setTreeInteractiveState(panel, true);
 				   } else {
 					   panel.style.transform = 'translateX(100%)';
 					   panel.style.opacity = '0';
 					   panel.style.pointerEvents = 'none';
+					   setTreeInteractiveState(panel, false);
+				   }
+			   });
+
+			   const languageExpanded = nextPanel === 'language';
+			   const themeExpanded = nextPanel === 'theme';
+			   const profileExpanded = nextPanel === 'profile';
+			   languageToggle?.setAttribute('aria-expanded', languageExpanded ? 'true' : 'false');
+			   themeToggle?.setAttribute('aria-expanded', themeExpanded ? 'true' : 'false');
+			   profileToggle?.setAttribute('aria-expanded', profileExpanded ? 'true' : 'false');
+
+			   window.requestAnimationFrame(() => {
+				   const activePanel = panels[nextPanel];
+				   if (!activePanel || mobileToggle.getAttribute('aria-expanded') !== 'true') {
+					   return;
+				   }
+
+				   const focusTarget = activePanel.querySelector('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+				   if (focusTarget instanceof HTMLElement) {
+					   focusTarget.focus();
 				   }
 			   });
 		   };
@@ -642,6 +765,7 @@ const initCroworkUi = () => {
 	};
 
 	initPublicNav();
+	initLogoFallbacks();
  	const initDropdownRoot = (root) => {
 		if (!root || root.dataset.cwDropdownBound === '1') {
 			return;
@@ -659,6 +783,7 @@ const initCroworkUi = () => {
 
 			panel.style.display = 'none';
 			panel.setAttribute('aria-hidden', 'true');
+			setTreeInteractiveState(panel, false);
 
 			const id = panel.getAttribute('id');
 			if (!id) {
@@ -677,6 +802,7 @@ const initCroworkUi = () => {
 
 			panel.style.display = 'block';
 			panel.setAttribute('aria-hidden', 'false');
+			setTreeInteractiveState(panel, true);
 
 			const id = panel.getAttribute('id');
 			if (!id) {
@@ -822,23 +948,16 @@ const initCroworkUi = () => {
 			const closers = form.querySelectorAll(`[data-cw-filter-close][aria-controls="${panelId}"]`);
 
 			const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
-			const lockBodyScroll = () => {
-				if (document.body.dataset.cwFilterScrollLock !== '1') {
-					document.body.dataset.cwFilterScrollLock = '1';
-					document.body.style.overflow = 'hidden';
-				}
-			};
-			const unlockBodyScroll = () => {
-				if (document.body.dataset.cwFilterScrollLock === '1') {
-					delete document.body.dataset.cwFilterScrollLock;
-					document.body.style.overflow = '';
-				}
-			};
+			const lockBodyScroll = () => setBodyScrollLock('cwFilterScrollLock', true);
+			const unlockBodyScroll = () => setBodyScrollLock('cwFilterScrollLock', false);
 
 			const setOpen = (nextOpen) => {
 				panel.style.display = nextOpen ? 'block' : 'none';
+				panel.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+				setTreeInteractiveState(panel, nextOpen);
 				if (overlay) {
 					overlay.style.display = !isDesktop() && nextOpen ? 'block' : 'none';
+					overlay.setAttribute('aria-hidden', !isDesktop() && nextOpen ? 'false' : 'true');
 				}
 				if (!isDesktop() && nextOpen) {
 					lockBodyScroll();
@@ -1028,6 +1147,9 @@ const initCroworkUi = () => {
 			submitter.setAttribute('disabled', 'disabled');
 		}
 
+		form.classList.add('cw-is-submitting');
+		form.setAttribute('aria-busy', 'true');
+
 		const eventName = form.getAttribute('data-cw-track-submit');
 		if (eventName) {
 			const method = (form.getAttribute('method') || 'GET').toUpperCase();
@@ -1141,6 +1263,38 @@ const initCroworkUi = () => {
 		if (faqToggle) {
 			cwTrack('faq_open', { section: faqToggle.getAttribute('data-cw-faq-section') || 'resources' });
 		}
+	});
+
+	document.addEventListener('invalid', (event) => {
+		const field = event.target;
+		if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) {
+			return;
+		}
+
+		field.classList.add('cw-field-invalid');
+		field.setAttribute('aria-invalid', 'true');
+	}, true);
+
+	document.addEventListener('input', (event) => {
+		const field = event.target;
+		if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) {
+			return;
+		}
+
+		if (field.classList.contains('cw-field-invalid') && field.checkValidity()) {
+			field.classList.remove('cw-field-invalid');
+			field.removeAttribute('aria-invalid');
+		}
+	});
+
+	window.addEventListener('pageshow', () => {
+		document.querySelectorAll('form.cw-is-submitting').forEach((form) => {
+			form.classList.remove('cw-is-submitting');
+			form.removeAttribute('aria-busy');
+			form.querySelectorAll('button[disabled][type="submit"], input[disabled][type="submit"]').forEach((button) => {
+				button.removeAttribute('disabled');
+			});
+		});
 	});
 };
 

@@ -38,11 +38,15 @@
         {{ $educations->links() }}
     </div>
 @else
-    <div class="cw-surface p-10 text-center rounded-2xl border-2 border-dashed border-slate-200">
-        <h3 class="text-xl font-semibold text-slate-900 mb-2">{{ __('ui.educations_page.no_results_heading') }}</h3>
-        <p class="text-slate-600 mb-5">{{ __('ui.educations_page.no_results_description') }}</p>
-        <div class="flex flex-wrap justify-center gap-2">
-            <a href="{{ route('educations.index') }}" class="cw-button-secondary">{{ __('ui.educations_page.no_results_clear') }}</a>
+    <div class="cw-surface p-6 md:p-8">
+        <x-empty-state
+            icon="search"
+            :title="__('ui.educations_page.no_results_heading')"
+            :description="__('ui.educations_page.no_results_description')"
+            :actionHref="route('educations.index')"
+            :actionLabel="__('ui.educations_page.no_results_clear')"
+        />
+        <div class="mt-4 flex justify-center">
             <a href="{{ route('educations.index') }}" class="cw-button-primary">{{ __('ui.educations_page.no_results_browse') }}</a>
         </div>
     </div>

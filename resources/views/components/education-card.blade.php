@@ -47,7 +47,7 @@
             </div>
             <div class="cw-employer-logo" aria-label="{{ $providerName }}">
                 @if($provider_logo_url)
-                    <img src="{{ $provider_logo_url }}" alt="{{ $providerName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72">
+                    <img src="{{ $provider_logo_url }}" alt="{{ $providerName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72" data-cw-logo-image data-cw-fallback-text="{{ $logoInitials }}" data-cw-fallback-label="{{ $providerName }}">
                 @else
                     <span>{{ $logoInitials }}</span>
                 @endif

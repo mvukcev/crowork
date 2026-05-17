@@ -16,23 +16,23 @@
             <div x-show="step === 1" x-transition.opacity.duration.150ms>
                 <div>
                     <label class="cw-label" for="name">{{ __('auth.your_full_name') }}</label>
-                    <input id="name" class="cw-field" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="e.g., Ana Horvat">
-                    @error('name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="name" class="cw-field" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="e.g., Ana Horvat" @if($errors->has('name')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('name')" />
                 </div>
 
                 <div class="mt-4">
                     <label class="cw-label" for="email">{{ __('auth.email_address') }}</label>
-                    <input id="email" class="cw-field" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="ana@example.com">
-                    @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="email" class="cw-field" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="ana@example.com" @if($errors->has('email')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('email')" />
                 </div>
 
                 <div class="mt-4">
                     <label class="cw-label" for="role">{{ __('auth.account_type') }}</label>
-                    <select id="role" name="role" class="cw-field" required>
+                    <select id="role" name="role" class="cw-field" required @if($errors->has('role')) aria-invalid="true" @endif>
                         <option value="worker" @selected(old('role', 'worker') === 'worker')>{{ __('auth.worker_option') }}</option>
                         <option value="employer" @selected(old('role') === 'employer')>{{ __('auth.employer_option') }}</option>
                     </select>
-                    @error('role')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <x-input-error :messages="$errors->get('role')" />
                 </div>
 
                 <button type="button" class="cw-button-primary w-full mt-6" @click="step = 2">{{ __('auth.continue') }}</button>
@@ -45,8 +45,8 @@
                 
                 <div>
                     <label class="cw-label" for="password">{{ __('auth.password') }}</label>
-                    <input id="password" class="cw-field" type="password" name="password" required autocomplete="new-password" placeholder="Minimum 8 characters">
-                    @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="password" class="cw-field" type="password" name="password" required autocomplete="new-password" placeholder="Minimum 8 characters" @if($errors->has('password')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('password')" />
                 </div>
 
                 <div class="mt-4">
@@ -59,13 +59,13 @@
                         <input type="checkbox" name="accept_terms" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_terms')) required>
                         <span>{!! __('auth.agree_terms', ['terms' => '<a href="' . route('terms') . '" target="_blank" class="font-medium text-slate-900 underline hover:text-slate-700">' . __('auth.terms_of_use') . '</a>']) !!}</span>
                     </label>
-                    @error('accept_terms')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <x-input-error :messages="$errors->get('accept_terms')" />
 
                     <label class="inline-flex items-start gap-3 text-sm text-slate-700">
                         <input type="checkbox" name="accept_privacy" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_privacy')) required>
                         <span>{!! __('auth.agree_privacy', ['privacy' => '<a href="' . route('privacy') . '" target="_blank" class="font-medium text-slate-900 underline hover:text-slate-700">' . __('auth.privacy_policy') . '</a>']) !!}</span>
                     </label>
-                    @error('accept_privacy')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <x-input-error :messages="$errors->get('accept_privacy')" />
                 </div>
 
                 <div class="flex items-center gap-3 mt-6">

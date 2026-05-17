@@ -20,26 +20,26 @@
             <div x-show="step === 1" x-transition.opacity.duration.150ms>
                 <div>
                     <label class="cw-label" for="company_name">{{ __('auth.company_name') }}</label>
-                    <input id="company_name" name="company_name" class="cw-field" value="{{ old('company_name') }}" placeholder="e.g., Tech Solutions Ltd" required>
-                    @error('company_name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="company_name" name="company_name" class="cw-field" value="{{ old('company_name') }}" placeholder="e.g., Tech Solutions Ltd" required @if($errors->has('company_name')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('company_name')" />
                 </div>
 
                 <div class="mt-4">
                     <label class="cw-label" for="contact_name">{{ __('auth.contact_name') }}</label>
-                    <input id="contact_name" name="contact_name" class="cw-field" value="{{ old('contact_name') }}" placeholder="Your full name" required>
-                    @error('contact_name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="contact_name" name="contact_name" class="cw-field" value="{{ old('contact_name') }}" placeholder="Your full name" required @if($errors->has('contact_name')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('contact_name')" />
                 </div>
 
                 <div class="mt-4">
                     <label class="cw-label" for="email">{{ __('auth.work_email') }}</label>
-                    <input id="email" type="email" name="email" class="cw-field" value="{{ old('email') }}" placeholder="you@company.com" required>
-                    @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="email" type="email" name="email" class="cw-field" value="{{ old('email') }}" placeholder="you@company.com" required @if($errors->has('email')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('email')" />
                 </div>
 
                 <div class="mt-4">
                     <label class="cw-label" for="city">{{ __('auth.city_hiring') }}</label>
-                    <input id="city" name="city" class="cw-field" value="{{ old('city') }}" placeholder="e.g., Zagreb, Split" required>
-                    @error('city')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="city" name="city" class="cw-field" value="{{ old('city') }}" placeholder="e.g., Zagreb, Split" required @if($errors->has('city')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('city')" />
                 </div>
 
                 <button type="button" class="cw-button-primary w-full mt-6" @click="step = 2">{{ __('auth.continue') }}</button>
@@ -52,8 +52,8 @@
                 
                 <div>
                     <label class="cw-label" for="password">{{ __('auth.password') }}</label>
-                    <input id="password" type="password" name="password" class="cw-field" placeholder="Create a strong password" required>
-                    @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input id="password" type="password" name="password" class="cw-field" placeholder="Create a strong password" required @if($errors->has('password')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('password')" />
                 </div>
 
                 <div class="mt-4">
@@ -66,13 +66,13 @@
                         <input type="checkbox" name="accept_terms" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_terms')) required>
                         <span>{!! __('auth.agree_terms', ['terms' => '<a href="' . route('terms') . '" target="_blank" class="font-medium text-slate-900 underline hover:text-slate-700">' . __('auth.terms_of_use') . '</a>']) !!}</span>
                     </label>
-                    @error('accept_terms')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <x-input-error :messages="$errors->get('accept_terms')" />
 
                     <label class="inline-flex items-start gap-3 text-sm text-slate-700">
                         <input type="checkbox" name="accept_privacy" value="1" class="mt-1 rounded border-slate-300" @checked(old('accept_privacy')) required>
                         <span>{!! __('auth.agree_privacy', ['privacy' => '<a href="' . route('privacy') . '" target="_blank" class="font-medium text-slate-900 underline hover:text-slate-700">' . __('auth.privacy_policy') . '</a>']) !!}</span>
                     </label>
-                    @error('accept_privacy')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <x-input-error :messages="$errors->get('accept_privacy')" />
                 </div>
 
                 <div class="flex items-center gap-3 mt-6">

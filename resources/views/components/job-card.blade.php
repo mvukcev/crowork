@@ -97,7 +97,7 @@
             @if($company_href)
                 <a href="{{ $company_href }}" class="cw-employer-logo" aria-label="{{ $companyName }}" data-cw-track-click="employer_logo_click" data-cw-item-type="company" data-cw-item-slug="{{ $company }}">
                     @if($employer_logo_url)
-                        <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72">
+                        <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72" data-cw-logo-image data-cw-fallback-text="{{ $logoInitials }}" data-cw-fallback-label="{{ $companyName }}">
                     @else
                         <span>{{ $logoInitials }}</span>
                     @endif
@@ -105,7 +105,7 @@
             @else
                 <div class="cw-employer-logo" aria-label="{{ $companyName }}">
                     @if($employer_logo_url)
-                        <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72">
+                        <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72" data-cw-logo-image data-cw-fallback-text="{{ $logoInitials }}" data-cw-fallback-label="{{ $companyName }}">
                     @else
                         <span>{{ $logoInitials }}</span>
                     @endif

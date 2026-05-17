@@ -10,13 +10,13 @@
 
         <div>
             <label class="cw-label" for="name">{{ __('auth.name') }}</label>
-            <input id="name" name="name" type="text" class="cw-field" value="{{ old('name', $user->name) }}" required autofocus autocomplete="name">
+            <input id="name" name="name" type="text" class="cw-field w-full" value="{{ old('name', $user->name) }}" required autofocus autocomplete="name">
             <x-input-error class="mt-1" :messages="$errors->get('name')" />
         </div>
 
         <div>
             <label class="cw-label" for="email">{{ __('auth.email') }}</label>
-            <input id="email" name="email" type="email" class="cw-field" value="{{ old('email', $user->email) }}" required autocomplete="username">
+            <input id="email" name="email" type="email" class="cw-field w-full" value="{{ old('email', $user->email) }}" required autocomplete="username">
             <x-input-error class="mt-1" :messages="$errors->get('email')" />
         </div>
 

@@ -319,6 +319,21 @@
         outline-offset: 2px;
     }
 
+    /* Keep About hero secondary CTA readable over the dark hero in every state */
+    .about-hero-secondary-cta {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        color: #ffffff !important;
+    }
+
+    .about-hero-secondary-cta:hover:not(:disabled),
+    .about-hero-secondary-cta:focus-visible,
+    .about-hero-secondary-cta:active:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.42) !important;
+        color: #ffffff !important;
+    }
+
     /* ============================================
        ANIMATION CONSISTENCY
        ============================================ */

@@ -350,7 +350,7 @@ data-cw-public-nav>
             </div>
 
             <div class="relative z-[1300] flex-1 overflow-hidden" data-cw-mobile-panels>
-                <div class="absolute inset-0 z-[1300] flex flex-col overflow-y-auto" data-cw-mobile-content-main style="transform: translateX(0); opacity: 1; pointer-events: auto;">
+                <div id="cw-mobile-panel-main" class="absolute inset-0 z-[1300] flex flex-col overflow-y-auto" data-cw-mobile-content-main style="transform: translateX(0); opacity: 1; pointer-events: auto;">
                     <div class="flex flex-col items-start justify-start gap-2 px-6 py-6">
                         <a href="{{ route('jobs.index') }}" class="cw-mobile-nav-link">{{ __('navigation.jobs') }}</a>
                         <a href="{{ route('educations.index') }}" class="cw-mobile-nav-link">{{ __('navigation.educations') }}</a>
@@ -361,7 +361,7 @@ data-cw-public-nav>
 
                     <div class="flex w-full flex-col gap-2 px-6 pb-6 mt-auto">
                         <div class="cw-mobile-action-grid" aria-label="{{ __('settings.mobile_utility_actions') }}">
-                            <button type="button" class="cw-mobile-action-row" data-cw-mobile-language-toggle>
+                            <button type="button" class="cw-mobile-action-row" data-cw-mobile-language-toggle aria-expanded="false" aria-controls="cw-mobile-panel-language">
                                 <span class="cw-mobile-action-row-label">{{ __('settings.language') }}</span>
                                 <span class="cw-mobile-action-row-meta">
                                     <span class="cw-mobile-action-row-value">{{ $activeLocaleLabel }}</span>
@@ -370,7 +370,7 @@ data-cw-public-nav>
                                     </svg>
                                 </span>
                             </button>
-                            <button type="button" class="cw-mobile-action-row" data-cw-mobile-theme-toggle>
+                            <button type="button" class="cw-mobile-action-row" data-cw-mobile-theme-toggle aria-expanded="false" aria-controls="cw-mobile-panel-theme">
                                 <span class="cw-mobile-action-row-label">{{ __('settings.theme') }}</span>
                                 <span class="cw-mobile-action-row-meta">
                                     <span class="cw-mobile-action-row-value">{{ $activeThemeLabel }}</span>
@@ -380,7 +380,7 @@ data-cw-public-nav>
                                 </span>
                             </button>
                             @auth
-                                <button type="button" class="cw-mobile-action-row" data-cw-mobile-profile-toggle>
+                                <button type="button" class="cw-mobile-action-row" data-cw-mobile-profile-toggle aria-expanded="false" aria-controls="cw-mobile-panel-profile">
                                     <span class="cw-mobile-action-row-label">{{ __('navigation.profile') }}</span>
                                     <span class="cw-mobile-action-row-meta" aria-hidden="true">
                                         <svg class="cw-mobile-action-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -403,7 +403,7 @@ data-cw-public-nav>
                 </div>
 
                 <!-- Language Submenu Panel -->
-                <div class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-language style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div id="cw-mobile-panel-language" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-language style="transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>
@@ -425,7 +425,7 @@ data-cw-public-nav>
                 </div>
 
                 <!-- Theme Submenu Panel -->
-                <div class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-theme style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div id="cw-mobile-panel-theme" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-theme style="transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>
@@ -446,7 +446,7 @@ data-cw-public-nav>
                     </div>
                 </div>
 
-                <div class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-profile style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div id="cw-mobile-panel-profile" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-profile style="transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>

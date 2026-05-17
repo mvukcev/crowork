@@ -72,7 +72,7 @@
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     @endpush
 
-    <div x-data="{ query: '', activeCat: 'all' }">
+    <div x-data="{ query: '', activeCat: 'all', visibleGuides: {{ count($resources) }}, refreshVisibleGuides() { this.$nextTick(() => { this.visibleGuides = Array.from(document.querySelectorAll('[data-cw-resource-guide]')).filter((el) => el.style.display !== 'none').length; }); } }" x-init="refreshVisibleGuides()" @input.debounce.120ms="refreshVisibleGuides()" @click="refreshVisibleGuides()">
     <section class="cw-section relative overflow-hidden">
         <div class="cw-container">
             <div class="resources-hero-frame relative overflow-hidden rounded-3xl border border-white/60 shadow-[0_20px_70px_rgba(15,23,42,0.08)]">
@@ -120,6 +120,7 @@
                         x-show="($el.dataset.title.toLowerCase().includes(query.toLowerCase()) || $el.dataset.description.toLowerCase().includes(query.toLowerCase())) && (activeCat === 'all' || activeCat === '{{ $categoryKey }}')"
                         data-title="{{ strtolower($resource['title']) }}"
                         data-description="{{ strtolower($resource['description']) }}"
+                        data-cw-resource-guide
                         class="resources-guide-card group relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_20px_45px_rgba(15,23,42,0.10)] hover:-translate-y-1 transition"
                     >
                         <img src="{{ asset('assets/resources/guides/permit-guide-800x600.jpg') }}" alt="{{ $resource['title'] }}" class="h-44 w-full object-cover" loading="lazy" decoding="async" width="800" height="600" />
@@ -135,6 +136,16 @@
                         </div>
                     </article>
                 @endforeach
+            </div>
+
+            <div x-show="visibleGuides === 0" x-cloak class="mt-6">
+                <x-empty-state
+                    icon="search"
+                    :title="__('resources.search_placeholder')"
+                    :description="__('common.adjust_filters_or_search')"
+                    :actionHref="route('resources.index')"
+                    :actionLabel="__('ui.jobs_page.reset_filters')"
+                />
             </div>
         </div>
     </section>
@@ -209,11 +220,27 @@
                         <div class="mt-4 space-y-3">
                             <template x-for="(item, idx) in {{ json_encode($faqItems, JSON_UNESCAPED_UNICODE) }}.filter(x => x.q.toLowerCase().includes(search.toLowerCase()))" :key="idx">
                                 <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                                    <button type="button" @click="open === idx ? open = null : open = idx" class="w-full text-left px-4 py-4 flex items-start justify-between gap-4" data-cw-faq-toggle data-cw-faq-section="resources_index">
+                                    <button
+                                        type="button"
+                                        @click="open === idx ? open = null : open = idx"
+                                        class="w-full text-left px-4 py-4 flex items-start justify-between gap-4"
+                                        data-cw-faq-toggle
+                                        data-cw-faq-section="resources_index"
+                                        :aria-expanded="open === idx ? 'true' : 'false'"
+                                        :aria-controls="`cw-resource-faq-panel-${idx}`"
+                                        :id="`cw-resource-faq-trigger-${idx}`"
+                                    >
                                         <span class="font-medium text-slate-900" x-text="item.q"></span>
                                         <span class="text-violet-600" x-text="open === idx ? '−' : '+'"></span>
                                     </button>
-                                    <div x-show="open === idx" class="px-4 pb-4 text-sm text-slate-600" x-text="item.a"></div>
+                                    <div
+                                        x-show="open === idx"
+                                        class="px-4 pb-4 text-sm text-slate-600"
+                                        x-text="item.a"
+                                        role="region"
+                                        :id="`cw-resource-faq-panel-${idx}`"
+                                        :aria-labelledby="`cw-resource-faq-trigger-${idx}`"
+                                    ></div>
                                 </article>
                             </template>
                         </div>

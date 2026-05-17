@@ -8,7 +8,7 @@
 
         <div>
             <label class="cw-label" for="delete_password">{{ __('auth.confirm_password') }}</label>
-            <input id="delete_password" name="password" type="password" class="cw-field" autocomplete="current-password">
+            <input id="delete_password" name="password" type="password" class="cw-field w-full" autocomplete="current-password">
             <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-1" />
         </div>
 

@@ -52,8 +52,8 @@
                     <p class="mt-5 text-base md:text-lg max-w-3xl" style="color:rgba(255,255,255,0.92);">{{ __('about.hero.supporting') }}</p>
 
                     <div class="mt-8 flex flex-wrap gap-3">
-                        <a href="{{ route('jobs.index') }}" class="cw-button-primary">{{ __('about.hero.cta_jobs') }}</a>
-                        <a href="{{ route('for-employers') }}" class="cw-button-secondary bg-white/10 border-white/30 text-white hover:bg-white/20">{{ __('about.hero.cta_employers') }}</a>
+                        <a href="{{ route('jobs.index') }}" class="cw-button-accent">{{ __('about.hero.cta_jobs') }}</a>
+                        <a href="{{ route('for-employers') }}" class="cw-button-secondary about-hero-secondary-cta bg-white/10 border-white/30 text-white hover:bg-white/20">{{ __('about.hero.cta_employers') }}</a>
                     </div>
 
                     <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl">

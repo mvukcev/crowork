@@ -12,12 +12,12 @@
                     @method('PATCH')
                     <div>
                         <label class="cw-label" for="name">{{ __('settings.worker.name') }}</label>
-                        <input id="name" name="name" class="cw-field" value="{{ old('name', $user->name) }}" required>
+                        <input id="name" name="name" class="cw-field w-full" value="{{ old('name', $user->name) }}" required>
                         @error('name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="cw-label" for="email">{{ __('settings.worker.email') }}</label>
-                        <input id="email" type="email" name="email" class="cw-field" value="{{ old('email', $user->email) }}" required>
+                        <input id="email" type="email" name="email" class="cw-field w-full" value="{{ old('email', $user->email) }}" required>
                         @error('email')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <button type="submit" class="cw-button-primary">{{ __('settings.worker.save_account') }}</button>
@@ -31,23 +31,23 @@
                     @method('PATCH')
                     <div>
                         <label class="cw-label" for="current_password">{{ __('settings.worker.current_password') }}</label>
-                        <input id="current_password" type="password" name="current_password" class="cw-field" required>
+                        <input id="current_password" type="password" name="current_password" class="cw-field w-full" required>
                         @error('current_password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="cw-label" for="password">{{ __('settings.worker.new_password') }}</label>
-                        <input id="password" type="password" name="password" class="cw-field" required>
+                        <input id="password" type="password" name="password" class="cw-field w-full" required>
                         @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="cw-label" for="password_confirmation">{{ __('settings.worker.confirm_password') }}</label>
-                        <input id="password_confirmation" type="password" name="password_confirmation" class="cw-field" required>
+                        <input id="password_confirmation" type="password" name="password_confirmation" class="cw-field w-full" required>
                     </div>
                     <button type="submit" class="cw-button-primary">{{ __('settings.worker.update_password') }}</button>
                 </form>
             </div>
 
-            <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">{{ __('settings.worker.edit_profile') }}</a>
+            <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary inline-flex mt-2">{{ __('settings.worker.edit_profile') }}</a>
         </div>
     </section>
 </x-app-layout>
