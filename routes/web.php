@@ -41,7 +41,9 @@ Route::post('/coming-soon-preview/logout', [ComingSoonPreviewController::class, 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/preferences/locale', [FrontendPreferenceController::class, 'locale'])->name('preferences.locale');
 Route::post('/preferences/theme', [FrontendPreferenceController::class, 'theme'])->name('preferences.theme');
-Route::post('/consent/preferences', [CookieConsentController::class, 'update'])->name('consent.preferences.update');
+Route::post('/consent/preferences', [CookieConsentController::class, 'update'])
+    ->middleware('throttle:30,60')
+    ->name('consent.preferences.update');
 
 Route::middleware('guest')->group(function () {
     Route::get('/access', [AccessController::class, 'show'])->name('access.show');
@@ -166,7 +168,9 @@ Route::middleware(['auth', 'legal.consent'])->prefix('worker')->name('worker.')-
     Route::get('/privacy', [WorkerPrivacyController::class, 'show'])->name('privacy.show');
     Route::patch('/privacy/visibility', [WorkerPrivacyController::class, 'updateVisibility'])->name('privacy.visibility');
     Route::patch('/privacy/consent', [WorkerPrivacyController::class, 'updateTrackingConsent'])->name('privacy.consent');
-    Route::post('/privacy/request-deletion', [WorkerPrivacyController::class, 'requestDeletion'])->name('privacy.request-deletion');
+    Route::post('/privacy/request-deletion', [WorkerPrivacyController::class, 'requestDeletion'])
+        ->middleware('throttle:3,1440')
+        ->name('privacy.request-deletion');
     Route::get('/applications', [WorkerApplicationController::class, 'jobApplications'])->name('applications.index');
     Route::get('/education-applications', [WorkerApplicationController::class, 'educationApplications'])->name('education-applications.index');
 });
@@ -219,7 +223,9 @@ Route::get('/export-candidates', function () {
     return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\CandidateExport, 'candidates.xlsx');
 })->name('export.candidates');
 
-Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::class, 'export'])->middleware(['auth', 'legal.consent'])->name('user.export');
+Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::class, 'export'])
+    ->middleware(['auth', 'legal.consent', 'throttle:3,1440'])
+    ->name('user.export');
 
 Route::middleware(['auth', 'legal.consent', 'admin'])->prefix('admin')->group(function () {
     Route::get('/privacy-requests', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
@@ -249,6 +255,7 @@ Route::middleware(['auth', 'legal.consent', 'admin.strict'])->prefix('admin/gdpr
 
     Route::get('/exports', [AdminGdprController::class, 'exportsIndex'])->name('exports.index');
     Route::get('/anonymization-logs', [AdminGdprController::class, 'anonymizationIndex'])->name('anonymization.index');
+    Route::get('/anonymization-logs/{gdprAnonymizationLog}', [AdminGdprController::class, 'anonymizationShow'])->name('anonymization.show');
 
     Route::get('/legal-holds', [AdminGdprController::class, 'legalHoldsIndex'])->name('legal-holds.index');
     Route::post('/legal-holds', [AdminGdprController::class, 'legalHoldsStore'])->name('legal-holds.store');

@@ -16,6 +16,11 @@ class LegalHoldService
 
     public function hasActiveHoldForTarget(string $targetType, string|int|null $targetId, ?int $userId = null): bool
     {
+        return $this->activeHoldForTarget($targetType, $targetId, $userId) !== null;
+    }
+
+    public function activeHoldForTarget(string $targetType, string|int|null $targetId, ?int $userId = null): ?LegalHold
+    {
         return LegalHold::query()
             ->where('status', LegalHold::STATUS_ACTIVE)
             ->where(function ($query) use ($targetType, $targetId, $userId): void {
@@ -30,6 +35,7 @@ class LegalHoldService
                     });
                 }
             })
-            ->exists();
+            ->latest('placed_at')
+            ->first();
     }
 }

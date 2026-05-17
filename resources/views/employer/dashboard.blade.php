@@ -11,7 +11,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="{{ route('home') }}" class="cw-button-secondary">{{ __('employer.dashboard.back_to_homepage') }}</a>
-                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary" data-cw-track-click="post_job_click" data-cw-item-type="cta">
+                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary inline-flex items-center gap-2 whitespace-nowrap" data-cw-track-click="post_job_click" data-cw-item-type="cta">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -22,7 +22,18 @@
         </div>
     </div>
 
-    <div class="cw-shell-spacing py-8">
+    <div class="cw-shell-spacing py-8" x-data="{ tab: 'overview' }">
+        <div class="mb-6">
+            <nav class="mb-2 flex flex-wrap gap-2" role="tablist" aria-label="ATS tabs">
+                <button type="button" role="tab" :aria-selected="tab === 'overview'" @click="tab = 'overview'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'overview' }">{{ __('employer.dashboard.tabs.quick_overview') }}</button>
+                <button type="button" role="tab" :aria-selected="tab === 'applications'" @click="tab = 'applications'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'applications' }">{{ __('employer.dashboard.tabs.all_applications') }}</button>
+                <button type="button" role="tab" :aria-selected="tab === 'analytics'" @click="tab = 'analytics'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'analytics' }">{{ __('employer.dashboard.tabs.job_analytics') }}</button>
+                <button type="button" role="tab" :aria-selected="tab === 'jobs'" @click="tab = 'jobs'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'jobs' }">{{ __('employer.dashboard.tabs.active_jobs') }}</button>
+                <button type="button" role="tab" :aria-selected="tab === 'company'" @click="tab = 'company'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'company' }">{{ __('employer.dashboard.tabs.company_profile') }}</button>
+            </nav>
+        </div>
+
+        <div x-show="tab === 'overview'" x-cloak>
         @if($activeJobs === 0 && $pendingJobs === 0 && $totalApplications === 0)
             <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
                 <p class="text-sm font-semibold text-blue-900">{{ __('employer.dashboard.first_time_setup_title') }}</p>
@@ -52,19 +63,6 @@
                 @endif
             </div>
         @endif
-
-        <div class="mb-6 rounded-xl border border-sky-200 bg-sky-50 p-4">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                    <p class="text-sm font-semibold text-sky-900">{{ __('employer.gdpr.dashboard_notice_title') }}</p>
-                    <p class="text-sm text-sky-800 mt-1">{{ __('employer.gdpr.dashboard_notice_body') }}</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <a href="{{ route('privacy') }}" class="cw-button-secondary">{{ __('employer.gdpr.privacy_policy') }}</a>
-                    <a href="{{ route('terms') }}" class="cw-button-secondary">{{ __('employer.gdpr.terms_of_service') }}</a>
-                </div>
-            </div>
-        </div>
 
         <div class="mb-8">
             <h2 class="cw-heading-2 mb-4">{{ __('employer.dashboard.job_overview') }}</h2>
@@ -147,6 +145,9 @@
                 </div>
             </div>
         </div>
+        </div>
+
+        <div x-show="tab === 'applications'" x-cloak>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
             <article class="cw-card-shell p-5">
@@ -213,8 +214,9 @@
                 @endif
             </article>
         </div>
+        </div>
 
-        <div class="mb-8">
+        <div class="mb-8" x-show="tab === 'analytics'" x-cloak>
             <h2 class="cw-heading-2 mb-4">{{ __('employer.dashboard.job_performance_cards') }}</h2>
             @if($jobPerformance->isEmpty())
                 <div class="cw-empty-state cw-surface border border-neutral-200 p-8">
@@ -255,7 +257,7 @@
             @endif
         </div>
 
-        <div>
+        <div x-show="tab === 'jobs'" x-cloak>
             <div class="flex items-center justify-between mb-4">
                 <h2 class="cw-heading-2">{{ __('employer.dashboard.your_active_listings') }}</h2>
                 <a href="{{ route('employer.jobs.index') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -308,9 +310,11 @@
                 </div>
             @endif
         </div>
+        </div>
 
         <!-- Company Profile Status -->
         @if($employer)
+            <div x-show="tab === 'company'" x-cloak>
             <div class="mt-12 pt-8 border-t border-neutral-200">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="cw-heading-3">{{ __('employer.company_profile') }}</h2>
@@ -339,6 +343,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         @endif
     </div>

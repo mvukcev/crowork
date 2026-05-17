@@ -45,7 +45,7 @@ class NotificationCenterController extends Controller
 
         return redirect()
             ->route('notifications.preferences')
-            ->with('success', 'Notification preferences updated.');
+            ->with('success', __('notifications.preferences.flash_updated'));
     }
 
     public function index(Request $request): View

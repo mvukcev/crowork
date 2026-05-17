@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\ConsentVersionService;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +20,10 @@ class EnsureLatestLegalConsentAccepted
         $user = $request->user();
 
         if (! $user) {
+            return $next($request);
+        }
+
+        if ($user->role === User::ROLE_ADMIN) {
             return $next($request);
         }
 

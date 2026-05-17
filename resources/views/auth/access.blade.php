@@ -181,6 +181,13 @@
                                 <input id="password" class="cw-field w-full" type="password" name="password" required autocomplete="current-password" autofocus>
                                 @error('password')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                             </div>
+                            @if (Route::has('password.request'))
+                                <div class="w-full text-right">
+                                    <a href="{{ route('password.request') }}" class="text-sm text-slate-600 hover:text-slate-900 underline">
+                                        {{ __('auth.forgot_password') }}
+                                    </a>
+                                </div>
+                            @endif
                             <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                                 <input type="checkbox" name="remember" value="1" class="rounded border-slate-300" @checked(old('remember'))>
                                 {{ __('auth.remember_me') }}
@@ -320,8 +327,8 @@
                                 <input id="password_confirmation" class="cw-field w-full" type="password" name="password_confirmation" required autocomplete="new-password">
                             </div>
                             <div class="space-y-2 cw-consent-checklist">
-                                <label for="accept_terms" class="flex items-start gap-2 text-sm text-slate-700 cursor-pointer select-none">
-                                    <input id="accept_terms" type="checkbox" name="accept_terms" value="1" @checked(old('accept_terms')) required class="mt-1 cw-consent-checkbox">
+                                <label for="accept_terms" class="flex items-start gap-3 text-sm leading-6 text-slate-700 cursor-pointer select-none">
+                                    <input id="accept_terms" type="checkbox" name="accept_terms" value="1" @checked(old('accept_terms')) required class="cw-consent-checkbox">
                                     <span>
                                         {{ __('auth.accept_terms_prefix') }}
                                         <a href="{{ route('terms') }}" class="underline text-slate-900" target="_blank" rel="noopener" onclick="event.stopPropagation()">{{ __('footer.terms') }}</a>
@@ -329,8 +336,8 @@
                                 </label>
                                 @error('accept_terms')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
 
-                                <label for="accept_privacy" class="flex items-start gap-2 text-sm text-slate-700 cursor-pointer select-none">
-                                    <input id="accept_privacy" type="checkbox" name="accept_privacy" value="1" @checked(old('accept_privacy')) required class="mt-1 cw-consent-checkbox">
+                                <label for="accept_privacy" class="flex items-start gap-3 text-sm leading-6 text-slate-700 cursor-pointer select-none">
+                                    <input id="accept_privacy" type="checkbox" name="accept_privacy" value="1" @checked(old('accept_privacy')) required class="cw-consent-checkbox">
                                     <span>
                                         {{ __('auth.accept_privacy_prefix') }}
                                         <a href="{{ route('privacy') }}" class="underline text-slate-900" target="_blank" rel="noopener" onclick="event.stopPropagation()">{{ __('footer.privacy') }}</a>

@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class PrivacyRetentionService
@@ -184,13 +185,13 @@ class PrivacyRetentionService
                 ->select(['id', 'worker_id', 'profile_snapshot'])
                 ->chunkById(100, function ($applications) use (&$processed, &$errors, &$legalHoldSkipped, $now): void {
                     foreach ($applications as $application) {
-                        $hasLegalHold = $this->legalHoldService->hasActiveHoldForTarget(
+                        $legalHold = $this->legalHoldService->activeHoldForTarget(
                             JobApplication::class,
                             $application->id,
                             $application->worker_id ? (int) $application->worker_id : null
                         );
 
-                        if ($hasLegalHold) {
+                        if ($legalHold) {
                             $legalHoldSkipped++;
 
                             GdprAnonymizationLog::query()->create([
@@ -204,6 +205,12 @@ class PrivacyRetentionService
                                 'started_at' => now(),
                                 'completed_at' => now(),
                                 'failure_reason' => 'Blocked by active legal hold',
+                                'summary_json' => [
+                                    'legal_hold_id' => $legalHold->id,
+                                    'legal_hold_reason' => $legalHold->reason,
+                                    'legal_hold_placed_at' => $legalHold->placed_at?->toIso8601String(),
+                                    'legal_hold_placed_by_admin_id' => $legalHold->placed_by_admin_id,
+                                ],
                             ]);
 
                             continue;
@@ -222,6 +229,7 @@ class PrivacyRetentionService
 
                         try {
                             $snapshot = is_array($application->profile_snapshot) ? $application->profile_snapshot : [];
+                            $deletedPaths = $this->deleteUploadPathsFromSnapshot($snapshot);
 
                             DB::table('job_applications')
                                 ->where('id', $application->id)
@@ -243,6 +251,7 @@ class PrivacyRetentionService
                                 'summary_json' => [
                                     'application_id' => $application->id,
                                     'retention_reason' => 'rejected_application_retention',
+                                    'files_deleted' => $deletedPaths,
                                 ],
                             ]);
                         } catch (Throwable $exception) {
@@ -293,6 +302,51 @@ class PrivacyRetentionService
             'experience_entries_count' => count(array_filter(Arr::wrap($snapshot['structured_experiences'] ?? []))),
             'education_entries_count' => count(array_filter(Arr::wrap($snapshot['structured_educations'] ?? []))),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $snapshot
+     */
+    private function deleteUploadPathsFromSnapshot(array $snapshot): int
+    {
+        $deleted = 0;
+
+        foreach (['cv_path', 'photo_path'] as $key) {
+            $path = $snapshot[$key] ?? null;
+            if (! is_string($path) || trim($path) === '' || ! $this->isSafeUploadPath($path)) {
+                continue;
+            }
+
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+                $deleted++;
+                continue;
+            }
+
+            if (Storage::disk('local')->exists($path)) {
+                Storage::disk('local')->delete($path);
+                $deleted++;
+            }
+        }
+
+        return $deleted;
+    }
+
+    private function isSafeUploadPath(string $path): bool
+    {
+        $normalized = ltrim($path, '/');
+
+        if (str_contains($normalized, '..')) {
+            return false;
+        }
+
+        foreach (['worker-photos/', 'worker-cv/', 'uploads/cv/', 'applications/cv/'] as $prefix) {
+            if (str_starts_with($normalized, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

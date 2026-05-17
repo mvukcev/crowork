@@ -87,6 +87,40 @@ class WorkerPrivacyTest extends TestCase
         Queue::assertPushed(AnonymizeUserDataJob::class);
     }
 
+    public function test_worker_deletion_request_route_is_throttled(): void
+    {
+        Queue::fake();
+
+        $worker = User::factory()->create([
+            'role' => User::ROLE_WORKER,
+            'password' => Hash::make('password123'),
+        ]);
+
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $response = $this
+                ->actingAs($worker)
+                ->post(route('worker.privacy.request-deletion'), [
+                    'password' => 'password123',
+                    'reason' => 'Throttle test ' . $attempt,
+                ]);
+
+            $response->assertRedirect(route('access.show'));
+
+            $this->assertDatabaseHas('account_deletion_requests', [
+                'user_id' => $worker->id,
+            ]);
+
+            auth()->login($worker);
+        }
+
+        $this->actingAs($worker)
+            ->post(route('worker.privacy.request-deletion'), [
+                'password' => 'password123',
+                'reason' => 'Throttle overflow',
+            ])
+            ->assertStatus(429);
+    }
+
     public function test_worker_can_update_tracking_preferences_and_persist_history(): void
     {
         $worker = User::factory()->create(['role' => User::ROLE_WORKER]);

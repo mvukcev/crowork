@@ -36,5 +36,8 @@ return [
         'confirm_password' => 'Confirm password',
         'update_password' => 'Update password',
         'edit_profile' => 'Edit worker profile',
+        'privacy_data' => 'Privacy & Data',
+        'flash_settings_updated' => 'Settings updated successfully.',
+        'flash_password_updated' => 'Password updated successfully.',
     ],
 ];

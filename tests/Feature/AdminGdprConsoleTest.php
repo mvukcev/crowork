@@ -16,6 +16,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\ConsentVersionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminGdprConsoleTest extends TestCase
@@ -38,7 +39,8 @@ class AdminGdprConsoleTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.gdpr.index'))
             ->assertOk()
-            ->assertSee('Admin GDPR Console');
+                ->assertSee('Admin GDPR Console')
+                ->assertSee('Operational warning');
     }
 
     public function test_admin_can_create_and_update_dsar_request(): void
@@ -92,6 +94,46 @@ class AdminGdprConsoleTest extends TestCase
             'export_type' => 'user_full_export',
             'status' => GdprExportLog::STATUS_COMPLETED,
         ]);
+    }
+
+    public function test_export_route_is_throttled_after_daily_limit(): void
+    {
+        $worker = $this->createUserWithConsent(User::ROLE_WORKER);
+
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $this->actingAs($worker)
+                ->get(route('user.export'))
+                ->assertOk();
+        }
+
+        $this->actingAs($worker)
+            ->get(route('user.export'))
+            ->assertStatus(429);
+    }
+
+    public function test_cleanup_expired_gdpr_exports_command_purges_file_and_reference(): void
+    {
+        Storage::fake('local');
+
+        $worker = $this->createUserWithConsent(User::ROLE_WORKER);
+        $path = 'exports/gdpr/expired_export.json';
+        Storage::disk('local')->put($path, '{"ok":true}');
+
+        $log = GdprExportLog::query()->create([
+            'user_id' => $worker->id,
+            'requested_by_user_id' => $worker->id,
+            'export_type' => 'user_full_export',
+            'status' => GdprExportLog::STATUS_COMPLETED,
+            'file_path' => $path,
+            'generated_at' => now()->subDays(8),
+            'expires_at' => now()->subDay(),
+        ]);
+
+        $this->artisan('gdpr:cleanup-expired-exports')->assertExitCode(0);
+
+        $this->assertFalse(Storage::disk('local')->exists($path));
+        $log->refresh();
+        $this->assertNull($log->file_path);
     }
 
     public function test_anonymization_job_creates_anonymization_log(): void
@@ -180,6 +222,14 @@ class AdminGdprConsoleTest extends TestCase
             'target_id' => (string) $application->id,
             'status' => 'blocked',
         ]);
+
+        $log = \App\Models\GdprAnonymizationLog::query()
+            ->where('target_type', JobApplication::class)
+            ->where('target_id', (string) $application->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertSame('litigation_hold', data_get($log->summary_json, 'legal_hold_reason'));
     }
 
     public function test_legal_hold_blocks_account_anonymization_job(): void
@@ -218,6 +268,26 @@ class AdminGdprConsoleTest extends TestCase
             'action' => 'user_account_anonymization',
             'status' => 'blocked',
         ]);
+    }
+
+    public function test_admin_can_open_anonymization_verifier_page(): void
+    {
+        $admin = $this->createUserWithConsent(User::ROLE_ADMIN);
+
+        $log = \App\Models\GdprAnonymizationLog::query()->create([
+            'target_type' => User::class,
+            'target_id' => '123',
+            'action' => 'user_account_anonymization',
+            'triggered_by' => 'test_fixture',
+            'status' => 'completed',
+            'started_at' => now()->subMinute(),
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.gdpr.anonymization.show', $log))
+            ->assertOk()
+            ->assertSee('Anonymization Verification');
     }
 
     public function test_admin_can_create_and_update_breach_incident(): void

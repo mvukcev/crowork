@@ -84,7 +84,7 @@ class EmployerLawfulBasisUxTest extends TestCase
         $this->actingAs($employerUser)
             ->get(route('employer.dashboard'))
             ->assertOk()
-            ->assertSee('GDPR lawful basis for candidate data')
+            ->assertDontSee('GDPR lawful basis for candidate data')
             ->assertSee('Data anonymized');
 
         $this->actingAs($employerUser)

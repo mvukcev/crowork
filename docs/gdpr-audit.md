@@ -233,7 +233,7 @@ This sprint implements the P0 baseline for launch readiness:
 - Every user data export writes one `gdpr_export_logs` record.
 - Logged metadata includes actor, target user, IP/user-agent, status, generated/downloaded timestamps, expiry timestamp.
 - No raw export payload is persisted in database.
-- File path is metadata only; payload remains in private local storage and is deleted after send.
+- File path is metadata only; payload remains in private local storage until expiry cleanup (`gdpr:cleanup-expired-exports`).
 
 ### Anonymization log behavior (implemented)
 
@@ -288,6 +288,70 @@ This sprint implements the P0 baseline for launch readiness:
 - Legal/content teams still own formal DSAR response wording and legal review.
 - Breach authority/user communications remain manual and policy-driven.
 - Periodic review of legal holds and stale incidents should be part of operational runbooks.
+
+## Operational Hardening Sprint (Final)
+
+### System health visibility
+
+- Added `GdprSystemHealthService` and dashboard health card in admin GDPR console.
+- Health summary now reports:
+  - scheduler heartbeat freshness
+  - failed GDPR-related queue jobs
+  - stuck anonymization logs (`started` older than 60 minutes)
+  - stuck export logs (`pending` older than 30 minutes)
+- Admin dashboard now shows a warning panel when any health signal is degraded.
+
+### Endpoint abuse protections
+
+- Added conservative rate limits to privacy-sensitive endpoints:
+  - `GET /user/export` -> `throttle:3,1440`
+  - `POST /worker/privacy/request-deletion` -> `throttle:3,1440`
+  - `POST /consent/preferences` -> `throttle:30,60`
+
+### File lifecycle hardening
+
+- Added scheduled cleanup command `gdpr:cleanup-expired-exports` to purge expired export files and clear stored file references.
+- Scheduler now runs:
+  - `cleanup:deletion-requests` daily
+  - `gdpr:cleanup-expired-exports` daily
+- `AnonymizeUserDataJob` now attempts safe deletion of known worker upload paths (`photo_path`/`cv_path`) using strict prefix allow-listing.
+- `PrivacyRetentionService` rejected-application anonymization now also removes safe upload references and files before persisting anonymized snapshots.
+
+### Legal hold visibility
+
+- Blocked anonymization events now include legal hold metadata in `summary_json`:
+  - hold id
+  - hold reason
+  - hold placement timestamp
+  - hold placing admin id
+- GDPR anonymization logs list now surfaces legal hold details directly.
+
+### Anonymization verification helper
+
+- Added verifier route and page:
+  - `GET /admin/gdpr/anonymization-logs/{gdprAnonymizationLog}`
+- Verifier provides a lightweight operational check of residual identifier/file-reference risk by target type.
+
+## Upload & File Lifecycle Policy
+
+- Worker profile photos are stored on public disk under `worker-photos/`.
+- GDPR exports are stored on local disk under `exports/gdpr/` and purged after expiry by scheduled command.
+- Retention/deletion anonymization only deletes files from explicitly allowed upload prefixes:
+  - `worker-photos/`
+  - `worker-cv/`
+  - `uploads/cv/`
+  - `applications/cv/`
+- Paths containing traversal patterns (`..`) are ignored and never deleted.
+
+## Backup & Restore GDPR Policy
+
+- Backups may contain historical personal data that has since been anonymized/deleted in production.
+- Restore policy requirements:
+  - do not restore production backups into publicly reachable environments
+  - restore only to isolated, access-restricted environments
+  - re-run GDPR maintenance tasks after restore (retention + expired export cleanup)
+  - ensure restored environments are covered by legal hold and DSAR governance before any operational use
+- Retention policy should define backup retention windows and destruction schedule aligned with legal/compliance decisions.
 
 ## P2 (Recommended hardening)
 

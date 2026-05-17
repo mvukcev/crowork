@@ -5,9 +5,15 @@
     <!-- Header -->
     <div class="cw-surface-header border-b border-neutral-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex items-center gap-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h1 class="cw-heading-1">{{ __('employer.candidate_detail.title') }}</h1>
+                <a href="{{ route('employer.dashboard') }}" class="cw-button-secondary sm:ml-auto">
+                    {{ __('employer.candidate_detail.back_to_dashboard') }}
+                </a>
+            </div>
+            <div class="mt-3 flex items-center gap-4">
                 <a href="{{ route('employer.applications.pipeline') }}" class="text-blue-600 hover:text-blue-700 font-medium">
-                    ← Back to Pipeline
+                    {{ __('employer.candidate_detail.back_to_pipeline') }}
                 </a>
             </div>
         </div>
@@ -29,7 +35,7 @@
                             @endphp
                             @if($candidatePhotoUrl)
                                 <img src="{{ $candidatePhotoUrl }}" 
-                                     alt="Candidate" 
+                                     alt="{{ __('employer.candidate_detail.candidate_alt') }}" 
                                      class="w-20 h-20 rounded-full object-cover">
                             @else
                                 <div class="w-20 h-20 rounded-full bg-neutral-300 flex items-center justify-center">
@@ -49,22 +55,22 @@
                                             {{ $maskedProfile['first_name'] }}
                                             {{ $maskedProfile['last_name'] ?? '' }}
                                         @else
-                                            Candidate
+                                            {{ __('employer.applications_pipeline.candidate_fallback') }}
                                         @endif
                                     </h1>
                                     @if($maskedProfile['nationality_country_code'] ?? null)
                                         <p class="text-neutral-600 mt-1">
-                                            <strong>Nationality:</strong> {{ $maskedProfile['nationality_country_code'] }}
+                                            <strong>{{ __('employer.candidate_detail.nationality') }}:</strong> {{ $maskedProfile['nationality_country_code'] }}
                                         </p>
                                     @endif
                                     @if($maskedProfile['birth_year'] ?? null)
                                         <p class="text-neutral-600">
-                                            <strong>Age:</strong> {{ date('Y') - $maskedProfile['birth_year'] }}
+                                            <strong>{{ __('employer.candidate_detail.age') }}:</strong> {{ date('Y') - $maskedProfile['birth_year'] }}
                                         </p>
                                     @endif
                                 </div>
                                 <a href="{{ route('employer.applications.pipeline') }}" class="cw-button-secondary">
-                                    Close
+                                    {{ __('employer.candidate_detail.close') }}
                                 </a>
                             </div>
                         </div>
@@ -74,7 +80,7 @@
                 <!-- Candidate Profile Sections -->
                 @if($maskedProfile['skills'] ?? null)
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">Skills</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.skills') }}</h2>
                         <div class="flex flex-wrap gap-2">
                             @foreach($maskedProfile['skills'] as $skill)
                                 <span class="cw-chip">{{ $skill }}</span>
@@ -92,7 +98,7 @@
 
                 @if($structuredEducations !== [])
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">Education</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.education') }}</h2>
                         <div class="space-y-3 text-sm text-neutral-700">
                             @foreach($structuredEducations as $education)
                                 <div class="rounded border border-neutral-200 p-3">
@@ -104,14 +110,14 @@
                     </div>
                 @elseif($maskedProfile['education_summary'] ?? null)
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">Education</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.education') }}</h2>
                         <p class="text-neutral-700">{{ $maskedProfile['education_summary'] }}</p>
                     </div>
                 @endif
 
                 @if($structuredExperiences !== [])
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">Work Experience</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.work_experience') }}</h2>
                         <div class="space-y-3 text-sm text-neutral-700">
                             @foreach($structuredExperiences as $experience)
                                 <div class="rounded border border-neutral-200 p-3">
@@ -126,14 +132,14 @@
                     </div>
                 @elseif($maskedProfile['work_experience'] ?? null)
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">Work Experience</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.work_experience') }}</h2>
                         <p class="text-neutral-700">{{ $maskedProfile['work_experience'] }}</p>
                     </div>
                 @endif
 
                 @if($structuredCertifications !== [])
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">Certifications</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.certifications') }}</h2>
                         <ul class="list-disc list-inside text-sm text-neutral-700 space-y-1">
                             @foreach($structuredCertifications as $certification)
                                 <li>{{ $certification['name'] ?? 'N/A' }}{{ !empty($certification['issuer']) ? ' - ' . $certification['issuer'] : '' }}</li>
@@ -144,7 +150,7 @@
 
                 @if($structuredReferences !== [])
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">References</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.references') }}</h2>
                         <ul class="text-sm text-neutral-700 space-y-1">
                             @foreach($structuredReferences as $reference)
                                 <li>{{ $reference['full_name'] ?? 'N/A' }}{{ !empty($reference['company']) ? ' - ' . $reference['company'] : '' }}</li>
@@ -156,31 +162,31 @@
                 <!-- Motivation Letter -->
                 @if($application->message)
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                        <h2 class="cw-heading-2 mb-4">Motivation Letter</h2>
+                        <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.motivation_letter') }}</h2>
                         <p class="text-neutral-700 whitespace-pre-wrap">{{ $application->message }}</p>
                     </div>
                 @endif
 
                 <!-- Job Details -->
                 <div class="cw-surface border border-neutral-200 rounded-lg p-6">
-                    <h2 class="cw-heading-2 mb-4">Applied for: {{ $job->title }}</h2>
+                    <h2 class="cw-heading-2 mb-4">{{ __('employer.candidate_detail.applied_for', ['job' => $job->title]) }}</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div>
-                            <p class="text-neutral-600">Location</p>
+                            <p class="text-neutral-600">{{ __('employer.candidate_detail.location') }}</p>
                             <p class="font-medium">{{ $job->location_city }}</p>
                         </div>
                         <div>
-                            <p class="text-neutral-600">Job Type</p>
+                            <p class="text-neutral-600">{{ __('employer.candidate_detail.job_type') }}</p>
                             <p class="font-medium">{{ ucfirst($job->contract_type ?? 'N/A') }}</p>
                         </div>
                         @if($job->salary_min && $job->salary_max)
                             <div>
-                                <p class="text-neutral-600">Salary Range</p>
+                                <p class="text-neutral-600">{{ __('employer.candidate_detail.salary_range') }}</p>
                                 <p class="font-medium">{{ $job->salary_min }} - {{ $job->salary_max }} {{ $job->salary_currency ?? 'EUR' }}</p>
                             </div>
                         @endif
                         <div>
-                            <p class="text-neutral-600">Experience Level</p>
+                            <p class="text-neutral-600">{{ __('employer.candidate_detail.experience_level') }}</p>
                             <p class="font-medium">{{ ucfirst($job->experience_level ?? 'N/A') }}</p>
                         </div>
                     </div>
@@ -205,25 +211,25 @@
 
                 <!-- Status and Actions -->
                 <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                    <h3 class="cw-heading-3 mb-4">Application Status</h3>
+                    <h3 class="cw-heading-3 mb-4">{{ __('employer.candidate_detail.application_status') }}</h3>
                     
                     <!-- Status Selector -->
                     <select id="statusSelector" class="cw-field mb-4" data-app-id="{{ $application->id }}">
                         @foreach(\App\Models\JobApplication::statusOptions() as $value => $label)
                             <option value="{{ $value }}" @selected($application->status === $value)>
-                                {{ $label }}
+                                {{ __('employer.statuses.' . $value) }}
                             </option>
                         @endforeach
                     </select>
 
                     <p class="text-xs text-neutral-600">
-                        Last updated: {{ $application->status_updated_at?->format('M d, Y H:i') ?? $application->created_at->format('M d, Y H:i') }}
+                        {{ __('employer.candidate_detail.last_updated') }}: {{ $application->status_updated_at?->format('M d, Y H:i') ?? $application->created_at->format('M d, Y H:i') }}
                     </p>
                 </div>
 
                 <!-- Rating -->
                 <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                    <h3 class="cw-heading-3 mb-4">Rating</h3>
+                    <h3 class="cw-heading-3 mb-4">{{ __('employer.candidate_detail.rating') }}</h3>
                     
                     <div id="ratingContainer" class="flex items-center gap-1 mb-4">
                         @for($i = 1; $i <= 5; $i++)
@@ -241,16 +247,16 @@
                     
                     <p class="text-sm text-neutral-600">
                         @if($application->score)
-                            You rated: <strong>{{ $application->score }}/5</strong>
+                            {{ __('employer.candidate_detail.you_rated') }} <strong>{{ $application->score }}/5</strong>
                         @else
-                            No rating yet
+                            {{ __('employer.candidate_detail.no_rating_yet') }}
                         @endif
                     </p>
                 </div>
 
                 <!-- Interview Date -->
                 <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
-                    <h3 class="cw-heading-3 mb-4">Interview Date</h3>
+                    <h3 class="cw-heading-3 mb-4">{{ __('employer.candidate_detail.interview_date') }}</h3>
                     
                     <input type="date" 
                            id="interviewDate"
@@ -260,39 +266,39 @@
                     
                     @if($application->interview_at)
                         <p class="text-sm text-neutral-600">
-                            Scheduled for: <strong>{{ $application->interview_at->format('M d, Y') }}</strong>
+                            {{ __('employer.candidate_detail.scheduled_for') }} <strong>{{ $application->interview_at->format('M d, Y') }}</strong>
                         </p>
                     @else
                         <p class="text-sm text-neutral-600">
-                            No interview scheduled yet
+                            {{ __('employer.candidate_detail.no_interview_scheduled') }}
                         </p>
                     @endif
                 </div>
 
                 <!-- Internal Notes -->
                 <div class="cw-surface border border-neutral-200 rounded-lg p-6">
-                    <h3 class="cw-heading-3 mb-4">Internal Notes</h3>
+                    <h3 class="cw-heading-3 mb-4">{{ __('employer.candidate_detail.internal_notes') }}</h3>
                     
                     <textarea id="internalNotes" 
                               class="cw-field mb-4 h-32 resize-none"
-                              placeholder="Add notes about this candidate..."
+                              placeholder="{{ __('employer.candidate_detail.notes_placeholder') }}"
                               data-app-id="{{ $application->id }}">{{ $application->internal_note }}</textarea>
                     
                     <p class="text-xs text-neutral-600">
-                        Last updated: {{ $application->updated_at->format('M d, Y H:i') }}
+                        {{ __('employer.candidate_detail.last_updated') }}: {{ $application->updated_at->format('M d, Y H:i') }}
                     </p>
                 </div>
 
                 <!-- Application Timeline -->
                 <div class="cw-surface border border-neutral-200 rounded-lg p-6 mt-6">
-                    <h3 class="cw-heading-3 mb-4">Timeline</h3>
+                    <h3 class="cw-heading-3 mb-4">{{ __('employer.candidate_detail.timeline') }}</h3>
                     <div class="space-y-3 text-sm">
                         <div class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-neutral-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             <div>
-                                <p class="font-medium text-neutral-900">Applied</p>
+                                <p class="font-medium text-neutral-900">{{ __('employer.candidate_detail.applied') }}</p>
                                 <p class="text-neutral-600">{{ $application->created_at->format('M d, Y \a\t H:i') }}</p>
                             </div>
                         </div>
@@ -302,7 +308,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
                                 </svg>
                                 <div>
-                                    <p class="font-medium text-neutral-900">Status Changed</p>
+                                    <p class="font-medium text-neutral-900">{{ __('employer.candidate_detail.status_changed') }}</p>
                                     <p class="text-neutral-600">{{ $application->status_updated_at->format('M d, Y \a\t H:i') }}</p>
                                 </div>
                             </div>

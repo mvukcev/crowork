@@ -49,7 +49,7 @@
 
             <div class="flex flex-wrap gap-3">
                 <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary inline-flex mt-2">{{ __('settings.worker.edit_profile') }}</a>
-                <a href="{{ route('worker.privacy.show') }}" class="cw-button-secondary inline-flex mt-2">Privacy & Data</a>
+                <a href="{{ route('worker.privacy.show') }}" class="cw-button-secondary inline-flex mt-2">{{ __('settings.worker.privacy_data') }}</a>
             </div>
         </div>
     </section>

@@ -419,6 +419,7 @@
         cursor: pointer;
         flex-shrink: 0;
         transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+        margin-top: 0.2rem;
     }
 
     .cw-consent-checkbox:checked {

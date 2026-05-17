@@ -58,23 +58,23 @@ class WorkerProfileCompletenessService
         $entries = [];
         $missing = [];
 
-        $this->scoreTextField($entries, $missing, 'first_name', $profile->first_name, 'Dodaj ime');
-        $this->scoreTextField($entries, $missing, 'last_name', $profile->last_name, 'Dodaj prezime');
-        $this->scoreTextField($entries, $missing, 'nationality_country_code', $profile->nationality_country_code, 'Dodaj nacionalnost');
-        $this->scoreTextField($entries, $missing, 'current_country', $profile->current_country, 'Dodaj trenutnu drzavu');
-        $this->scoreTextField($entries, $missing, 'current_city', $profile->current_city, 'Dodaj trenutni grad');
-        $this->scoreTextField($entries, $missing, 'desired_city', $profile->desired_city, 'Dodaj zeljeni grad u Hrvatskoj');
-        $this->scoreTextField($entries, $missing, 'availability_date', $profile->availability_date?->toDateString(), 'Dodaj datum dostupnosti');
-        $this->scoreTextField($entries, $missing, 'professional_summary', $profile->professional_summary, 'Dodaj strucni sazetak');
-        $this->scorePresenceField($entries, $missing, 'salary_expectation', $profile->salary_expectation, 'Dodaj ocekivanu placu');
-        $this->scoreTextField($entries, $missing, 'visa_work_permit_status', $profile->visa_work_permit_status, 'Dodaj status vize/radne dozvole');
-        $this->scoreTextField($entries, $missing, 'photo_path', $profile->photo_path, 'Dodaj profilnu fotografiju');
+        $this->scoreTextField($entries, $missing, 'first_name', $profile->first_name, __('worker_profile.completeness.missing.first_name'));
+        $this->scoreTextField($entries, $missing, 'last_name', $profile->last_name, __('worker_profile.completeness.missing.last_name'));
+        $this->scoreTextField($entries, $missing, 'nationality_country_code', $profile->nationality_country_code, __('worker_profile.completeness.missing.nationality_country_code'));
+        $this->scoreTextField($entries, $missing, 'current_country', $profile->current_country, __('worker_profile.completeness.missing.current_country'));
+        $this->scoreTextField($entries, $missing, 'current_city', $profile->current_city, __('worker_profile.completeness.missing.current_city'));
+        $this->scoreTextField($entries, $missing, 'desired_city', $profile->desired_city, __('worker_profile.completeness.missing.desired_city'));
+        $this->scoreTextField($entries, $missing, 'availability_date', $profile->availability_date?->toDateString(), __('worker_profile.completeness.missing.availability_date'));
+        $this->scoreTextField($entries, $missing, 'professional_summary', $profile->professional_summary, __('worker_profile.completeness.missing.professional_summary'));
+        $this->scorePresenceField($entries, $missing, 'salary_expectation', $profile->salary_expectation, __('worker_profile.completeness.missing.salary_expectation'));
+        $this->scoreTextField($entries, $missing, 'visa_work_permit_status', $profile->visa_work_permit_status, __('worker_profile.completeness.missing.visa_work_permit_status'));
+        $this->scoreTextField($entries, $missing, 'photo_path', $profile->photo_path, __('worker_profile.completeness.missing.photo_path'));
 
         $hasAnyLanguage = $languages->contains(fn (array $row): bool => $this->filled($row['language'] ?? null));
         $hasLanguageWithLevel = $languages->contains(fn (array $row): bool => $this->filled($row['language'] ?? null) && $this->filled($row['level'] ?? null));
 
-        $this->scoreBooleanField($entries, $missing, 'languages_any', $hasAnyLanguage, 'Dodaj barem jedan jezik');
-        $this->scoreBooleanField($entries, $missing, 'languages_with_level', $hasLanguageWithLevel, 'Dodaj razinu jezika');
+        $this->scoreBooleanField($entries, $missing, 'languages_any', $hasAnyLanguage, __('worker_profile.completeness.missing.languages_any'));
+        $this->scoreBooleanField($entries, $missing, 'languages_with_level', $hasLanguageWithLevel, __('worker_profile.completeness.missing.languages_with_level'));
 
         $hasEducation = $educations->isNotEmpty();
         $hasQualityEducation = $educations->contains(function (array $row): bool {
@@ -85,8 +85,8 @@ class WorkerProfileCompletenessService
                 && $this->filled($row['end_date'] ?? null);
         });
 
-        $this->scoreBooleanField($entries, $missing, 'education_any', $hasEducation, 'Dodaj obrazovanje');
-        $this->scoreBooleanField($entries, $missing, 'education_quality', $hasQualityEducation, 'Dopuni obrazovanje (ustanova, smjer, razina i datumi)');
+        $this->scoreBooleanField($entries, $missing, 'education_any', $hasEducation, __('worker_profile.completeness.missing.education_any'));
+        $this->scoreBooleanField($entries, $missing, 'education_quality', $hasQualityEducation, __('worker_profile.completeness.missing.education_quality'));
 
         $hasExperience = $experiences->isNotEmpty();
         $hasQualityExperience = $experiences->contains(function (array $row): bool {
@@ -95,11 +95,11 @@ class WorkerProfileCompletenessService
                 && $this->filled($row['description'] ?? null);
         });
 
-        $this->scoreBooleanField($entries, $missing, 'experience_any', $hasExperience, 'Dodaj radno iskustvo');
-        $this->scoreBooleanField($entries, $missing, 'experience_quality', $hasQualityExperience, 'Dopuni iskustvo (pozicija, poslodavac i opis)');
+        $this->scoreBooleanField($entries, $missing, 'experience_any', $hasExperience, __('worker_profile.completeness.missing.experience_any'));
+        $this->scoreBooleanField($entries, $missing, 'experience_quality', $hasQualityExperience, __('worker_profile.completeness.missing.experience_quality'));
 
         $hasSkills = $skills->isNotEmpty();
-        $this->scoreBooleanField($entries, $missing, 'skills_any', $hasSkills, 'Dodaj barem jednu vjestinu');
+        $this->scoreBooleanField($entries, $missing, 'skills_any', $hasSkills, __('worker_profile.completeness.missing.skills_any'));
 
         $hasCertifications = $certifications->isNotEmpty();
         $optionalMissing = null;
@@ -199,18 +199,18 @@ class WorkerProfileCompletenessService
     private function stateForPercentage(int $percentage): array
     {
         if ($percentage <= 39) {
-            return ['starter', 'Pocetni profil', 'Dodaj osnovne podatke i barem jedno iskustvo ili obrazovanje.'];
+            return ['starter', __('worker_profile.completeness.states.starter.label'), __('worker_profile.completeness.states.starter.helper')];
         }
 
         if ($percentage <= 69) {
-            return ['good_start', 'Dobar pocetak', 'Profil izgleda dobro. Dodaj detalje iskustva i jezika za bolju vidljivost.'];
+            return ['good_start', __('worker_profile.completeness.states.good_start.label'), __('worker_profile.completeness.states.good_start.helper')];
         }
 
         if ($percentage <= 89) {
-            return ['almost_done', 'Gotovo dovrsen', 'Jos nekoliko detalja i profil je spreman za kvalitetne prijave.'];
+            return ['almost_done', __('worker_profile.completeness.states.almost_done.label'), __('worker_profile.completeness.states.almost_done.helper')];
         }
 
-        return ['ready', 'Profil spreman za prijave', 'Odlican profil. Redovito ga osvjezavaj s novim iskustvom i certifikatima.'];
+        return ['ready', __('worker_profile.completeness.states.ready.label'), __('worker_profile.completeness.states.ready.helper')];
     }
 
     /**

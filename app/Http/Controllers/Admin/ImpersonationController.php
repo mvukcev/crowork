@@ -7,6 +7,7 @@ use App\Models\ImpersonationLog;
 use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Route;
 
 class ImpersonationController
 {
@@ -151,7 +152,11 @@ class ImpersonationController
 
         auth()->loginUsingId($originalAdminId, remember: false);
 
-        return redirect()->route('admin.dashboard')
+        $targetRoute = Route::has('filament.admin.pages.dashboard')
+            ? route('filament.admin.pages.dashboard')
+            : url('/admin');
+
+        return redirect()->to($targetRoute)
             ->with('success', 'Impersonation ended. Logged back as admin.');
     }
 }

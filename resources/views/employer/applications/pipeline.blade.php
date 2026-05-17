@@ -5,11 +5,11 @@
     <!-- Header -->
     <div class="cw-surface-header border-b border-neutral-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('employer.dashboard') }}" class="text-blue-600 hover:text-blue-700 font-medium">
-                    ← Dashboard
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h1 class="cw-heading-1">{{ __('employer.applications_pipeline.title') }}</h1>
+                <a href="{{ route('employer.dashboard') }}" class="cw-button-secondary sm:ml-auto">
+                    {{ __('employer.applications_pipeline.back_to_dashboard') }}
                 </a>
-                <h1 class="cw-heading-1">Applications Pipeline</h1>
             </div>
         </div>
     </div>
@@ -27,9 +27,9 @@
             <form method="GET" class="flex flex-col gap-4 flex-1 lg:flex-row" id="filterForm">
                 <!-- Job Filter -->
                 <div class="flex-1">
-                    <label class="block text-sm font-medium text-neutral-700 mb-2">Filter by Job</label>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">{{ __('employer.applications_pipeline.filter_by_job') }}</label>
                     <select name="job_id" class="cw-field" onchange="document.getElementById('filterForm').submit()">
-                        <option value="">All Jobs</option>
+                        <option value="">{{ __('employer.applications_pipeline.all_jobs') }}</option>
                         @foreach($jobs as $job)
                             <option value="{{ $job->id }}" @selected(request('job_id') == $job->id)>
                                 {{ $job->title }}
@@ -40,12 +40,12 @@
 
                 <!-- Status Filter -->
                 <div class="flex-1">
-                    <label class="block text-sm font-medium text-neutral-700 mb-2">Filter by Status</label>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">{{ __('employer.applications_pipeline.filter_by_status') }}</label>
                     <select name="status" class="cw-field" onchange="document.getElementById('filterForm').submit()">
-                        <option value="">All Statuses</option>
+                        <option value="">{{ __('employer.applications_pipeline.all_statuses') }}</option>
                         @foreach(\App\Models\JobApplication::statusOptions() as $value => $label)
                             <option value="{{ $value }}" @selected(request('status') == $value)>
-                                {{ $label }}
+                                {{ __('employer.statuses.' . $value) }}
                             </option>
                         @endforeach
                     </select>
@@ -55,7 +55,7 @@
                 @if(request('job_id') || request('status'))
                     <div class="flex items-end">
                         <a href="{{ route('employer.applications.pipeline') }}" class="cw-button-secondary">
-                            Clear Filters
+                            {{ __('employer.applications_pipeline.clear_filters') }}
                         </a>
                     </div>
                 @endif
@@ -68,21 +68,21 @@
                 <table class="min-w-[960px] w-full">
                     <thead class="bg-neutral-50 border-b border-neutral-200">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Candidate</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Job</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Rating</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Applied</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Interview</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.applications_pipeline.candidate') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.applications_pipeline.job') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.applications_pipeline.status') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.applications_pipeline.rating') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.applications_pipeline.applied') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.applications_pipeline.interview') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.gdpr.data_access') }}</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.applications_pipeline.action') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-200">
                         @foreach($applications as $application)
                             @php
                                 $profile = $application->masked_profile ?? [];
-                                $candidateName = $profile['first_name'] ?? 'Candidate';
+                                $candidateName = $profile['first_name'] ?? __('employer.applications_pipeline.candidate_fallback');
                                 if ($profile['last_name'] ?? null) {
                                     $candidateName .= ' ' . $profile['last_name'];
                                 }
@@ -106,7 +106,7 @@
                                         @endif
                                         <div>
                                             <p class="font-medium text-neutral-900">{{ $candidateName }}</p>
-                                            <p class="text-xs text-neutral-500">ID: {{ substr($application->id, 0, 8) }}</p>
+                                            <p class="text-xs text-neutral-500">{{ __('employer.applications_pipeline.id_short') }} {{ substr((string) $application->id, 0, 8) }}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -118,7 +118,7 @@
                                             class="status-selector cw-field text-sm px-2 py-1">
                                         @foreach(\App\Models\JobApplication::statusOptions() as $value => $label)
                                             <option value="{{ $value }}" @selected($application->status === $value)>
-                                                {{ $label }}
+                                                {{ __('employer.statuses.' . $value) }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -135,7 +135,7 @@
                                             </div>
                                             <span class="text-sm text-neutral-600">{{ $application->score }}/5</span>
                                         @else
-                                            <span class="text-sm text-neutral-500">—</span>
+                                            <span class="text-sm text-neutral-500">{{ __('employer.applications_pipeline.not_available') }}</span>
                                         @endif
                                     </div>
                                 </td>
@@ -151,7 +151,7 @@
                                             <span>{{ $application->interview_at->format('M d') }}</span>
                                         </div>
                                     @else
-                                        <span class="text-neutral-500">—</span>
+                                        <span class="text-neutral-500">{{ __('employer.applications_pipeline.not_available') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -164,13 +164,13 @@
                                             @endif
                                         </div>
                                     @else
-                                        <span class="text-neutral-500">—</span>
+                                        <span class="text-neutral-500">{{ __('employer.applications_pipeline.not_available') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <a href="{{ route('employer.applications.candidate', $application) }}" 
                                        class="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                                        View
+                                        {{ __('employer.applications_pipeline.view') }}
                                     </a>
                                 </td>
                             </tr>
@@ -188,12 +188,12 @@
                 <svg class="w-12 h-12 text-neutral-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <h3 class="text-lg font-semibold text-neutral-900 mb-2">No applications yet</h3>
-                <p class="text-neutral-600 mb-2">You don't have applications matching these filters yet.</p>
-                <p class="text-sm text-neutral-500 mb-6">Publish at least one active listing to open your candidate pipeline, then return here to triage statuses.</p>
+                <h3 class="text-lg font-semibold text-neutral-900 mb-2">{{ __('employer.applications_pipeline.empty_title') }}</h3>
+                <p class="text-neutral-600 mb-2">{{ __('employer.applications_pipeline.empty_description') }}</p>
+                <p class="text-sm text-neutral-500 mb-6">{{ __('employer.applications_pipeline.empty_hint') }}</p>
                 <div class="flex flex-wrap gap-3 justify-center">
-                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">Post a job</a>
-                    <a href="{{ route('employer.applications.pipeline') }}" class="cw-button-secondary">Clear filters</a>
+                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">{{ __('employer.applications_pipeline.post_job') }}</a>
+                    <a href="{{ route('employer.applications.pipeline') }}" class="cw-button-secondary">{{ __('employer.applications_pipeline.clear_filters') }}</a>
                 </div>
             </div>
         @endif

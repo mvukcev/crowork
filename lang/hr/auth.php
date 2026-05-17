@@ -39,7 +39,7 @@ return [
     'logout' => 'Odjavi se',
     'create_account' => 'Kreiraj račun',
     'create_employer_account' => 'Kreiraj racun poslodavca',
-    'forgot_password' => 'Zaboravili ste lozinku?',
+    'forgot_password' => 'Zaboravljena lozinka?',
     'reset_password' => 'Resetiraj lozinku',
     'email_reset_link' => 'Posalji poveznicu za reset',
     'back_to_login' => 'Natrag na prijavu',

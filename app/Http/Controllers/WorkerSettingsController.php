@@ -28,7 +28,7 @@ class WorkerSettingsController extends Controller
             'name' => $validated['name'],
         ]);
 
-        return redirect()->route('worker.settings.edit')->with('success', 'Settings updated successfully.');
+        return redirect()->route('worker.settings.edit')->with('success', __('settings.worker.flash_settings_updated'));
     }
 
     public function updatePassword(Request $request)
@@ -44,7 +44,7 @@ class WorkerSettingsController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return redirect()->route('worker.settings.edit')->with('success', 'Password updated successfully.');
+        return redirect()->route('worker.settings.edit')->with('success', __('settings.worker.flash_password_updated'));
     }
 
     private function ensureWorker(): void

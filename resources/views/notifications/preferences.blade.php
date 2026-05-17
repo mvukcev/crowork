@@ -1,14 +1,14 @@
 <x-app-layout>
-    <x-slot name="title">Notification Preferences</x-slot>
+    <x-slot name="title">{{ __('notifications.preferences.title') }}</x-slot>
 
     <section class="cw-section">
         <div class="cw-container max-w-4xl space-y-5">
             <div class="flex items-center justify-between gap-3">
                 <div>
-                    <p class="cw-kicker mb-2">Notifications</p>
-                    <h1 class="text-2xl font-semibold text-slate-900">Notification Preferences</h1>
+                    <p class="cw-kicker mb-2">{{ __('notifications.preferences.kicker') }}</p>
+                    <h1 class="text-2xl font-semibold text-slate-900">{{ __('notifications.preferences.heading') }}</h1>
                 </div>
-                <a href="{{ route('notifications.index') }}" class="cw-button-secondary">Back to notifications</a>
+                <a href="{{ route('notifications.index') }}" class="cw-button-secondary">{{ __('notifications.preferences.back') }}</a>
             </div>
 
             @if (session('success'))
@@ -31,21 +31,21 @@
                                 <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                                     <input type="hidden" name="preferences[{{ $category }}][email_enabled]" value="0">
                                     <input type="checkbox" name="preferences[{{ $category }}][email_enabled]" value="1" @checked($pref['email_enabled'])>
-                                    Email
+                                    {{ __('notifications.preferences.email') }}
                                 </label>
 
                                 <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                                     <input type="hidden" name="preferences[{{ $category }}][database_enabled]" value="0">
                                     <input type="checkbox" name="preferences[{{ $category }}][database_enabled]" value="1" @checked($pref['database_enabled'])>
-                                    In-app notifications
+                                    {{ __('notifications.preferences.in_app') }}
                                 </label>
 
                                 <label class="text-sm text-slate-700">
-                                    Digest frequency
+                                    {{ __('notifications.preferences.digest_frequency') }}
                                     <select name="preferences[{{ $category }}][digest_frequency]" class="cw-field mt-1">
-                                        <option value="none" @selected($pref['digest_frequency'] === 'none')>None</option>
-                                        <option value="daily" @selected($pref['digest_frequency'] === 'daily')>Daily</option>
-                                        <option value="weekly" @selected($pref['digest_frequency'] === 'weekly')>Weekly</option>
+                                        <option value="none" @selected($pref['digest_frequency'] === 'none')>{{ __('notifications.preferences.none') }}</option>
+                                        <option value="daily" @selected($pref['digest_frequency'] === 'daily')>{{ __('notifications.preferences.daily') }}</option>
+                                        <option value="weekly" @selected($pref['digest_frequency'] === 'weekly')>{{ __('notifications.preferences.weekly') }}</option>
                                     </select>
                                 </label>
                             </div>
@@ -53,8 +53,8 @@
                     @endforeach
 
                     <div class="flex items-center gap-3">
-                        <button type="submit" class="cw-button-primary">Save preferences</button>
-                        <a href="{{ route('notifications.index') }}" class="cw-button-secondary">Cancel</a>
+                        <button type="submit" class="cw-button-primary">{{ __('notifications.preferences.save') }}</button>
+                        <a href="{{ route('notifications.index') }}" class="cw-button-secondary">{{ __('notifications.preferences.cancel') }}</a>
                     </div>
                 </form>
             </div>

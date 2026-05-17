@@ -191,9 +191,12 @@ class WorkerProfileController extends Controller
             'profile_visibility' => ['required', 'in:' . implode(',', array_keys(WorkerProfile::visibilityOptions()))],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'], // 2MB max
         ], [
-            'nationality_country_code.regex' => 'Nationality must be a valid 2-letter country code (e.g. HR, DE, US).',
-            'nationality_country_code.size' => 'Nationality must be exactly 2 characters.',
-            'birth_year.between' => 'Birth year must be between ' . $minBirthYear . ' and ' . $maxBirthYear . ' (must be at least 14 years old).',
+            'nationality_country_code.regex' => __('worker_profile.validation.nationality_regex'),
+            'nationality_country_code.size' => __('worker_profile.validation.nationality_size'),
+            'birth_year.between' => __('worker_profile.validation.birth_year_between', [
+                'min' => $minBirthYear,
+                'max' => $maxBirthYear,
+            ]),
         ]);
 
         $validated['nationality_country_code'] = strtoupper((string) $validated['nationality_country_code']);
@@ -234,7 +237,7 @@ class WorkerProfileController extends Controller
 
         return redirect()
             ->route('worker.profile.edit')
-            ->with('success', 'Profile updated successfully!');
+            ->with('success', __('worker_profile.validation.profile_updated'));
     }
 
     /**
@@ -489,7 +492,7 @@ class WorkerProfileController extends Controller
     private function ensureWorker(): void
     {
         if (!auth()->user()->isWorker()) {
-            abort(403, 'Only workers can access profile management.');
+            abort(403, __('worker_profile.validation.only_workers'));
         }
     }
 
@@ -513,7 +516,7 @@ class WorkerProfileController extends Controller
 
             return redirect()
                 ->route('worker.profile.edit')
-                ->with('success', 'Photo deleted successfully!');
+                ->with('success', __('worker_profile.validation.photo_deleted'));
         }
 
         return redirect()->route('worker.profile.edit');

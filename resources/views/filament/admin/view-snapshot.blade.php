@@ -5,15 +5,7 @@
                 {{ ucwords(str_replace('_', ' ', $key)) }}
             </dt>
             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                @if(is_array($value))
-                    <ul class="list-disc list-inside">
-                        @foreach($value as $item)
-                            <li>{{ $item }}</li>
-                        @endforeach
-                    </ul>
-                @else
-                    {{ $value ?? 'N/A' }}
-                @endif
+                @include('filament.admin.view-snapshot-value', ['value' => $value])
             </dd>
         </div>
     @endforeach

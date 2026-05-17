@@ -30,9 +30,9 @@
                     Read-only mode enabled. Elapsed: <span class="font-semibold" x-text="elapsed"></span>
                 </p>
             </div>
-            <form method="POST" action="{{ route('impersonation.end') }}">
+            <form method="POST" action="{{ route('impersonation.end') }}" x-ref="returnForm">
                 @csrf
-                <button type="submit" class="inline-flex items-center rounded-md bg-amber-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-800">
+                <button type="button" @click.prevent="$refs.returnForm.submit()" class="inline-flex items-center rounded-md bg-amber-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-800">
                     Return to Admin
                 </button>
             </form>

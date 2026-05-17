@@ -33,12 +33,15 @@ class LegalConsentController extends Controller
         $request->validate([
             'accept_terms' => ['accepted'],
             'accept_privacy' => ['accepted'],
+        ], [
+            'accept_terms.accepted' => __('legal_ui.reaccept.validation_terms_required'),
+            'accept_privacy.accepted' => __('legal_ui.reaccept.validation_privacy_required'),
         ]);
 
         $this->consentVersionService->recordLatestTermsAcceptance($user, $request, 'reacceptance');
         $this->consentVersionService->recordLatestPrivacyAcceptance($user, $request, 'reacceptance');
 
         return redirect()->intended(route('dashboard'))
-            ->with('success', 'Legal consents updated successfully.');
+            ->with('success', __('legal_ui.reaccept.flash_updated'));
     }
 }

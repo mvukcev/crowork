@@ -36,5 +36,8 @@ return [
         'confirm_password' => 'Potvrdi lozinku',
         'update_password' => 'Ažuriraj lozinku',
         'edit_profile' => 'Uredi profil radnika',
+        'privacy_data' => 'Privatnost i podaci',
+        'flash_settings_updated' => 'Postavke su uspjesno azurirane.',
+        'flash_password_updated' => 'Lozinka je uspjesno azurirana.',
     ],
 ];

@@ -16,6 +16,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class AnonymizeUserDataJob implements ShouldQueue
 {
@@ -61,17 +62,37 @@ class AnonymizeUserDataJob implements ShouldQueue
             'started_at' => now(),
         ]);
 
-        if (app(LegalHoldService::class)->hasActiveHoldForUser($user->id)) {
+        $legalHold = app(LegalHoldService::class)->activeHoldForTarget(User::class, $user->id, $user->id);
+        if ($legalHold) {
             $log->update([
                 'status' => GdprAnonymizationLog::STATUS_BLOCKED,
                 'completed_at' => now(),
                 'failure_reason' => 'Blocked by active legal hold',
+                'summary_json' => [
+                    'legal_hold_id' => $legalHold->id,
+                    'legal_hold_reason' => $legalHold->reason,
+                    'legal_hold_placed_at' => $legalHold->placed_at?->toIso8601String(),
+                    'legal_hold_placed_by_admin_id' => $legalHold->placed_by_admin_id,
+                ],
             ]);
 
             return;
         }
 
         try {
+            $profile = WorkerProfile::query()
+                ->where('user_id', $user->id)
+                ->first(['id', 'photo_path']);
+
+            $applications = JobApplication::query()
+                ->where('worker_id', $user->id)
+                ->get(['id', 'profile_snapshot']);
+
+            $filePaths = $this->extractUploadPaths(
+                $profile?->photo_path,
+                $applications->pluck('profile_snapshot')->all(),
+            );
+
             DB::transaction(function () use ($user, $deletionRequest): void {
             WorkerProfile::query()
                 ->where('user_id', $user->id)
@@ -92,6 +113,7 @@ class AnonymizeUserDataJob implements ShouldQueue
             JobApplication::query()
                 ->where('worker_id', $user->id)
                 ->update([
+                    'profile_snapshot' => json_encode($this->anonymizedSnapshot(), JSON_UNESCAPED_UNICODE),
                     'message' => null,
                     'internal_note' => null,
                 ]);
@@ -119,6 +141,8 @@ class AnonymizeUserDataJob implements ShouldQueue
             ]);
             });
 
+            $deletedFiles = $this->deleteKnownUploadPaths($filePaths);
+
             $log->update([
                 'status' => GdprAnonymizationLog::STATUS_COMPLETED,
                 'completed_at' => now(),
@@ -126,17 +150,106 @@ class AnonymizeUserDataJob implements ShouldQueue
                     'deletion_request_id' => $deletionRequest->id,
                     'job_applications_scrubbed' => JobApplication::query()->where('worker_id', $user->id)->count(),
                     'comments_scrubbed' => ApplicationComment::query()->where('user_id', $user->id)->count(),
+                    'files_deleted' => $deletedFiles,
                 ],
             ]);
         } catch (\Throwable $exception) {
             $log->update([
                 'status' => GdprAnonymizationLog::STATUS_FAILED,
                 'completed_at' => now(),
-                'failure_reason' => $exception->getMessage(),
+                'failure_reason' => 'Anonymization failed. See application logs for details.',
             ]);
 
             throw $exception;
         }
+    }
+
+    /**
+     * @param array<int, mixed> $snapshots
+     * @return array<int, string>
+     */
+    private function extractUploadPaths(?string $profilePhotoPath, array $snapshots): array
+    {
+        $paths = [];
+
+        if (is_string($profilePhotoPath) && trim($profilePhotoPath) !== '') {
+            $paths[] = $profilePhotoPath;
+        }
+
+        foreach ($snapshots as $snapshot) {
+            if (! is_array($snapshot)) {
+                continue;
+            }
+
+            foreach (['cv_path', 'photo_path'] as $key) {
+                $value = $snapshot[$key] ?? null;
+                if (is_string($value) && trim($value) !== '') {
+                    $paths[] = $value;
+                }
+            }
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * @param array<int, string> $paths
+     */
+    private function deleteKnownUploadPaths(array $paths): int
+    {
+        $deleted = 0;
+
+        foreach ($paths as $path) {
+            if (! $this->isSafeUploadPath($path)) {
+                continue;
+            }
+
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+                $deleted++;
+                continue;
+            }
+
+            if (Storage::disk('local')->exists($path)) {
+                Storage::disk('local')->delete($path);
+                $deleted++;
+            }
+        }
+
+        return $deleted;
+    }
+
+    private function isSafeUploadPath(string $path): bool
+    {
+        $normalized = ltrim($path, '/');
+
+        if (str_contains($normalized, '..')) {
+            return false;
+        }
+
+        foreach (['worker-photos/', 'worker-cv/', 'uploads/cv/', 'applications/cv/'] as $prefix) {
+            if (str_starts_with($normalized, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function anonymizedSnapshot(): array
+    {
+        return [
+            'retained_anonymized' => true,
+            'retention_reason' => 'account_deletion_request',
+            'retention_processed_at' => now()->toIso8601String(),
+            'skills_count' => 0,
+            'languages_count' => 0,
+            'experience_entries_count' => 0,
+            'education_entries_count' => 0,
+        ];
     }
 
     private function profileAnonymizationPayload(): array

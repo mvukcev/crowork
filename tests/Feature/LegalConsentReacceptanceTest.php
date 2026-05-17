@@ -129,6 +129,15 @@ class LegalConsentReacceptanceTest extends TestCase
             ->assertOk();
     }
 
+    public function test_admin_is_exempt_from_legal_reaccept_redirect(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
+        $this->actingAs($admin)
+            ->get(route('filament.admin.pages.dashboard'))
+            ->assertOk();
+    }
+
     public function test_old_consent_records_remain_in_history_after_reacceptance(): void
     {
         $user = User::factory()->create(['role' => User::ROLE_WORKER]);

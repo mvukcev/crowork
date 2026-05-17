@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\User;
 use App\Http\Middleware\AdminAccessMiddleware;
 use App\Http\Middleware\EnsureLatestLegalConsentAccepted;
 use App\Http\Middleware\EnsureAdminPanelSessionIsPrivileged;
@@ -9,6 +10,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -42,6 +44,14 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+            ])
+            ->navigationItems([
+                NavigationItem::make(__('gdpr_admin.menu'))
+                    ->icon('heroicon-o-shield-check')
+                    ->group(__('admin.settings'))
+                    ->sort(80)
+                    ->url(url('/admin/gdpr'))
+                    ->visible(fn (): bool => auth()->check() && auth()->user()?->role === User::ROLE_ADMIN),
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([

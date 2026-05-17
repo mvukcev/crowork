@@ -53,9 +53,9 @@ class WorkerProfile extends Model
     public static function visibilityOptions(): array
     {
         return [
-            self::VISIBILITY_EMPLOYERS => 'Vidljiv poslodavcima koji primaju moje prijave',
-            self::VISIBILITY_ANONYMOUS => 'Anoniman u pogledima poslodavaca',
-            self::VISIBILITY_PRIVATE => 'Privatni profil',
+            self::VISIBILITY_EMPLOYERS => __('worker_privacy.visibility_options.employers'),
+            self::VISIBILITY_ANONYMOUS => __('worker_privacy.visibility_options.anonymous'),
+            self::VISIBILITY_PRIVATE => __('worker_privacy.visibility_options.private'),
         ];
     }
 

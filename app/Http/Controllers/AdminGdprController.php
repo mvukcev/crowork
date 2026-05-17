@@ -7,9 +7,12 @@ use App\Models\GdprAnonymizationLog;
 use App\Models\GdprBreachIncident;
 use App\Models\GdprDataRequest;
 use App\Models\GdprExportLog;
+use App\Models\JobApplication;
 use App\Models\LegalHold;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\WorkerProfile;
+use App\Services\GdprSystemHealthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,6 +21,8 @@ class AdminGdprController extends Controller
 {
     public function index(): View
     {
+        $systemHealth = app(GdprSystemHealthService::class)->summary();
+
         $openDsarStatuses = [
             GdprDataRequest::STATUS_OPEN,
             GdprDataRequest::STATUS_IN_REVIEW,
@@ -73,6 +78,7 @@ class AdminGdprController extends Controller
                 'enabled' => Setting::getBool('enable_retention_automation', false),
                 'dry_run_mode' => Setting::getBool('dry_run_mode', true),
             ],
+            'systemHealth' => $systemHealth,
             'recentEvents' => $recentEvents,
         ]);
     }
@@ -108,7 +114,7 @@ class AdminGdprController extends Controller
 
         GdprDataRequest::query()->create($validated);
 
-        return redirect()->route('admin.gdpr.dsar.index')->with('success', 'DSAR request created.');
+        return redirect()->route('admin.gdpr.dsar.index')->with('success', __('gdpr_admin.flash_dsar_created'));
     }
 
     public function dsarShow(GdprDataRequest $gdprDataRequest): View
@@ -150,7 +156,7 @@ class AdminGdprController extends Controller
             'closed_at' => $validated['status'] === GdprDataRequest::STATUS_CLOSED ? now() : null,
         ]);
 
-        return redirect()->route('admin.gdpr.dsar.show', $gdprDataRequest)->with('success', 'DSAR request updated.');
+        return redirect()->route('admin.gdpr.dsar.show', $gdprDataRequest)->with('success', __('gdpr_admin.flash_dsar_updated'));
     }
 
     public function exportsIndex(Request $request): View
@@ -182,6 +188,14 @@ class AdminGdprController extends Controller
         ]);
     }
 
+    public function anonymizationShow(GdprAnonymizationLog $gdprAnonymizationLog): View
+    {
+        return view('admin.gdpr.anonymization-show', [
+            'log' => $gdprAnonymizationLog,
+            'verification' => $this->anonymizationVerification($gdprAnonymizationLog),
+        ]);
+    }
+
     public function legalHoldsIndex(): View
     {
         return view('admin.gdpr.legal-holds-index', [
@@ -210,7 +224,7 @@ class AdminGdprController extends Controller
 
         if (empty($validated['user_id']) && (empty($validated['target_type']) || empty($validated['target_id']))) {
             return back()->withErrors([
-                'user_id' => 'Provide user_id or target_type + target_id for a legal hold.',
+                'user_id' => __('gdpr_admin.error_legal_hold_scope_required'),
             ])->withInput();
         }
 
@@ -221,13 +235,13 @@ class AdminGdprController extends Controller
             'placed_at' => now(),
         ]);
 
-        return redirect()->route('admin.gdpr.legal-holds.index')->with('success', 'Legal hold placed.');
+        return redirect()->route('admin.gdpr.legal-holds.index')->with('success', __('gdpr_admin.flash_legal_hold_placed'));
     }
 
     public function legalHoldsRelease(Request $request, LegalHold $legalHold): RedirectResponse
     {
         if ($legalHold->status !== LegalHold::STATUS_ACTIVE) {
-            return redirect()->route('admin.gdpr.legal-holds.index')->with('success', 'Legal hold is already released.');
+            return redirect()->route('admin.gdpr.legal-holds.index')->with('success', __('gdpr_admin.flash_legal_hold_already_released'));
         }
 
         $legalHold->update([
@@ -236,7 +250,7 @@ class AdminGdprController extends Controller
             'released_at' => now(),
         ]);
 
-        return redirect()->route('admin.gdpr.legal-holds.index')->with('success', 'Legal hold released.');
+        return redirect()->route('admin.gdpr.legal-holds.index')->with('success', __('gdpr_admin.flash_legal_hold_released'));
     }
 
     public function breachIncidentsIndex(Request $request): View
@@ -280,7 +294,7 @@ class AdminGdprController extends Controller
             'resolved_at' => in_array($validated['status'], [GdprBreachIncident::STATUS_RESOLVED, GdprBreachIncident::STATUS_CLOSED], true) ? now() : null,
         ]);
 
-        return redirect()->route('admin.gdpr.breaches.index')->with('success', 'Breach incident created.');
+        return redirect()->route('admin.gdpr.breaches.index')->with('success', __('gdpr_admin.flash_breach_created'));
     }
 
     public function breachIncidentsShow(GdprBreachIncident $gdprBreachIncident): View
@@ -314,7 +328,7 @@ class AdminGdprController extends Controller
             'resolved_at' => in_array($validated['status'], [GdprBreachIncident::STATUS_RESOLVED, GdprBreachIncident::STATUS_CLOSED], true) ? ($gdprBreachIncident->resolved_at ?: now()) : null,
         ]);
 
-        return redirect()->route('admin.gdpr.breaches.show', $gdprBreachIncident)->with('success', 'Breach incident updated.');
+        return redirect()->route('admin.gdpr.breaches.show', $gdprBreachIncident)->with('success', __('gdpr_admin.flash_breach_updated'));
     }
 
     /**
@@ -331,5 +345,52 @@ class AdminGdprController extends Controller
             ->filter(fn (string $part): bool => $part !== '')
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function anonymizationVerification(GdprAnonymizationLog $log): array
+    {
+        if ($log->target_type === User::class) {
+            $userId = (int) $log->target_id;
+            $user = User::withTrashed()->find($userId);
+            $profile = WorkerProfile::query()->where('user_id', $userId)->first(['photo_path', 'first_name', 'last_name']);
+            $applications = JobApplication::query()->where('worker_id', $userId)->get(['profile_snapshot']);
+
+            $snapshotFileRefs = $applications
+                ->map(fn (JobApplication $application): array => [
+                    'cv_path' => data_get($application->profile_snapshot, 'cv_path'),
+                    'photo_path' => data_get($application->profile_snapshot, 'photo_path'),
+                ])
+                ->filter(fn (array $entry): bool => filled($entry['cv_path']) || filled($entry['photo_path']))
+                ->values();
+
+            return [
+                'target_exists' => $user !== null,
+                'profile_photo_path' => $profile?->photo_path,
+                'profile_name_fields_present' => filled($profile?->first_name) || filled($profile?->last_name),
+                'application_snapshot_file_refs_count' => $snapshotFileRefs->count(),
+                'application_snapshot_file_refs' => $snapshotFileRefs->take(20)->all(),
+            ];
+        }
+
+        if ($log->target_type === JobApplication::class) {
+            $application = JobApplication::query()->find((int) $log->target_id);
+            $snapshot = is_array($application?->profile_snapshot) ? $application->profile_snapshot : [];
+
+            return [
+                'target_exists' => $application !== null,
+                'retained_anonymized' => (bool) ($snapshot['retained_anonymized'] ?? false),
+                'snapshot_identifiers_present' => collect(['first_name', 'last_name', 'photo_path', 'cv_path'])
+                    ->contains(fn (string $key): bool => filled($snapshot[$key] ?? null)),
+                'snapshot_keys' => array_slice(array_keys($snapshot), 0, 40),
+            ];
+        }
+
+        return [
+            'target_exists' => null,
+            'note' => 'No verifier available for target type: ' . $log->target_type,
+        ];
     }
 }

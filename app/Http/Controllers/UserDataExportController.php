@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GdprExportLog;
+use App\Services\LegalHoldService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,11 @@ use Illuminate\Support\Facades\Storage;
 
 class UserDataExportController extends Controller
 {
+    public function __construct(
+        private readonly LegalHoldService $legalHoldService,
+    ) {
+    }
+
     public function export(Request $request)
     {
         $user = $request->user();
@@ -24,6 +30,26 @@ class UserDataExportController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
         ]);
+
+        $legalHold = $this->legalHoldService->activeHoldForTarget(
+            UserDataExportController::class,
+            $user->id,
+            $user->id,
+        );
+
+        if ($legalHold) {
+            $exportLog->update([
+                'status' => GdprExportLog::STATUS_FAILED,
+                'failure_reason' => sprintf(
+                    'Blocked by legal hold #%d (%s, placed %s).',
+                    $legalHold->id,
+                    $legalHold->reason,
+                    $legalHold->placed_at?->toDateTimeString() ?? 'unknown time',
+                ),
+            ]);
+
+            return back()->with('error', 'Data export is temporarily blocked due to an active legal hold.');
+        }
 
         try {
 
@@ -105,11 +131,11 @@ class UserDataExportController extends Controller
                 'expires_at' => now()->addDays(7),
             ]);
 
-            return response()->download(storage_path('app/' . $fileName))->deleteFileAfterSend(true);
+            return response()->download(storage_path('app/' . $fileName));
         } catch (\Throwable $exception) {
             $exportLog->update([
                 'status' => GdprExportLog::STATUS_FAILED,
-                'failure_reason' => $exception->getMessage(),
+                'failure_reason' => 'Export failed. See application logs for details.',
             ]);
 
             throw $exception;
