@@ -1,10 +1,16 @@
 @props([
-    'title' => 'No results found',
-    'description' => 'Try adjusting your filters or search criteria.',
+    'title' => null,
+    'description' => null,
     'icon' => 'search',
     'actionHref' => null,
-    'actionLabel' => 'Go back',
+    'actionLabel' => null,
 ])
+
+@php
+    $title = $title ?? __('common.no_results_found');
+    $description = $description ?? __('common.adjust_filters_or_search');
+    $actionLabel = $actionLabel ?? __('common.go_back');
+@endphp
 
 <div class="cw-empty-state">
     @if($icon === 'search')

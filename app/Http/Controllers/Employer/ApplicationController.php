@@ -8,6 +8,7 @@ use App\Models\Job;
 use App\Models\JobApplication;
 use App\Notifications\JobApplicationStatusChanged;
 use App\Services\ApplicationVisibilityService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Storage;
@@ -364,25 +365,29 @@ class ApplicationController extends Controller
         
         $validated = $request->validate([
             'company_name' => ['nullable', 'string', 'max:255'],
+            'company_display_name' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:120'],
             'industry' => ['nullable', 'string', 'max:100'],
             'website' => ['nullable', 'url', 'max:255'],
+            'contact_email' => ['nullable', 'email:rfc,dns', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:60'],
+            'company_address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048', 'dimensions:min_width=100,min_height=100'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:8192', 'dimensions:ratio=1/1,min_width=180,min_height=180'],
             'relocation_support' => ['boolean'],
             'accommodation_support' => ['boolean'],
         ]);
+
+        $validated['relocation_support'] = $request->boolean('relocation_support');
+        $validated['accommodation_support'] = $request->boolean('accommodation_support');
 
         if ($request->hasFile('logo')) {
             if ($employer->logo_path) {
                 Storage::disk('public')->delete($employer->logo_path);
             }
 
-            // Store with safe filename to prevent path traversal
-            $logoFile = $request->file('logo');
-            $filename = $employer->id . '_' . time() . '.' . $logoFile->getClientOriginalExtension();
-            $validated['logo_path'] = $logoFile->storeAs('company-logos', $filename, 'public');
+            $validated['logo_path'] = $this->storeProcessedLogo($request->file('logo'), $employer->id);
         }
 
         unset($validated['logo']);
@@ -400,10 +405,14 @@ class ApplicationController extends Controller
     {
         $fields = [
             'company_name' => 'Company Name',
+            'company_display_name' => 'Company Display Name',
             'city' => 'City',
             'country' => 'Country',
             'industry' => 'Industry',
             'website' => 'Website',
+            'contact_email' => 'Contact Email',
+            'contact_phone' => 'Contact Phone',
+            'company_address' => 'Company Address',
             'description' => 'Description',
             'logo_path' => 'Logo',
         ];
@@ -416,5 +425,69 @@ class ApplicationController extends Controller
         }
 
         return $missing;
+    }
+
+    private function storeProcessedLogo(UploadedFile $logoFile, int $employerId): string
+    {
+        $extension = strtolower((string) $logoFile->getClientOriginalExtension());
+        $extension = in_array($extension, ['jpg', 'jpeg', 'png'], true) ? $extension : 'jpg';
+
+        $relativePath = 'company-logos/' . $employerId . '_' . time() . '.' . $extension;
+        $absolutePath = Storage::disk('public')->path($relativePath);
+
+        $directory = dirname($absolutePath);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        if (!function_exists('imagecreatefromstring') || !function_exists('imagecreatetruecolor') || !function_exists('imagecopyresampled')) {
+            $storedPath = $logoFile->storeAs('company-logos', basename($relativePath), 'public');
+            return (string) $storedPath;
+        }
+
+        $raw = @file_get_contents($logoFile->getRealPath());
+        $source = $raw ? @imagecreatefromstring($raw) : false;
+
+        if (!$source) {
+            $storedPath = $logoFile->storeAs('company-logos', basename($relativePath), 'public');
+            return (string) $storedPath;
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $cropSize = min($width, $height);
+        $cropX = (int) floor(($width - $cropSize) / 2);
+        $cropY = (int) floor(($height - $cropSize) / 2);
+        $targetSize = min($cropSize, 1024);
+
+        $canvas = imagecreatetruecolor($targetSize, $targetSize);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+        imagefill($canvas, 0, 0, $transparent);
+
+        imagecopyresampled(
+            $canvas,
+            $source,
+            0,
+            0,
+            $cropX,
+            $cropY,
+            $targetSize,
+            $targetSize,
+            $cropSize,
+            $cropSize
+        );
+
+        if ($extension === 'png') {
+            imagepng($canvas, $absolutePath, 8);
+        } else {
+            imagejpeg($canvas, $absolutePath, 84);
+        }
+
+        imagedestroy($canvas);
+        imagedestroy($source);
+
+        return $relativePath;
     }
 }

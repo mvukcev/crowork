@@ -82,8 +82,13 @@
                             <tr class="hover:bg-neutral-50 transition">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
-                                        @if($profile['photo_path'] ?? null)
-                                            <img src="{{ asset('storage/' . $profile['photo_path']) }}" 
+                                        @php
+                                            $candidatePhotoUrl = $profile['photo_url'] ?? (($profile['photo_path'] ?? null)
+                                                ? route('worker.profile.photo.show', ['path' => $profile['photo_path']])
+                                                : null);
+                                        @endphp
+                                        @if($candidatePhotoUrl)
+                                            <img src="{{ $candidatePhotoUrl }}" 
                                                  alt="{{ $candidateName }}" 
                                                  class="w-10 h-10 rounded-full object-cover">
                                         @else

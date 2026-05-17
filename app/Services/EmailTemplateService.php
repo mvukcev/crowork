@@ -80,6 +80,15 @@ class EmailTemplateService
         $definitions = self::definitions();
         $default = Arr::get($definitions, $key);
 
+        if ($key === 'verification_code' && is_array($default)) {
+            $default['subject'] = trans('emails.verification_code_subject', locale: $locale);
+            $default['body'] = implode("\n\n", [
+                trans('emails.verification_code_greeting', ['name' => '{{name}}'], locale: $locale),
+                trans('emails.verification_code_body', ['code' => '{{code}}'], locale: $locale),
+                trans('emails.verification_code_fallback', locale: $locale),
+            ]);
+        }
+
         if (! is_array($default)) {
             return [
                 'key' => $key,

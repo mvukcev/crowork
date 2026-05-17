@@ -36,29 +36,7 @@
 
     <x-theme-init />
 
-    @php
-        $organizationSchema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Organization',
-            'name' => config('app.name', 'CroWork'),
-            'url' => url('/'),
-            'logo' => asset('assets/branding/CW-Logo-Dark.png'),
-        ];
-
-        $websiteSchema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'WebSite',
-            'name' => config('app.name', 'CroWork'),
-            'url' => url('/'),
-            'potentialAction' => [
-                '@type' => 'SearchAction',
-                'target' => url('/jobs').'?q={search_term_string}',
-                'query-input' => 'required name=search_term_string',
-            ],
-        ];
-    @endphp
-    <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
-    <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    {{-- No slot or variable output before body! --}}
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -196,25 +174,22 @@ x-data>
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
                     >
                     <span class="hidden text-lg font-semibold text-slate-900">CroWork</span>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.08em] text-slate-500 mb-0">Migration platform</p>
-                    </div>
                 </a>
                 <div class="flex flex-wrap items-center gap-4 md:gap-5">
-                    <a href="{{ route('jobs.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">Jobs</a>
-                    <a href="{{ route('educations.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">Educations</a>
-                    <a href="{{ route('resources.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">Resources</a>
-                    <a href="{{ route('resources.show', 'work-permits') }}" class="cw-footer-link">Work Permits</a>
-                    <a href="{{ route('resources.show', 'faq-foreign-workers') }}" class="cw-footer-link">Worker FAQ</a>
-                    <a href="{{ route('for-employers') }}" class="cw-footer-link" data-cw-track-click="navigation_click">For Employers</a>
-                    <a href="{{ route('about') }}" class="cw-footer-link" data-cw-track-click="navigation_click">About</a>
-                    <a href="{{ route('privacy') }}" class="cw-footer-link">Privacy</a>
-                    <a href="{{ route('terms') }}" class="cw-footer-link">Terms</a>
+                    <a href="{{ route('jobs.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">{{ __('navigation.jobs') }}</a>
+                    <a href="{{ route('educations.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">{{ __('navigation.educations') }}</a>
+                    <a href="{{ route('resources.index') }}" class="cw-footer-link" data-cw-track-click="navigation_click">{{ __('navigation.resources') }}</a>
+                    <a href="{{ route('resources.show', 'work-permits') }}" class="cw-footer-link">{{ __('footer.work_permits') }}</a>
+                    <a href="{{ route('resources.show', 'faq-foreign-workers') }}" class="cw-footer-link">{{ __('footer.worker_faq') }}</a>
+                    <a href="{{ route('for-employers') }}" class="cw-footer-link" data-cw-track-click="navigation_click">{{ __('navigation.for_employers') }}</a>
+                    <a href="{{ route('about') }}" class="cw-footer-link" data-cw-track-click="navigation_click">{{ __('navigation.about') }}</a>
+                    <a href="{{ route('privacy') }}" class="cw-footer-link">{{ __('footer.privacy') }}</a>
+                    <a href="{{ route('terms') }}" class="cw-footer-link">{{ __('footer.terms') }}</a>
                 </div>
             </div>
             <div class="pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <p class="text-sm text-slate-500 mb-0">© {{ date('Y') }} CroWork. All rights reserved.</p>
-                <p class="text-xs uppercase tracking-[0.08em] text-slate-500 mb-0">Clear paths for work in Croatia</p>
+                <p class="text-sm text-slate-500 mb-0">{{ __('footer.copyright', ['year' => date('Y')]) }}</p>
+                <p class="text-xs uppercase tracking-[0.08em] text-slate-500 mb-0">{{ __('footer.slogan') }}</p>
             </div>
         </div>
     </footer>
@@ -222,14 +197,13 @@ x-data>
     <section class="cw-cookie-banner cw-soft-reveal" data-cw-cookie-banner hidden>
         <div class="cw-cookie-inner">
             <p class="cw-cookie-text">
-                We use cookies to improve your CroWork experience.
-                Read our
-                <a href="{{ route('cookies') }}" class="font-medium text-slate-900 underline">Cookie Statement</a>
-                and choose which cookies you would like to accept.
+                {!! __('footer.cookie.text', [
+                    'link' => '<a href="' . route('cookies') . '" class="font-medium text-slate-900 underline">' . __('footer.cookie.link_label') . '</a>',
+                ]) !!}
             </p>
             <div class="cw-cookie-actions">
-                <button type="button" class="cw-button-secondary" data-cw-cookie-choice="required">Required only</button>
-                <button type="button" class="cw-button-primary" data-cw-cookie-choice="all">Allow all</button>
+                <button type="button" class="cw-button-secondary" data-cw-cookie-choice="required">{{ __('footer.cookie.required_only') }}</button>
+                <button type="button" class="cw-button-primary" data-cw-cookie-choice="all">{{ __('footer.cookie.allow_all') }}</button>
             </div>
         </div>
     </section>

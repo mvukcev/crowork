@@ -10,7 +10,7 @@
             type="button"
             class="cw-header-icon-button cw-nav-control relative"
             data-cw-track-click="notification_open"
-            aria-label="Notifications"
+            aria-label="{{ __('notifications.notification_center') }}"
             aria-expanded="false"
             aria-controls="cw-header-notification-menu"
             data-cw-dropdown-trigger="cw-header-notification-menu"
@@ -32,8 +32,8 @@
             class="cw-dropdown-panel absolute right-0 mt-2 z-[130] w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden max-md:fixed max-md:left-4 max-md:right-4 max-md:top-16 max-md:mt-0"
         >
             <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                <p class="text-sm font-semibold text-slate-900">Notifications</p>
-                <a href="{{ route('notifications.index') }}" class="text-xs text-slate-600 hover:text-slate-900" data-cw-track-click="notification_open">View all</a>
+                <p class="text-sm font-semibold text-slate-900">{{ __('notifications.notification_center') }}</p>
+                <a href="{{ route('notifications.index') }}" class="text-xs text-slate-600 hover:text-slate-900" data-cw-track-click="notification_open">{{ __('notifications.view_all') }}</a>
             </div>
 
             @if($notificationItems->isEmpty())
@@ -41,7 +41,7 @@
                     <svg class="mx-auto h-6 w-6 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.41-1.41a2 2 0 0 1-.59-1.42V11a6 6 0 1 0-12 0v3.17a2 2 0 0 1-.59 1.42L4 17h5"></path>
                     </svg>
-                    <p class="text-sm text-slate-600">You're all caught up! No new notifications.</p>
+                    <p class="text-sm text-slate-600">{{ __('notifications.no_notifications') }}</p>
                 </div>
             @else
                 <div class="max-h-96 overflow-auto divide-y divide-slate-100">
@@ -49,14 +49,14 @@
                         @php
                             $payload = $notification->data;
                             $title = $payload['title'] ?? class_basename($notification->type);
-                            $message = $payload['message'] ?? 'You have a new notification.';
+                            $message = $payload['message'] ?? __('notifications.new');
                             $importance = $payload['importance'] ?? 'normal';
                         @endphp
                         <a href="{{ route('notifications.open', $notification->id) }}" class="block px-4 py-3 hover:bg-slate-50 {{ $notification->read_at ? '' : 'bg-blue-50/40' }}" data-cw-track-click="notification_open">
                             <div class="flex items-center justify-between gap-2 mb-1">
                                 <p class="text-sm font-semibold text-slate-900 truncate">{{ $title }}</p>
                                 @if($importance === 'high')
-                                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Important</span>
+                                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">{{ __('notifications.important') }}</span>
                                 @endif
                             </div>
                             <p class="text-xs text-slate-600 line-clamp-2">{{ $message }}</p>
@@ -69,9 +69,9 @@
             <div class="p-3 border-t border-slate-100 flex items-center justify-between">
                 <form method="POST" action="{{ route('notifications.read-all') }}" data-cw-track-submit="notification_mark_all_read">
                     @csrf
-                    <button type="submit" class="text-xs text-slate-600 hover:text-slate-900">Mark all as read</button>
+                    <button type="submit" class="text-xs text-slate-600 hover:text-slate-900">{{ __('notifications.mark_all_read') }}</button>
                 </form>
-                <a href="{{ route('notifications.index', ['filter' => 'unread']) }}" class="text-xs text-slate-600 hover:text-slate-900">Unread only</a>
+                <a href="{{ route('notifications.index', ['filter' => 'unread']) }}" class="text-xs text-slate-600 hover:text-slate-900">{{ __('notifications.unread_only') }}</a>
             </div>
         </div>
     </div>

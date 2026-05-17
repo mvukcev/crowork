@@ -102,4 +102,18 @@ return [
     'uploaded' => ':attribute nije uspješno učitan.',
     'url' => ':attribute format nije ispravan.',
     'uuid' => ':attribute mora biti ispravan UUID.',
+    'current_password' => 'Lozinka nije ispravna.',
+
+    'attributes' => [
+        'email' => 'e-mail adresa',
+        'password' => 'lozinka',
+        'password_confirmation' => 'potvrda lozinke',
+        'current_password' => 'trenutna lozinka',
+        'name' => 'ime',
+        'full_name' => 'puno ime',
+        'company_name' => 'naziv tvrtke',
+        'contact_name' => 'ime kontakt osobe',
+        'verification_code' => 'verifikacijski kod',
+        'code' => 'verifikacijski kod',
+    ],
 ];

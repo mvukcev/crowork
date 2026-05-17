@@ -1,5 +1,17 @@
+@php
+    $serverThemePreference = session('theme');
+    if (! in_array($serverThemePreference, ['light', 'dark', 'system'], true)) {
+        $serverThemePreference = request()->cookie('cw_theme');
+    }
+    if (! in_array($serverThemePreference, ['light', 'dark', 'system'], true)) {
+        $serverThemePreference = 'system';
+    }
+@endphp
+
 <script>
     (function () {
+        var serverPreference = @json($serverThemePreference);
+
         var key = 'cw-theme';
         var legacyKey = 'cw_theme_preference';
         var filamentKey = 'theme';
@@ -17,9 +29,13 @@
             legacyStored = null;
         }
 
-        var preference = allowed[stored]
-            ? stored
-            : (allowed[legacyStored] ? legacyStored : (allowed[cookieValue] ? cookieValue : 'system'));
+        var preference = allowed[serverPreference]
+            ? serverPreference
+            : (allowed[stored]
+                ? stored
+                : (allowed[legacyStored]
+                    ? legacyStored
+                    : (allowed[cookieValue] ? cookieValue : 'system')));
         var isDarkSystem = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         var resolved = preference === 'system' ? (isDarkSystem ? 'dark' : 'light') : preference;
         var root = document.documentElement;

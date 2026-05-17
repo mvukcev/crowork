@@ -16,4 +16,11 @@ return [
     'profile' => 'Profile',
     'company_profile' => 'Company Profile',
     'applications' => 'Applications',
+    'get_started' => 'Get started',
+    'account_settings' => 'Account settings',
+    'my_jobs' => 'My jobs',
+    'my_applications' => 'My applications',
+    'saved_jobs' => 'Saved jobs',
+    'work_applications' => 'Work & Applications',
+    'account' => 'Account',
 ];

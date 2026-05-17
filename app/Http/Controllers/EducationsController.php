@@ -24,7 +24,9 @@ class EducationsController extends Controller
             'city' => $request->input('city'),
             'is_online' => $request->input('is_online'),
             'start_from' => $request->input('start_from'),
+            'price_min' => $request->input('price_min'),
             'price_max' => $request->input('price_max'),
+            'topics' => $request->input('topics', []),
         ];
 
         return view('educations.index', compact('educations', 'cities', 'filters'));
@@ -92,6 +94,16 @@ class EducationsController extends Controller
             $query->where('start_date', '>=', $request->input('start_from'));
         }
 
+        // Filter by minimum price (in cents)
+        if ($request->filled('price_min')) {
+            $priceMinEuros = (int) $request->input('price_min');
+            $priceMinCents = $priceMinEuros * 100;
+            $query->where(function($q) use ($priceMinCents) {
+                $q->whereNull('price_cents')
+                  ->orWhere('price_cents', '>=', $priceMinCents);
+            });
+        }
+
         // Filter by maximum price (in cents)
         if ($request->filled('price_max')) {
             $priceMaxEuros = (int) $request->input('price_max');
@@ -99,6 +111,38 @@ class EducationsController extends Controller
             $query->where(function($q) use ($priceMaxCents) {
                 $q->whereNull('price_cents')
                   ->orWhere('price_cents', '<=', $priceMaxCents);
+            });
+        }
+
+        $topics = collect($request->input('topics', []))
+            ->filter(fn ($topic) => is_string($topic) && $topic !== '')
+            ->values();
+
+        if ($topics->isNotEmpty()) {
+            $topicTermMap = [
+                'certificate' => ['certificate', 'certifikat'],
+                'beginner' => ['beginner', 'početnik', 'osnove'],
+                'career' => ['career', 'karijera', 'growth', 'razvoj'],
+                'language' => ['language', 'jezik'],
+                'integration' => ['integration', 'onboarding', 'inkluzija', 'integracija'],
+                'croatian' => ['croatian', 'hrvatski'],
+                'skills' => ['skills', 'vještine', 'professional'],
+            ];
+
+            $query->where(function ($outer) use ($topics, $topicTermMap) {
+                foreach ($topics as $topic) {
+                    $terms = $topicTermMap[$topic] ?? [];
+                    if (empty($terms)) {
+                        continue;
+                    }
+
+                    $outer->where(function ($inner) use ($terms) {
+                        foreach ($terms as $term) {
+                            $inner->orWhere('title', 'like', '%' . $term . '%')
+                                  ->orWhere('description', 'like', '%' . $term . '%');
+                        }
+                    });
+                }
             });
         }
 

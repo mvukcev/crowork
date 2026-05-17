@@ -21,8 +21,10 @@ class VerificationCodeMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $fallbackName = trans('emails.recipient_fallback', locale: $this->mailLocale ?? app()->getLocale());
+
         $rendered = app(EmailTemplateService::class)->render('verification_code', $this->mailLocale, [
-            'name' => $this->name ?: 'there',
+            'name' => $this->name ?: $fallbackName,
             'code' => $this->code,
         ]);
 
@@ -33,8 +35,10 @@ class VerificationCodeMail extends Mailable
 
     public function content(): Content
     {
+        $fallbackName = trans('emails.recipient_fallback', locale: $this->mailLocale ?? app()->getLocale());
+
         $rendered = app(EmailTemplateService::class)->render('verification_code', $this->mailLocale, [
-            'name' => $this->name ?: 'there',
+            'name' => $this->name ?: $fallbackName,
             'code' => $this->code,
         ]);
 

@@ -7,20 +7,20 @@
         <div class="cw-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
                 <p class="text-sm">
-                    We use cookies to enhance your experience. By continuing, you consent to our use of cookies.
+                    {{ __('footer.cookie.text', ['link' => __('footer.cookie.link_label')]) }}
                     @if(ConsentConfigService::getCookieStatementUrl())
                         <a href="{{ ConsentConfigService::getCookieStatementUrl() }}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white/80">
-                            Learn more
+                            {{ __('footer.cookie.link_label') }}
                         </a>
                     @endif
                 </p>
             </div>
             <div class="flex gap-2 flex-shrink-0">
                 <button id="cookie-reject" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded text-sm whitespace-nowrap border border-white/20">
-                    Reject
+                    {{ __('footer.cookie.required_only') }}
                 </button>
                 <button id="cookie-accept" class="px-4 py-2 bg-[rgb(255,85,0)] hover:bg-[rgb(232,78,0)] rounded text-sm whitespace-nowrap font-semibold">
-                    Accept All
+                    {{ __('footer.cookie.allow_all') }}
                 </button>
             </div>
         </div>

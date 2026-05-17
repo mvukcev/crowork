@@ -50,9 +50,9 @@ class WorkerProfile extends Model
     public static function visibilityOptions(): array
     {
         return [
-            self::VISIBILITY_EMPLOYERS => 'Visible to employers who receive my applications',
-            self::VISIBILITY_ANONYMOUS => 'Anonymous in employer views',
-            self::VISIBILITY_PRIVATE => 'Private profile',
+            self::VISIBILITY_EMPLOYERS => 'Vidljiv poslodavcima koji primaju moje prijave',
+            self::VISIBILITY_ANONYMOUS => 'Anoniman u pogledima poslodavaca',
+            self::VISIBILITY_PRIVATE => 'Privatni profil',
         ];
     }
 
@@ -91,19 +91,19 @@ class WorkerProfile extends Model
     public function missingFieldChecklist(): array
     {
         $labels = [
-            'first_name' => 'First name',
-            'last_name' => 'Last name',
-            'nationality_country_code' => 'Nationality',
-            'current_country' => 'Current country',
-            'current_city' => 'Current city',
-            'desired_city' => 'Desired city in Croatia',
-            'availability_date' => 'Availability date',
-            'languages' => 'Languages with levels',
-            'skills' => 'Skills',
-            'education_summary' => 'Education summary',
-            'work_experience' => 'Work experience',
-            'desired_roles' => 'Desired roles/categories',
-            'professional_summary' => 'Professional summary',
+            'first_name' => 'Ime',
+            'last_name' => 'Prezime',
+            'nationality_country_code' => 'Nacionalnost',
+            'current_country' => 'Trenutna država',
+            'current_city' => 'Trenutni grad',
+            'desired_city' => 'Željeni grad u Hrvatskoj',
+            'availability_date' => 'Datum dostupnosti',
+            'languages' => 'Jezici sa razinama',
+            'skills' => 'Vještine',
+            'education_summary' => 'Sažetak obrazovanja',
+            'work_experience' => 'Radno iskustvo',
+            'desired_roles' => 'Željene uloge/kategorije',
+            'professional_summary' => 'Stručna sažetak',
         ];
 
         $missing = [];
@@ -176,6 +176,16 @@ class WorkerProfile extends Model
             'recommendations' => $this->recommendations,
             'profile_visibility' => $this->profile_visibility,
             'photo_path' => $this->photo_path,
+            'photo_url' => $this->photoUrl(),
         ];
+    }
+
+    public function photoUrl(): ?string
+    {
+        if (!$this->photo_path) {
+            return null;
+        }
+
+        return route('worker.profile.photo.show', ['path' => $this->photo_path]);
     }
 }

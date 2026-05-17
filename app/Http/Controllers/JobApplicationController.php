@@ -21,12 +21,12 @@ class JobApplicationController extends Controller
     {
         // Authorization check: Only workers can apply
         if (Auth::user()->role !== 'worker') {
-            abort(403, 'Only workers can apply to jobs.');
+            abort(403, __('ui.jobs_apply.error_only_workers'));
         }
 
         // Ensure job is published and active
         if ($job->status !== 'published' || ($job->expires_at && $job->expires_at->isPast())) {
-            abort(404, 'This job is no longer available.');
+            abort(404, __('ui.jobs_apply.error_no_longer_available'));
         }
 
         // Load employer relationship for job details
@@ -39,7 +39,7 @@ class JobApplicationController extends Controller
         if (!$profile || !$this->isProfileComplete($profile)) {
             return redirect()
                 ->route('worker.profile.edit')
-                ->with('warning', 'Please complete your profile before applying to jobs.');
+                ->with('warning', __('ui.jobs_apply.flash_complete_profile'));
         }
 
         // Check if worker already applied
@@ -69,14 +69,14 @@ class JobApplicationController extends Controller
     {
         // Authorization check: Only workers can apply
         if (Auth::user()->role !== 'worker') {
-            abort(403, 'Only workers can apply to jobs.');
+            abort(403, __('ui.jobs_apply.error_only_workers'));
         }
 
         // Ensure job is still published and active
         if ($job->status !== 'published' || ($job->expires_at && $job->expires_at->isPast())) {
             return redirect()
                 ->route('jobs.show', $job->slug)
-                ->with('error', 'This job is no longer available.');
+                ->with('error', __('ui.jobs_apply.error_no_longer_available'));
         }
 
         // Get worker's profile
@@ -86,7 +86,7 @@ class JobApplicationController extends Controller
         if (!$profile || !$this->isProfileComplete($profile)) {
             return redirect()
                 ->route('worker.profile.edit')
-                ->with('warning', 'Please complete your profile before applying to jobs.');
+                ->with('warning', __('ui.jobs_apply.flash_complete_profile'));
         }
 
         // Check for duplicate application
@@ -97,7 +97,7 @@ class JobApplicationController extends Controller
         if ($existingApplication) {
             return redirect()
                 ->route('jobs.apply', $job->slug)
-                ->with('info', 'You have already applied to this job.');
+                ->with('info', __('ui.jobs_apply.flash_already_applied'));
         }
 
         // Validate request
@@ -124,7 +124,7 @@ class JobApplicationController extends Controller
         // Redirect to job detail with success message
         return redirect()
             ->route('jobs.show', $job->slug)
-            ->with('success', 'Your application has been submitted successfully! The employer will review your profile and contact you if you are a good fit.');
+            ->with('success', __('ui.jobs_apply.flash_submitted_success'));
     }
 
     /**

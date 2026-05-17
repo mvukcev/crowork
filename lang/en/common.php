@@ -27,4 +27,9 @@ return [
     'success' => 'Success',
     'warning' => 'Warning',
     'info' => 'Info',
+    'no_results_found' => 'No results found',
+    'adjust_filters_or_search' => 'Try adjusting your filters or search criteria.',
+    'go_back' => 'Go back',
+    'coming_soon_title' => 'Coming Soon',
+    'coming_soon_description' => 'This feature is being prepared and will be available soon.',
 ];

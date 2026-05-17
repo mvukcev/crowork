@@ -97,7 +97,7 @@ class PagesController extends Controller
 
     private function resourcePages(): array
     {
-        return [
+        $resources = [
             'work-permits' => [
                 'slug' => 'work-permits',
                 'title' => 'Work permits in Croatia',
@@ -303,5 +303,17 @@ class PagesController extends Controller
                 ],
             ],
         ];
+
+        $localizedGuides = __('resources.guides');
+
+        if (is_array($localizedGuides)) {
+            foreach ($resources as $slug => $resource) {
+                if (isset($localizedGuides[$slug]) && is_array($localizedGuides[$slug])) {
+                    $resources[$slug] = array_replace_recursive($resource, $localizedGuides[$slug]);
+                }
+            }
+        }
+
+        return $resources;
     }
 }

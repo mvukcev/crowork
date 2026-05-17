@@ -60,6 +60,14 @@ class WorkerProfileController extends Controller
         return view('worker.profile-preview', compact('profile', 'completeness', 'missingChecklist'));
     }
 
+    public function showPhoto(string $path)
+    {
+        abort_unless(str_starts_with($path, 'worker-photos/'), 404);
+        abort_unless(Storage::disk('public')->exists($path), 404);
+
+        return Storage::disk('public')->response($path);
+    }
+
     /**
      * Update the profile
      */

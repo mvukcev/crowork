@@ -39,17 +39,70 @@
                     @csrf
                     @method('PATCH')
 
-                    <div>
-                        <label class="cw-label">Logo</label>
-                        <input type="file" name="logo" accept="image/*" class="cw-field">
-                        @if($employer->logo_path)
-                            <div class="mt-3 h-16 w-16 rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                                <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover">
+                    <div class="border border-neutral-200 rounded-xl p-5 bg-white/70 backdrop-blur-sm">
+                        <h3 class="cw-heading-3 mb-4">Branding</h3>
+
+                        <div>
+                            <label class="cw-label">Company Display Name</label>
+                            <input type="text"
+                                   name="company_display_name"
+                                   class="cw-field"
+                                   value="{{ old('company_display_name', $employer->company_display_name) }}"
+                                   placeholder="How your brand appears publicly">
+                            <p class="text-xs text-neutral-600 mt-1">Shown on job cards, company profile, and employer headers.</p>
+                        </div>
+
+                        <div class="mt-5">
+                            <label class="cw-label">Company Logo</label>
+                            <input type="file" name="logo" accept="image/jpeg,image/png" class="cw-field" data-logo-input>
+                            <p class="text-xs text-neutral-600 mt-1">JPG or PNG, square format only. Stored as optimized 1024x1024.</p>
+
+                            <div class="mt-3 flex items-center gap-4">
+                                <div class="h-20 w-20 rounded-full border border-slate-200 overflow-hidden bg-slate-50 shadow-sm" data-logo-preview>
+                                    @if($employer->logo_path)
+                                        <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover" data-logo-preview-image>
+                                    @else
+                                        <div class="h-full w-full grid place-items-center text-sm font-semibold text-slate-500" data-logo-preview-fallback>
+                                            {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="text-xs text-neutral-600">
+                                    <p>Preview uses circular crop to match marketplace cards.</p>
+                                </div>
                             </div>
-                        @endif
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+                            <div>
+                                <label class="cw-label">Contact Email</label>
+                                <input type="email"
+                                       name="contact_email"
+                                       class="cw-field"
+                                       value="{{ old('contact_email', $employer->contact_email) }}"
+                                       placeholder="contact@company.com">
+                            </div>
+
+                            <div>
+                                <label class="cw-label">Contact Phone</label>
+                                <input type="text"
+                                       name="contact_phone"
+                                       class="cw-field"
+                                       value="{{ old('contact_phone', $employer->contact_phone) }}"
+                                       placeholder="+385 ...">
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="cw-label">Company Address</label>
+                            <input type="text"
+                                   name="company_address"
+                                   class="cw-field"
+                                   value="{{ old('company_address', $employer->company_address) }}"
+                                   placeholder="Street, city, postal code">
+                        </div>
                     </div>
 
-                    <!-- Company Name -->
                     <div>
                         <label class="cw-label">Company Name</label>
                         <input type="text" 
@@ -243,4 +296,45 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fileInput = document.querySelector('[data-logo-input]');
+            const preview = document.querySelector('[data-logo-preview]');
+
+            if (!fileInput || !preview) {
+                return;
+            }
+
+            fileInput.addEventListener('change', function (event) {
+                const file = event.target.files?.[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const existingImage = preview.querySelector('[data-logo-preview-image]');
+                    const fallback = preview.querySelector('[data-logo-preview-fallback]');
+
+                    if (existingImage) {
+                        existingImage.remove();
+                    }
+                    if (fallback) {
+                        fallback.remove();
+                    }
+
+                    const img = document.createElement('img');
+                    img.src = String(e.target?.result || '');
+                    img.alt = 'Logo preview';
+                    img.className = 'h-full w-full object-cover';
+                    img.setAttribute('data-logo-preview-image', 'true');
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+@endpush
 @endsection

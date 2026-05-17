@@ -3,7 +3,7 @@
 return [
     'my_profile' => 'Moj profil',
     'cv' => 'CV',
-    'education' => 'Obrazovanje',
+    'education' => 'Edukacija',
     'work_experience' => 'Radno iskustvo',
     'skills' => 'Vještine',
     'languages' => 'Jezici',
@@ -18,4 +18,54 @@ return [
     'saved_jobs' => 'Spremljeni poslovi',
     'profile_visibility' => 'Vidljivost profila',
     'communication_language' => 'Jezik komunikacije',
+    'application_pages' => [
+        'kicker' => 'Prijave radnika',
+        'jobs' => [
+            'title' => 'Prijave za posao',
+            'page_title' => 'Moje prijave za posao',
+            'education_link' => 'Prijave za edukacije',
+            'columns' => [
+                'job' => 'Posao',
+                'employer' => 'Poslodavac',
+                'status' => 'Status',
+                'applied' => 'Prijavljeno',
+                'status_updated' => 'Status ažuriran',
+                'motivation' => 'Motivacija',
+                'snapshot' => 'Snimka',
+            ],
+            'empty' => [
+                'title' => 'Započnite pretragu poslova',
+                'body' => 'Još se niste prijavili ni na jedan posao.',
+                'note' => 'Detalji vašeg profila dijele se tek kada pošaljete prijavu.',
+                'browse' => 'Pregledaj poslove',
+                'complete_profile' => 'Prvo dovršite profil',
+            ],
+        ],
+        'educations' => [
+            'title' => 'Prijave za edukacije',
+            'page_title' => 'Moje prijave za edukacije',
+            'jobs_link' => 'Prijave za posao',
+            'columns' => [
+                'program' => 'Program',
+                'provider' => 'Pružatelj',
+                'status' => 'Status',
+                'applied' => 'Prijavljeno',
+                'motivation' => 'Motivacija',
+                'snapshot' => 'Snimka',
+            ],
+            'empty' => [
+                'title' => 'Još nema prijava za edukacije',
+                'body' => 'Pokrenite barem jednu prijavu za program kako biste ojačali svoju spremnost za preseljenje.',
+                'browse' => 'Pregledaj edukacije',
+                'review_profile' => 'Pregledaj profil',
+            ],
+        ],
+        'common' => [
+            'settings' => 'Postavke',
+            'stored' => 'Spremljeno',
+            'view' => 'Pogledaj',
+            'unavailable' => 'Nedostupno',
+            'no_message' => 'Motivacijska poruka nije unesena.',
+        ],
+    ],
 ];

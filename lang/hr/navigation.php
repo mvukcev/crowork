@@ -3,7 +3,7 @@
 return [
     'home' => 'Početna',
     'jobs' => 'Poslovi',
-    'educations' => 'Obrazovanja',
+    'educations' => 'Edukacije',
     'resources' => 'Resursi',
     'about' => 'O nama',
     'for_employers' => 'Za poslodavce',
@@ -16,4 +16,11 @@ return [
     'profile' => 'Profil',
     'company_profile' => 'Profil tvrtke',
     'applications' => 'Prijave',
+    'get_started' => 'Zapocni',
+    'account_settings' => 'Postavke racuna',
+    'my_jobs' => 'Moji poslovi',
+    'my_applications' => 'Moje prijave',
+    'saved_jobs' => 'Spremljeni poslovi',
+    'work_applications' => 'Posao i prijave',
+    'account' => 'Racun',
 ];

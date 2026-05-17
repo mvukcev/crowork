@@ -15,6 +15,10 @@ const cwTheme = (() => {
 
 	const readCookie = () => readCookieValue('cw_theme');
 
+	const writeThemeCookie = (preference) => {
+		document.cookie = `cw_theme=${encodeURIComponent(preference)}; path=/; max-age=31536000; samesite=lax`;
+	};
+
 	const prefersDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 	const normalize = (value) => (allowed.includes(value) ? value : 'system');
@@ -22,6 +26,8 @@ const cwTheme = (() => {
 	const getPreference = () => {
 		let stored = null;
 		let legacyStored = null;
+		const root = document.documentElement;
+		const serverInitializedPreference = root?.dataset?.themePreference || null;
 
 		try {
 			stored = localStorage.getItem(storageKey);
@@ -29,6 +35,10 @@ const cwTheme = (() => {
 		} catch (_) {
 			stored = null;
 			legacyStored = null;
+		}
+
+		if (serverInitializedPreference) {
+			return normalize(serverInitializedPreference);
 		}
 
 		if (stored) {
@@ -77,6 +87,8 @@ const cwTheme = (() => {
 		} catch (_) {
 			// Ignore storage failures in restricted/private contexts.
 		}
+
+		writeThemeCookie(preference);
 
 		return applyTheme(preference);
 	};
@@ -317,83 +329,96 @@ const initCroworkUi = () => {
 			}
 		});
 
-		// Mobile submenu (profile) panel logic
-		const profileToggle = mobilePanel.querySelector('[data-cw-mobile-profile-toggle]');
-		const backButton = mobilePanel.querySelector('[data-cw-mobile-back]');
-		const mainPanel = mobilePanel.querySelector('[data-cw-mobile-content-main]');
-		const profilePanel = mobilePanel.querySelector('[data-cw-mobile-content-profile]');
-		const mobileState = mobilePanel.getAttribute('data-cw-mobile-state');
 
-		if (profileToggle && backButton && profilePanel && mainPanel) {
-			// Check if prefers-reduced-motion
-			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		   // Mobile menu panel logic (main, language, theme, profile)
+		   const mainPanel = mobilePanel.querySelector('[data-cw-mobile-content-main]');
+		   const profilePanel = mobilePanel.querySelector('[data-cw-mobile-content-profile]');
+		   const languagePanel = mobilePanel.querySelector('[data-cw-mobile-content-language]');
+		   const themePanel = mobilePanel.querySelector('[data-cw-mobile-content-theme]');
+		   const profileToggle = mobilePanel.querySelector('[data-cw-mobile-profile-toggle]');
+		   const languageToggle = mobilePanel.querySelector('[data-cw-mobile-language-toggle]');
+		   const themeToggle = mobilePanel.querySelector('[data-cw-mobile-theme-toggle]');
+		   const backButtons = mobilePanel.querySelectorAll('[data-cw-mobile-back]');
 
-			const animatePanel = (panel, direction) => {
-				// direction: 'in' (from right to left) or 'out' (from left to right)
-				if (prefersReducedMotion) {
-					panel.style.transform = direction === 'in' ? 'translateX(0)' : 'translateX(100%)';
-				} else {
-					panel.style.transform = direction === 'in' ? 'translateX(0)' : 'translateX(100%)';
-				}
-			};
+		   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-			const setMobilePanel = (nextPanel) => {
-				// nextPanel: 'main' or 'profile'
-				mobilePanel.setAttribute('data-cw-mobile-state', nextPanel);
+		   const panels = {
+			   main: mainPanel,
+			   profile: profilePanel,
+			   language: languagePanel,
+			   theme: themePanel,
+		   };
 
-				if (nextPanel === 'profile') {
-					animatePanel(profilePanel, 'in');
-					mainPanel.style.transform = 'translateX(-100%)';
-					mainPanel.style.opacity = '0';
-					mainPanel.style.pointerEvents = 'none';
-					profilePanel.style.opacity = '1';
-					profilePanel.style.pointerEvents = 'auto';
-				} else {
-					animatePanel(profilePanel, 'out');
-					mainPanel.style.transform = 'translateX(0)';
-					mainPanel.style.opacity = '1';
-					mainPanel.style.pointerEvents = 'auto';
-					profilePanel.style.opacity = '0';
-					profilePanel.style.pointerEvents = 'none';
-				}
-			};
+		   const setMobilePanel = (nextPanel) => {
+			   mobilePanel.setAttribute('data-cw-mobile-state', nextPanel);
+			   Object.entries(panels).forEach(([key, panel]) => {
+				   if (!panel) return;
+				   if (key === nextPanel) {
+					   panel.style.transform = 'translateX(0)';
+					   panel.style.opacity = '1';
+					   panel.style.pointerEvents = 'auto';
+				   } else {
+					   panel.style.transform = 'translateX(100%)';
+					   panel.style.opacity = '0';
+					   panel.style.pointerEvents = 'none';
+				   }
+			   });
+		   };
 
-			// Reset to main panel when mobile menu opens
-			const originalSetMobileOpen = setMobileOpen;
-			setMobileOpen = (nextOpen) => {
-				originalSetMobileOpen(nextOpen);
-				if (nextOpen) {
-					setMobilePanel('main');
-					return;
-				}
+		   // Reset to main panel when mobile menu opens
+		   const originalSetMobileOpen = setMobileOpen;
+		   setMobileOpen = (nextOpen) => {
+			   originalSetMobileOpen(nextOpen);
+			   if (nextOpen) {
+				   setMobilePanel('main');
+				   return;
+			   }
+			   setMobilePanel('main');
+		   };
 
-				setMobilePanel('main');
-			};
+		   // Action button event listeners
+		   if (profileToggle) {
+			   profileToggle.addEventListener('click', (event) => {
+				   event.preventDefault();
+				   event.stopPropagation();
+				   setMobilePanel('profile');
+			   });
+		   }
+		   if (languageToggle) {
+			   languageToggle.addEventListener('click', (event) => {
+				   event.preventDefault();
+				   event.stopPropagation();
+				   setMobilePanel('language');
+			   });
+		   }
+		   if (themeToggle) {
+			   themeToggle.addEventListener('click', (event) => {
+				   event.preventDefault();
+				   event.stopPropagation();
+				   setMobilePanel('theme');
+			   });
+		   }
 
-			// Profile button clicked
-			profileToggle.addEventListener('click', (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				setMobilePanel('profile');
-			});
+		   // Back buttons in all submenus
+		   backButtons.forEach((btn) => {
+			   btn.addEventListener('click', (event) => {
+				   event.preventDefault();
+				   event.stopPropagation();
+				   setMobilePanel('main');
+			   });
+		   });
 
-			// Back button clicked
-			backButton.addEventListener('click', (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				setMobilePanel('main');
-			});
+		   // Close on profile links
+		   if (profilePanel) {
+			   profilePanel.querySelectorAll('a[href]').forEach((link) => {
+				   link.addEventListener('click', () => {
+					   setMobileOpen(false);
+				   });
+			   });
+		   }
 
-			// Close on profile links
-			profilePanel.querySelectorAll('a[href]').forEach((link) => {
-				link.addEventListener('click', () => {
-					setMobileOpen(false);
-				});
-			});
-
-			// Initialize to main panel
-			setMobilePanel('main');
-		}
+		   // Initialize to main panel
+		   setMobilePanel('main');
 
 		// Handle mobile locale and theme form submissions
 		const mobileLocaleForm = mobilePanel.querySelector('[data-cw-mobile-locale-form]');

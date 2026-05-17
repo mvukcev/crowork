@@ -31,6 +31,7 @@ class JobController extends Controller
             'employment_type' => $request->input('employment_type'),
             'experience_level' => $request->input('experience_level'),
             'salary_min' => $request->input('salary_min'),
+            'salary_max' => $request->input('salary_max'),
             'accommodation' => $request->input('accommodation'),
             'visa_support' => $request->input('visa_support'),
             'featured' => $request->input('featured'),
@@ -151,7 +152,23 @@ class JobController extends Controller
 
         // Filter by minimum salary
         if ($request->filled('salary_min')) {
-            $query->where('salary_min', '>=', $request->input('salary_min'));
+            $salaryMin = (int) $request->input('salary_min');
+
+            $query->where(function ($q) use ($salaryMin) {
+                $q->where(function ($inner) use ($salaryMin) {
+                    $inner->whereNotNull('salary_max')
+                        ->where('salary_max', '>=', $salaryMin);
+                })->orWhere(function ($inner) use ($salaryMin) {
+                    $inner->whereNull('salary_max')
+                        ->where('salary_min', '>=', $salaryMin);
+                });
+            });
+        }
+
+        // Filter by maximum salary
+        if ($request->filled('salary_max')) {
+            $salaryMax = (int) $request->input('salary_max');
+            $query->where('salary_min', '<=', $salaryMax);
         }
 
         // Filter by accommodation
@@ -224,14 +241,7 @@ class JobController extends Controller
      */
     protected function getLanguages()
     {
-        $defaults = [
-            'EN' => 'English',
-            'HR' => 'Croatian',
-            'DE' => 'German',
-            'IT' => 'Italian',
-            'ES' => 'Spanish',
-            'FR' => 'French',
-        ];
+        $defaultCodes = ['EN', 'HR', 'DE', 'IT', 'ES', 'FR'];
 
         $allLanguageCodes = Job::active()
             ->whereNotNull('languages')
@@ -254,12 +264,12 @@ class JobController extends Controller
 
         $result = [];
         foreach ($allLanguageCodes as $code) {
-            $result[$code] = $defaults[$code] ?? $code;
+            $result[$code] = cw_localize_language_code($code) ?? $code;
         }
 
-        foreach ($defaults as $code => $label) {
+        foreach ($defaultCodes as $code) {
             if (!array_key_exists($code, $result)) {
-                $result[$code] = $label;
+                $result[$code] = cw_localize_language_code($code) ?? $code;
             }
         }
 

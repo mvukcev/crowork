@@ -67,7 +67,7 @@ class AccessController extends Controller
                 $attempts = Cache::get($rateLimitKey, 0);
                 if ($attempts >= 10) {
                     return redirect()->route('access.show')
-                        ->withErrors(['email' => 'Too many email checks. Please try again in 1 minute.']);
+                        ->withErrors(['email' => __('auth.status_email_checks_too_many')]);
                 }
                 Cache::put($rateLimitKey, $attempts + 1, now()->addMinute());
             } else {
@@ -112,7 +112,7 @@ class AccessController extends Controller
             session(['access_stage' => 'email']);
 
             return redirect()->route('access.show')
-                ->withErrors(['email' => 'New registrations are currently disabled for this account type.']);
+                ->withErrors(['email' => __('auth.status_registration_disabled_new')]);
         }
 
         // New email → send code (respect cooldown in case of double-submit)
@@ -132,7 +132,7 @@ class AccessController extends Controller
             session(['access_stage' => 'email']);
 
             return redirect()->route('access.show')
-                ->withErrors(['email' => 'We could not start verification right now. Please try again in a moment.']);
+                ->withErrors(['email' => __('auth.status_verification_start_failed')]);
         }
 
         session(['access_stage' => 'verify_code']);
@@ -163,14 +163,14 @@ class AccessController extends Controller
         if (! $cached) {
             session(['access_stage' => 'verify_code']);
             return redirect()->route('access.show')
-                ->withErrors(['code' => 'Verification code has expired. Please request a new one.']);
+                ->withErrors(['code' => __('auth.status_code_expired')]);
         }
 
         if ((int) $cached['attempts'] >= 5) {
             Cache::forget($cacheKey);
             session(['access_stage' => 'email', 'access_email' => '']);
             return redirect()->route('access.show')
-                ->withErrors(['email' => 'Too many incorrect attempts. Please start over.']);
+                ->withErrors(['email' => __('auth.status_too_many_incorrect_attempts')]);
         }
 
         if (! hash_equals($cached['hash'], hash('sha256', $code))) {
@@ -182,7 +182,7 @@ class AccessController extends Controller
             $attemptsLeft = 5 - (int) $cached['attempts'];
             session(['access_stage' => 'verify_code']);
             return redirect()->route('access.show')
-                ->withErrors(['code' => "Incorrect code. {$attemptsLeft} attempt(s) remaining."]);
+                ->withErrors(['code' => __('auth.status_attempts_remaining', ['count' => $attemptsLeft])]);
         }
 
         // ✓ Valid code
@@ -223,12 +223,12 @@ class AccessController extends Controller
 
             if ($resendCount >= 3) {
                 return redirect()->route('access.show')
-                    ->withErrors(['resend' => 'Too many resend requests. Please try again in 5 minutes.']);
+                    ->withErrors(['resend' => __('auth.status_resend_too_many')]);
             }
 
             if (Cache::has($this->resendCooldownKey($email))) {
                 return redirect()->route('access.show')
-                    ->withErrors(['resend' => 'Please wait 60 seconds before requesting a new code.']);
+                    ->withErrors(['resend' => __('auth.status_resend_wait')]);
             }
 
             $code = $this->sendVerificationCode($email);
@@ -246,11 +246,11 @@ class AccessController extends Controller
             ]);
 
             return redirect()->route('access.show')
-                ->withErrors(['resend' => 'We could not resend the code right now. Please try again shortly.']);
+                ->withErrors(['resend' => __('auth.status_resend_failed')]);
         }
 
         return redirect()->route('access.show')
-            ->with('resend_success', 'A new code has been sent to ' . $email . '.');
+            ->with('resend_success', __('auth.status_resend_sent', ['email' => $email]));
     }
 
     // -------------------------------------------------------------------------
@@ -270,7 +270,7 @@ class AccessController extends Controller
         if (! Auth::attempt(['email' => $email, 'password' => $credentials['password']], (bool) ($credentials['remember'] ?? false))) {
             session(['access_stage' => 'login', 'access_email' => $email]);
             return redirect()->route('access.show')
-                ->withErrors(['password' => 'The provided credentials do not match our records.']);
+                ->withErrors(['password' => __('auth.failed')]);
         }
 
         $request->session()->regenerate();
@@ -301,7 +301,7 @@ class AccessController extends Controller
         if (! $verifiedEmail || strtolower($verifiedEmail) !== $submittedEmail) {
             session(['access_stage' => 'email', 'access_email' => '']);
             return redirect()->route('access.show')
-                ->withErrors(['email' => 'Email verification is required. Please start again.']);
+                ->withErrors(['email' => __('auth.status_verification_required')]);
         }
 
         $data = $request->validate([
@@ -315,7 +315,7 @@ class AccessController extends Controller
             session(['access_stage' => 'email', 'access_email' => '']);
 
             return redirect()->route('access.show')
-                ->withErrors(['email' => 'Registrations for this account type are currently disabled.']);
+                ->withErrors(['email' => __('auth.status_registration_disabled')]);
         }
 
         $user = User::create([
@@ -429,7 +429,23 @@ class AccessController extends Controller
 
         Cache::put($this->resendCooldownKey($email), true, now()->addSeconds(60));
 
-        Mail::to($email)->send(new VerificationCodeMail($code));
+        $mailable = new VerificationCodeMail($code, app()->getLocale());
+
+        try {
+            Mail::to($email)->send($mailable);
+        } catch (\Throwable $exception) {
+            if (! (app()->environment('local') || config('app.debug'))) {
+                throw $exception;
+            }
+
+            // Local/dev fallback: if SMTP is down, still allow auth flow by logging the code email.
+            Log::warning('Verification code SMTP send failed, using log mailer fallback', [
+                'email' => $email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            Mail::mailer('log')->to($email)->send($mailable);
+        }
 
         if ($this->isDevMode()) {
             Log::info("[CroWork Dev] Email verification code for {$email}: {$code}");

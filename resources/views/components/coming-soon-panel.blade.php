@@ -1,7 +1,12 @@
 @props([
-    'title' => 'Coming Soon',
-    'description' => 'This feature is being prepared and will be available soon.',
+    'title' => null,
+    'description' => null,
 ])
+
+@php
+    $title = $title ?? __('common.coming_soon_title');
+    $description = $description ?? __('common.coming_soon_description');
+@endphp
 
 <div class="cw-surface p-8 text-center">
     <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
@@ -12,7 +17,7 @@
     <h1 class="cw-display text-3xl md:text-4xl text-slate-900 mb-2">{{ $title }}</h1>
     <p class="text-slate-600 max-w-xl mx-auto mb-6">{{ $description }}</p>
     <div class="flex flex-wrap justify-center gap-2">
-        <a href="{{ route('home') }}" class="cw-button-primary">Back home</a>
-        <a href="{{ route('contact') }}" class="cw-button-secondary">Contact support</a>
+        <a href="{{ route('home') }}" class="cw-button-primary">{{ __('auth.back_home') }}</a>
+        <a href="{{ route('contact') }}" class="cw-button-secondary">{{ __('auth.contact') }}</a>
     </div>
 </div>

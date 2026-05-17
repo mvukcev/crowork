@@ -27,4 +27,9 @@ return [
     'success' => 'Uspješno',
     'warning' => 'Upozorenje',
     'info' => 'Informacija',
+    'no_results_found' => 'Nema rezultata',
+    'adjust_filters_or_search' => 'Pokusajte prilagoditi filtre ili pretragu.',
+    'go_back' => 'Natrag',
+    'coming_soon_title' => 'Uskoro dostupno',
+    'coming_soon_description' => 'Ova funkcionalnost je u pripremi i uskoro ce biti dostupna.',
 ];

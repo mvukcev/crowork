@@ -24,7 +24,7 @@ class EducationApplicationController extends Controller
         if (!$profile || !$this->isProfileComplete($profile)) {
             return redirect()
                 ->route('worker.profile.edit')
-                ->with('warning', 'Please complete your profile before applying to education programs.');
+                ->with('warning', __('ui.educations_apply.flash_complete_profile'));
         }
 
         $existingApplication = EducationApplication::where('education_id', $education->id)
@@ -50,7 +50,7 @@ class EducationApplicationController extends Controller
         if (!$profile || !$this->isProfileComplete($profile)) {
             return redirect()
                 ->route('worker.profile.edit')
-                ->with('warning', 'Please complete your profile before applying to education programs.');
+                ->with('warning', __('ui.educations_apply.flash_complete_profile'));
         }
 
         $existingApplication = EducationApplication::where('education_id', $education->id)
@@ -60,7 +60,7 @@ class EducationApplicationController extends Controller
         if ($existingApplication) {
             return redirect()
                 ->route('educations.apply', $education)
-                ->with('info', 'You have already applied to this education program.');
+                ->with('info', __('ui.educations_apply.flash_already_applied'));
         }
 
         $validated = $request->validate([
@@ -90,20 +90,20 @@ class EducationApplicationController extends Controller
 
         return redirect()
             ->route('educations.show', $education)
-            ->with('success', 'Your education application has been submitted successfully.');
+            ->with('success', __('ui.educations_apply.flash_submitted_success'));
     }
 
     private function ensureWorker(): void
     {
         if (Auth::user()->role !== 'worker') {
-            abort(403, 'Only workers can apply to education programs.');
+            abort(403, __('ui.educations_apply.error_only_workers'));
         }
     }
 
     private function ensureEducationIsAvailable(Education $education): void
     {
         if ($education->status !== 'published' || ($education->expires_at && $education->expires_at->isPast())) {
-            abort(404, 'This education program is no longer available.');
+            abort(404, __('ui.educations_apply.error_no_longer_available'));
         }
     }
 

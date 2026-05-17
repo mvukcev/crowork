@@ -65,7 +65,7 @@ class EmployerRegisterController extends Controller
 
         // Redirect to login with success message
         return redirect('/employer/login')->with('message', 
-            'Account created successfully! Please verify your email. After verification, your account must be approved before you can post jobs.'
+            __('auth.status_account_created_verify_pending')
         );
     }
 }

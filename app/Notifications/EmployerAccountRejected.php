@@ -38,11 +38,11 @@ class EmployerAccountRejected extends Notification implements ShouldQueue
             [
                 'name' => $notifiable->name,
                 'company_name' => $this->employer->company_name,
-                'account_status' => 'not approved',
-                'status_message' => 'If you believe this is a mistake, contact CroWork support for clarification.',
+                'account_status' => trans('notifications.employer_account_status_rejected', locale: $locale),
+                'status_message' => trans('notifications.employer_account_status_rejected_message', locale: $locale),
                 'action_url' => url('/'),
             ],
-            'Go to CroWork',
+            trans('notifications.employer_go_to_platform', locale: $locale),
             url('/')
         );
     }
@@ -52,9 +52,11 @@ class EmployerAccountRejected extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $locale = $notifiable->communication_language ?? app()->getLocale();
+
         return [
-            'title' => 'Employer account not approved',
-            'message' => 'Your employer account for '.$this->employer->company_name.' is currently not approved.',
+            'title' => trans('notifications.employer_account_rejected_title', locale: $locale),
+            'message' => trans('notifications.employer_account_rejected_message', ['company' => $this->employer->company_name], locale: $locale),
             'url' => url('/'),
             'category' => 'important_system_notice',
             'importance' => 'high',

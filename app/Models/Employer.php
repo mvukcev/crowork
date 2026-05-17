@@ -11,12 +11,16 @@ class Employer extends Model
         'user_id',
         'approved_at',
         'company_name',
+        'company_display_name',
         'slug',
         'logo_path',
         'city',
         'country',
         'industry',
         'website',
+        'contact_email',
+        'contact_phone',
+        'company_address',
         'description',
         'relocation_support',
         'accommodation_support',
@@ -86,10 +90,14 @@ class Employer extends Model
     {
         $checks = [
             !empty($this->company_name),
+            !empty($this->company_display_name),
             !empty($this->city),
             !empty($this->country),
             !empty($this->industry),
             !empty($this->website),
+            !empty($this->contact_email),
+            !empty($this->contact_phone),
+            !empty($this->company_address),
             !empty($this->description),
             !empty($this->logo_path),
         ];
@@ -115,5 +123,10 @@ class Employer extends Model
     public function scopeRelevanceSort($query, $term)
     {
         return $query->orderByRaw("MATCH (company_name, city, industry, description) AGAINST (?) DESC", [$term]);
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->company_display_name ?: $this->company_name;
     }
 }

@@ -38,11 +38,11 @@ class EmployerAccountApproved extends Notification implements ShouldQueue
             [
                 'name' => $notifiable->name,
                 'company_name' => $this->employer->company_name,
-                'account_status' => 'approved',
-                'status_message' => 'You can now access employer tools and manage listings in CroWork.',
+                'account_status' => trans('notifications.employer_account_status_approved', locale: $locale),
+                'status_message' => trans('notifications.employer_account_status_approved_message', locale: $locale),
                 'action_url' => url('/employer'),
             ],
-            'Go to employer dashboard',
+            trans('notifications.employer_go_to_dashboard', locale: $locale),
             url('/employer')
         );
     }
@@ -52,9 +52,11 @@ class EmployerAccountApproved extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $locale = $notifiable->communication_language ?? app()->getLocale();
+
         return [
-            'title' => 'Employer account approved',
-            'message' => 'Your employer account for '.$this->employer->company_name.' is approved.',
+            'title' => trans('notifications.employer_account_approved_title', locale: $locale),
+            'message' => trans('notifications.employer_account_approved_message', ['company' => $this->employer->company_name], locale: $locale),
             'url' => url('/employer'),
             'category' => 'important_system_notice',
             'importance' => 'high',

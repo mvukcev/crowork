@@ -102,4 +102,18 @@ return [
     'uploaded' => 'The :attribute failed to upload.',
     'url' => 'The :attribute format is invalid.',
     'uuid' => 'The :attribute must be a valid UUID.',
+    'current_password' => 'The password is incorrect.',
+
+    'attributes' => [
+        'email' => 'email address',
+        'password' => 'password',
+        'password_confirmation' => 'password confirmation',
+        'current_password' => 'current password',
+        'name' => 'name',
+        'full_name' => 'full name',
+        'company_name' => 'company name',
+        'contact_name' => 'contact name',
+        'verification_code' => 'verification code',
+        'code' => 'verification code',
+    ],
 ];

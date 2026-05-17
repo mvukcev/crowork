@@ -22,8 +22,13 @@
                     <div class="flex items-start gap-6">
                         <!-- Photo -->
                         <div>
-                            @if($maskedProfile['photo_path'] ?? null)
-                                <img src="{{ asset('storage/' . $maskedProfile['photo_path']) }}" 
+                            @php
+                                $candidatePhotoUrl = $maskedProfile['photo_url'] ?? (($maskedProfile['photo_path'] ?? null)
+                                    ? route('worker.profile.photo.show', ['path' => $maskedProfile['photo_path']])
+                                    : null);
+                            @endphp
+                            @if($candidatePhotoUrl)
+                                <img src="{{ $candidatePhotoUrl }}" 
                                      alt="Candidate" 
                                      class="w-20 h-20 rounded-full object-cover">
                             @else

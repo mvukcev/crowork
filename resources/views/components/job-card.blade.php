@@ -2,6 +2,7 @@
     'title',
     'company' => null,
     'company_href' => null,
+    'employer_logo_url' => null,
     'city' => null,
     'salary_min' => null,
     'salary_max' => null,
@@ -24,17 +25,25 @@
 ])
 
 @php
-    $salaryDisplay = null;
-    if (!is_null($salary_min) || !is_null($salary_max)) {
-        $currency = strtoupper((string) $salary_currency);
-        $period = strtolower((string) $salary_period) === 'hour' ? 'hour' : 'month';
+    $currencyCode = strtoupper((string) $salary_currency);
+    $currencySymbol = $currencyCode === 'EUR' ? '€' : $currencyCode . ' ';
+    $period = strtolower((string) $salary_period) === 'hour' ? 'hour' : 'month';
 
+    $salaryPrimary = null;
+    $salarySecondary = $period === 'hour' ? __('jobs.salary_hourly_gross') : __('jobs.salary_monthly_gross');
+    if (!is_null($salary_min) || !is_null($salary_max)) {
         if (!is_null($salary_min) && !is_null($salary_max)) {
-            $salaryDisplay = $currency . ' ' . number_format($salary_min) . ' - ' . number_format($salary_max) . ' / ' . $period;
+            $salaryPrimary = $currencySymbol . number_format((float) $salary_min, 0) . ' - ' . $currencySymbol . number_format((float) $salary_max, 0);
         } elseif (!is_null($salary_min)) {
-            $salaryDisplay = 'From ' . $currency . ' ' . number_format($salary_min) . ' / ' . $period;
+            $salaryPrimary = __('jobs.salary_from_short', [
+                'currency' => $currencySymbol,
+                'amount' => number_format((float) $salary_min, 0),
+            ]);
         } else {
-            $salaryDisplay = 'Up to ' . $currency . ' ' . number_format($salary_max) . ' / ' . $period;
+            $salaryPrimary = __('jobs.salary_to_short', [
+                'currency' => $currencySymbol,
+                'amount' => number_format((float) $salary_max, 0),
+            ]);
         }
     }
 
@@ -47,86 +56,104 @@
     }
 
     $languageValues = array_values(array_filter(array_map(fn ($lang) => trim((string) $lang), $languageValues)));
-    $languageText = count($languageValues) ? implode(', ', array_slice($languageValues, 0, 3)) : null;
+    $languageValues = array_values(array_filter(array_map(fn ($lang) => cw_localize_language_code((string) $lang), $languageValues)));
+    $languageText = count($languageValues) ? implode(', ', array_slice($languageValues, 0, 2)) : null;
+    $languageOverflow = max(count($languageValues) - 2, 0);
 
-    $employmentTypeText = $employment_type ? \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $employment_type)) : null;
-    $experienceLevelText = $experience_level ? \Illuminate\Support\Str::headline(str_replace(['-', '_'], ' ', $experience_level)) : null;
-    $educationText = $education_required ?: null;
-    $positionsText = is_numeric($positions_available) ? ((int) $positions_available === 1 ? '1 position' : (int) $positions_available . ' positions') : null;
-    $workingHoursText = $working_hours ?: null;
-    $startDateText = $start_date ? 'Start ' . \Illuminate\Support\Carbon::parse($start_date)->format('M j') : null;
-    $startFlexibilityText = $start_flexibility ?: null;
+    $employmentKey = strtolower(str_replace(['-', ' '], '_', (string) $employment_type));
+    $employmentChipText = cw_localize_job_value('employment_type', $employment_type);
+    $experienceLevelText = cw_localize_job_value('experience_level', $experience_level);
+    $educationText = cw_localize_job_value('education_required', $education_required);
+    $postedText = $posted_at ? __('jobs.posted_short', ['time' => \Carbon\Carbon::parse($posted_at)->diffForHumans()]) : null;
+
+    $companyName = trim((string) ($company ?: __('jobs.employer_fallback')));
+    $logoInitials = collect(preg_split('/\\s+/', $companyName))
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+        ->join('');
+    if ($logoInitials === '') {
+        $logoInitials = 'CW';
+    }
+
+    $isRemote = str_contains(strtolower((string) $title), 'remote')
+        || str_contains(strtolower((string) $city), 'remote')
+        || $employmentKey === 'remote';
 @endphp
 
-<article class="cw-surface p-5 block cw-hover-lift">
-    <div class="flex items-start justify-between gap-3 mb-2">
-        <div>
-            <p class="text-xs text-slate-500 mb-1">
-                @if($company_href && $company)
-                    <a href="{{ $company_href }}" class="hover:text-slate-900 underline-offset-2 hover:underline">{{ $company }}</a>
+<article class="cw-listing-card cw-listing-card-job h-full">
+    <div class="cw-listing-card-inner">
+        <div class="cw-listing-card-top">
+            <div class="min-w-0">
+                <p class="cw-listing-company">
+                    @if($company_href && $company)
+                        <a href="{{ $company_href }}" class="hover:text-slate-900 underline-offset-2 hover:underline">{{ $company }}</a>
+                    @else
+                        {{ $companyName }}
+                    @endif
+                </p>
+                <p class="cw-listing-location">{{ $city ?: __('jobs.location_not_specified') }}</p>
+            </div>
+            <div class="cw-employer-logo" aria-label="{{ $companyName }}">
+                @if($employer_logo_url)
+                    <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover">
                 @else
-                    {{ $company ?: 'Employer' }}
+                    <span>{{ $logoInitials }}</span>
                 @endif
-                @if($city)
-                    <span> · {{ $city }}</span>
+            </div>
+        </div>
+
+        <div class="cw-listing-middle">
+            <h3 class="cw-listing-title">
+                <a href="{{ $href }}" class="hover:text-slate-700">{{ $title }}</a>
+            </h3>
+
+            <div class="cw-listing-salary" aria-label="{{ __('jobs.salary_label') }}">
+                <p class="cw-listing-salary-primary">{{ $salaryPrimary ?: __('jobs.salary_not_disclosed') }}</p>
+                <p class="cw-listing-salary-secondary">{{ $salarySecondary }}</p>
+            </div>
+
+            <div class="cw-listing-meta">
+                @if($experienceLevelText)
+                    <span>{{ __('jobs.metadata_experience', ['value' => $experienceLevelText]) }}</span>
                 @endif
-            </p>
-            <h3 class="text-lg font-semibold text-slate-900 leading-tight"><a href="{{ $href }}" class="hover:text-slate-700">{{ $title }}</a></h3>
+                @if($educationText)
+                    <span>{{ __('jobs.metadata_education', ['value' => $educationText]) }}</span>
+                @endif
+                @if($languageText)
+                    <span>{{ __('jobs.metadata_languages', ['value' => $languageText, 'extra' => $languageOverflow > 0 ? '+' . $languageOverflow : '']) }}</span>
+                @endif
+                @if($postedText)
+                    <span>{{ $postedText }}</span>
+                @endif
+            </div>
         </div>
-        <div class="flex flex-col gap-1 items-end">
-            @if($is_urgent)
-                <span class="cw-chip text-red-800 bg-red-50 border-red-200">Urgent</span>
-            @endif
-            @if($is_featured)
-                <span class="cw-chip text-indigo-800 bg-indigo-50 border-indigo-200">Featured</span>
-            @endif
+
+        <div class="cw-listing-bottom mt-auto">
+            <div class="cw-listing-chip-row">
+                @if($employmentChipText)
+                    <span class="cw-listing-chip">{{ $employmentChipText }}</span>
+                @endif
+                @if($accommodation_provided)
+                    <span class="cw-listing-chip">{{ __('jobs.chip_accommodation_included') }}</span>
+                @endif
+                @if($visa_support)
+                    <span class="cw-listing-chip">{{ __('jobs.chip_visa_support') }}</span>
+                @endif
+                @if($isRemote)
+                    <span class="cw-listing-chip">{{ __('jobs.chip_remote') }}</span>
+                @endif
+                @if($is_urgent)
+                    <span class="cw-listing-chip is-urgent">{{ __('jobs.chip_urgent') }}</span>
+                @endif
+            </div>
+
+            <div class="cw-listing-actions">
+                <a href="{{ $href }}" class="cw-card-cta-primary">{{ __('ui.jobs_page.view_role') }}</a>
+                @if($company_href)
+                    <a href="{{ $company_href }}" class="cw-card-cta-secondary">{{ __('ui.jobs_page.company_profile') }}</a>
+                @endif
+            </div>
         </div>
-    </div>
-
-    @if($salaryDisplay)
-        <p class="text-sm text-slate-700 mb-2">{{ $salaryDisplay }}</p>
-    @endif
-
-    <div class="flex flex-wrap items-center gap-2 mt-3">
-        @if($employmentTypeText)
-            <span class="cw-chip">{{ $employmentTypeText }}</span>
-        @endif
-        @if($experienceLevelText)
-            <span class="cw-chip">{{ $experienceLevelText }}</span>
-        @endif
-        @if($educationText)
-            <span class="cw-chip">{{ $educationText }}</span>
-        @endif
-        @if($positionsText)
-            <span class="cw-chip">{{ $positionsText }}</span>
-        @endif
-        @if($workingHoursText)
-            <span class="cw-chip">{{ $workingHoursText }}</span>
-        @endif
-        @if($startDateText)
-            <span class="cw-chip">{{ $startDateText }}</span>
-        @endif
-        @if($startFlexibilityText)
-            <span class="cw-chip">{{ $startFlexibilityText }}</span>
-        @endif
-        @if($languageText)
-            <span class="cw-chip">{{ $languageText }}</span>
-        @endif
-        @if($accommodation_provided)
-            <span class="cw-chip text-amber-800 bg-amber-50 border-amber-200">Accommodation</span>
-        @endif
-        @if($visa_support)
-            <span class="cw-chip text-emerald-800 bg-emerald-50 border-emerald-200">Visa support</span>
-        @endif
-        @if($posted_at)
-            <span class="cw-chip">Posted {{ \Carbon\Carbon::parse($posted_at)->diffForHumans() }}</span>
-        @endif
-    </div>
-
-    <div class="mt-4 flex flex-wrap gap-2">
-        <a href="{{ $href }}" class="cw-button-secondary">View role</a>
-        @if($company_href)
-            <a href="{{ $company_href }}" class="cw-button-secondary">Company profile</a>
-        @endif
     </div>
 </article>

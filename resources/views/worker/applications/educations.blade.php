@@ -1,16 +1,16 @@
 <x-app-layout>
-    <x-slot name="title">My Education Applications</x-slot>
+    <x-slot name="title">{{ __('worker.application_pages.educations.page_title') }}</x-slot>
 
     <section class="cw-section">
         <div class="cw-container">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
-                    <p class="cw-kicker mb-1">Worker applications</p>
-                    <h1 class="cw-display text-4xl md:text-6xl">Education applications</h1>
+                    <p class="cw-kicker mb-1">{{ __('worker.application_pages.kicker') }}</p>
+                    <h1 class="cw-display text-4xl md:text-6xl">{{ __('worker.application_pages.educations.title') }}</h1>
                 </div>
                 <div class="flex gap-2">
-                    <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary">Job applications</a>
-                    <a href="{{ route('worker.settings.edit') }}" class="cw-button-secondary">Settings</a>
+                    <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary">{{ __('worker.application_pages.educations.jobs_link') }}</a>
+                    <a href="{{ route('worker.settings.edit') }}" class="cw-button-secondary">{{ __('worker.application_pages.common.settings') }}</a>
                 </div>
             </div>
 
@@ -20,12 +20,12 @@
                     <table class="cw-table min-w-[760px]">
                         <thead>
                             <tr>
-                                <th>Program</th>
-                                <th>Provider</th>
-                                <th>Status</th>
-                                <th>Applied</th>
-                                <th>Motivation</th>
-                                <th>Snapshot</th>
+                                <th>{{ __('worker.application_pages.educations.columns.program') }}</th>
+                                <th>{{ __('worker.application_pages.educations.columns.provider') }}</th>
+                                <th>{{ __('worker.application_pages.educations.columns.status') }}</th>
+                                <th>{{ __('worker.application_pages.educations.columns.applied') }}</th>
+                                <th>{{ __('worker.application_pages.educations.columns.motivation') }}</th>
+                                <th>{{ __('worker.application_pages.educations.columns.snapshot') }}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -34,17 +34,17 @@
                                 <tr>
                                     <td>{{ $application->education?->title ?? 'N/A' }}</td>
                                     <td>{{ $application->education?->createdByUser?->name ?? 'N/A' }}</td>
-                                    <td><x-badge tone="info">{{ ucfirst($application->status) }}</x-badge></td>
-                                    <td>{{ $application->created_at?->format('M j, Y') }}</td>
+                                    <td><x-badge tone="info">{{ __('applications.' . $application->status) }}</x-badge></td>
+                                    <td>{{ $application->created_at?->translatedFormat('d.m.Y.') }}</td>
                                     <td class="max-w-xs">
-                                        <p class="text-sm text-slate-700 line-clamp-2">{{ $application->message ?: 'No motivation message provided.' }}</p>
+                                        <p class="text-sm text-slate-700 line-clamp-2">{{ $application->message ?: __('worker.application_pages.common.no_message') }}</p>
                                     </td>
-                                    <td>{{ !empty($application->profile_snapshot) ? 'Stored' : 'N/A' }}</td>
+                                    <td>{{ !empty($application->profile_snapshot) ? __('worker.application_pages.common.stored') : 'N/A' }}</td>
                                     <td>
                                         @if($application->education)
-                                            <a href="{{ route('educations.show', $application->education) }}" class="cw-button-secondary">View</a>
+                                            <a href="{{ route('educations.show', $application->education) }}" class="cw-button-secondary">{{ __('worker.application_pages.common.view') }}</a>
                                         @else
-                                            <span class="text-xs text-slate-500">Unavailable</span>
+                                            <span class="text-xs text-slate-500">{{ __('worker.application_pages.common.unavailable') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -54,12 +54,12 @@
                     </div>
                     <div class="p-4">{{ $applications->links() }}</div>
                 @else
-                    <div class="p-10 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-gradient-to-br from-slate-50 to-white">
-                        <h2 class="text-xl font-semibold text-slate-900 mb-2">No education applications yet</h2>
-                        <p class="text-sm text-slate-600 mb-5">Start one program application to strengthen your relocation readiness.</p>
+                    <div class="p-10 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
+                        <h2 class="text-xl font-semibold text-slate-900 mb-2">{{ __('worker.application_pages.educations.empty.title') }}</h2>
+                        <p class="text-sm text-slate-600 mb-5">{{ __('worker.application_pages.educations.empty.body') }}</p>
                         <div class="flex flex-wrap justify-center gap-2">
-                            <a href="{{ route('educations.index') }}" class="cw-button-primary">Browse educations</a>
-                            <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">Review profile</a>
+                            <a href="{{ route('educations.index') }}" class="cw-button-primary">{{ __('worker.application_pages.educations.empty.browse') }}</a>
+                            <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">{{ __('worker.application_pages.educations.empty.review_profile') }}</a>
                         </div>
                     </div>
                 @endif

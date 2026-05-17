@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
+use App\Notifications\AuthResetPasswordNotification;
+use App\Notifications\AuthVerifyEmailNotification;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements MustVerifyEmail, FilamentUser
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser, HasLocalePreference
 {
     use HasFactory, Notifiable;
 
@@ -123,7 +126,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     {
         $this->update([
             'name' => 'Anonymous',
-            'email' => 'anonymous_' . $this->id . '@example.com',
+            'email' => 'anonymous_' . $this->id . '@local.crowork.internal',
             'password' => bcrypt(str_random(40)),
         ]);
     }
@@ -131,5 +134,20 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     public function deactivate(): void
     {
         $this->update(['is_active' => false]);
+    }
+
+    public function preferredLocale(): string
+    {
+        return $this->communication_language ?: app()->getLocale();
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify((new AuthVerifyEmailNotification())->locale($this->preferredLocale()));
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify((new AuthResetPasswordNotification($token))->locale($this->preferredLocale()));
     }
 }
