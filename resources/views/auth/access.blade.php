@@ -5,7 +5,18 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="robots" content="noindex,nofollow">
-        <title>{{ __('auth.continue_to_crowork') }}</title>
+        <title>{{ __('auth.continue_to_crowork') }} - {{ config('app.name', 'CroWork') }}</title>
+        <meta name="description" content="{{ __('seo.auth.access_description') }}">
+        <link rel="canonical" href="{{ route('access.show') }}">
+        <meta property="og:title" content="{{ __('auth.continue_to_crowork') }} - {{ config('app.name', 'CroWork') }}">
+        <meta property="og:description" content="{{ __('seo.auth.access_description') }}">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ route('access.show') }}">
+        <meta property="og:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ __('auth.continue_to_crowork') }} - {{ config('app.name', 'CroWork') }}">
+        <meta name="twitter:description" content="{{ __('seo.auth.access_description') }}">
+        <meta name="twitter:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
         <x-theme-init />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -144,7 +155,7 @@
                             <div class="mb-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700">{{ $message }}</div>
                         @enderror
 
-                        <form method="POST" action="{{ route('access.email') }}" class="space-y-4" data-cw-track-submit="registration_start">
+                        <form method="POST" action="{{ route('access.email') }}" class="space-y-4" data-cw-track-submit="access_start">
                             @csrf
                             <input type="hidden" name="intent_type" value="{{ $intentType ?? 'worker' }}">
                             <div class="w-full">
@@ -157,7 +168,7 @@
 
                     {{-- ─── Stage: LOGIN ──────────────────────────────────────── --}}
                     @elseif ($stage === 'login')
-                        <form method="POST" action="{{ route('access.login') }}" class="space-y-4" data-cw-track-submit="login">
+                        <form method="POST" action="{{ route('access.login') }}" class="space-y-4">
                             @csrf
                             <div class="w-full">
                                 <label class="cw-label" for="email">{{ __('auth.email') }}</label>
@@ -203,7 +214,7 @@
                             @error('resend')
                                 <div class="rounded-xl bg-red-50 border border-red-200 p-3 mb-4 text-sm text-red-700">{{ $message }}</div>
                             @enderror
-                            <form method="POST" action="{{ route('access.verify-code') }}" @submit="onSubmit($event)" class="space-y-5" data-cw-track-submit="email_verification_completed">
+                            <form method="POST" action="{{ route('access.verify-code') }}" @submit="onSubmit($event)" class="space-y-5">
                                 @csrf
                                 <input type="hidden" name="email" value="{{ $email }}">
                                 <input type="hidden" name="intent_type" value="{{ $intentType ?? 'worker' }}">
@@ -252,7 +263,7 @@
                                     :class="{ 'opacity-50 cursor-not-allowed': fullCode.length < 6 }"
                                 >{{ __('auth.verify_email') }}</button>
                             </form>
-                            <form method="POST" action="{{ route('access.resend-code') }}" id="cwResendForm" data-cw-track-submit="email_verification_resend">
+                            <form method="POST" action="{{ route('access.resend-code') }}" id="cwResendForm">
                                 @csrf
                                 <input type="hidden" name="email" value="{{ $email }}">
                                 <input type="hidden" name="intent_type" value="{{ $intentType ?? 'worker' }}">
@@ -277,7 +288,7 @@
 
                     {{-- ─── Stage: REGISTER ───────────────────────────────────── --}}
                     @else
-                        <form method="POST" action="{{ route('access.register') }}" class="space-y-4" data-cw-track-submit="registration_complete">
+                        <form method="POST" action="{{ route('access.register') }}" class="space-y-4">
                             @csrf
                             <div class="w-full">
                                 <label class="cw-label" for="email">{{ __('auth.email') }}</label>

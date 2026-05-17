@@ -35,7 +35,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('employer.settings.profile.update') }}" enctype="multipart/form-data" class="space-y-6">
+                <form method="POST" action="{{ route('employer.settings.profile.update') }}" enctype="multipart/form-data" class="space-y-6" data-cw-track-submit="employer_branding_update">
                     @csrf
                     @method('PATCH')
 

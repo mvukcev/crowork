@@ -8,7 +8,7 @@
             <div class="mb-4 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl p-3">{{ session('status') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
+        <form method="POST" action="{{ route('password.email') }}" class="space-y-4" data-cw-track-submit="password_reset_request">
             @csrf
             <div>
                 <label class="cw-label" for="email">{{ __('auth.email') }}</label>

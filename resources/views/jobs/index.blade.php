@@ -3,6 +3,29 @@
     <x-slot name="description">{{ __('ui.jobs_page.page_description') }}</x-slot>
     <x-slot name="canonical">{{ route('jobs.index') }}</x-slot>
 
+    @php
+        $jobsCollectionSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => __('ui.jobs_page.page_title'),
+            'description' => __('ui.jobs_page.page_description'),
+            'url' => route('jobs.index'),
+            'inLanguage' => app()->getLocale(),
+            'mainEntity' => [
+                '@type' => 'ItemList',
+                'numberOfItems' => $jobs->count(),
+                'itemListElement' => $jobs->values()->map(function ($job, $index) {
+                    return [
+                        '@type' => 'ListItem',
+                        'position' => $index + 1,
+                        'url' => route('jobs.show', $job),
+                        'name' => $job->title,
+                    ];
+                })->all(),
+            ],
+        ];
+    @endphp
+
     @push('head')
         @if($jobs->currentPage() > 1)
             <meta name="robots" content="index,follow">
@@ -13,6 +36,7 @@
         @if($jobs->nextPageUrl())
             <link rel="next" href="{{ $jobs->nextPageUrl() }}">
         @endif
+        <script type="application/ld+json">{!! json_encode($jobsCollectionSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     @endpush
 
     <section class="cw-section">
@@ -370,7 +394,7 @@
                                 <span>{{ trans_choice('ui.jobs_page.filter_results_count', $jobs->total()) }}</span>
                             </div>
                             @if(count($activeChips) > 0)
-                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary !px-3 !py-2 text-xs" data-cw-track-click="job_filter_reset">{{ __('ui.jobs_page.clear_all_filters') }}</a>
+                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary !px-3 !py-2 text-xs" data-cw-track-click="filter_clear" data-cw-item-type="job">{{ __('ui.jobs_page.clear_all_filters') }}</a>
                             @endif
                         </div>
 
@@ -416,7 +440,8 @@
                                     aria-controls="job-advanced-filters"
                                     :aria-expanded="desktopAdvancedOpen ? 'true' : 'false'"
                                     @click="desktopAdvancedOpen = !desktopAdvancedOpen"
-                                    data-cw-track-click="job_filter_open"
+                                    data-cw-track-click="filter_open"
+                                    data-cw-item-type="job"
                                 >
                                     <span>{{ __('ui.jobs_page.more_filters') }}</span>
                                     <span class="ml-1 text-xs text-slate-500" x-text="desktopAdvancedOpen ? @js(__('ui.jobs_page.toggle_hide')) : @js(__('ui.jobs_page.toggle_show'))"></span>
@@ -526,12 +551,13 @@
                                 <button
                                     class="cw-button-primary"
                                     type="submit"
-                                    data-cw-track-click="job_filter_apply"
+                                    data-cw-track-click="filter_apply"
+                                    data-cw-item-type="job"
                                     :disabled="submitting"
                                 >
                                     <span data-cw-submit-label data-default-label="{{ __('ui.jobs_page.apply_filters') }}" data-loading-label="Applying..." aria-live="polite">{{ __('ui.jobs_page.apply_filters') }}</span>
                                 </button>
-                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary" data-cw-track-click="job_filter_reset">{{ __('ui.jobs_page.reset_filters') }}</a>
+                                <a href="{{ route('jobs.index') }}" class="cw-button-secondary" data-cw-track-click="filter_clear" data-cw-item-type="job">{{ __('ui.jobs_page.reset_filters') }}</a>
                                 <button type="button" class="cw-button-secondary md:hidden" data-cw-filter-close aria-controls="job-advanced-filters" @click="mobilePanelOpen = false">{{ __('ui.jobs_page.done_filters') }}</button>
                             </div>
 

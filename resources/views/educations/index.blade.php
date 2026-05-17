@@ -3,6 +3,29 @@
     <x-slot name="description">{{ __('ui.educations_page.page_description') }}</x-slot>
     <x-slot name="canonical">{{ route('educations.index') }}</x-slot>
 
+    @php
+        $educationsCollectionSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => __('ui.educations_page.page_title'),
+            'description' => __('ui.educations_page.page_description'),
+            'url' => route('educations.index'),
+            'inLanguage' => app()->getLocale(),
+            'mainEntity' => [
+                '@type' => 'ItemList',
+                'numberOfItems' => $educations->count(),
+                'itemListElement' => $educations->values()->map(function ($education, $index) {
+                    return [
+                        '@type' => 'ListItem',
+                        'position' => $index + 1,
+                        'url' => route('educations.show', $education),
+                        'name' => $education->title,
+                    ];
+                })->all(),
+            ],
+        ];
+    @endphp
+
     @push('head')
         @if($educations->previousPageUrl())
             <link rel="prev" href="{{ $educations->previousPageUrl() }}">
@@ -10,6 +33,7 @@
         @if($educations->nextPageUrl())
             <link rel="next" href="{{ $educations->nextPageUrl() }}">
         @endif
+        <script type="application/ld+json">{!! json_encode($educationsCollectionSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     @endpush
 
     <section class="cw-section">
@@ -320,7 +344,7 @@
                                 <span>{{ trans_choice('ui.educations_page.filter_results_count', $educations->total()) }}</span>
                             </div>
                             @if(count($activeChips) > 0)
-                                <a href="{{ route('educations.index') }}" class="cw-button-secondary !px-3 !py-2 text-xs" data-cw-track-click="education_filter_reset">{{ __('ui.educations_page.reset_filters') }}</a>
+                                <a href="{{ route('educations.index') }}" class="cw-button-secondary !px-3 !py-2 text-xs" data-cw-track-click="filter_clear" data-cw-item-type="education">{{ __('ui.educations_page.reset_filters') }}</a>
                             @endif
                         </div>
 
@@ -370,7 +394,8 @@
                                     aria-controls="education-advanced-filters"
                                     :aria-expanded="desktopAdvancedOpen ? 'true' : 'false'"
                                     @click="desktopAdvancedOpen = !desktopAdvancedOpen"
-                                    data-cw-track-click="education_filter_open"
+                                    data-cw-track-click="filter_open"
+                                    data-cw-item-type="education"
                                 >
                                     <span>{{ __('ui.educations_page.more_filters') }}</span>
                                     <span class="ml-1 text-xs text-slate-500" x-text="desktopAdvancedOpen ? @js(__('ui.educations_page.toggle_hide')) : @js(__('ui.educations_page.toggle_show'))"></span>
@@ -432,7 +457,8 @@
                                 class="cw-button-secondary w-full"
                                 data-cw-filter-open
                                 @click="mobilePanelOpen = true"
-                                    data-cw-track-click="education_filter_open"
+                                    data-cw-track-click="filter_open"
+                                    data-cw-item-type="education"
                                 aria-controls="education-advanced-filters"
                                 :aria-expanded="mobilePanelOpen ? 'true' : 'false'"
                             >

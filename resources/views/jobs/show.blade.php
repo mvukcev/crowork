@@ -39,6 +39,16 @@
         }
 
         $employmentType = cw_localize_job_value('employment_type', $job->contract_type);
+        $employmentTypeMap = [
+            'full-time' => 'FULL_TIME',
+            'part-time' => 'PART_TIME',
+            'contract' => 'CONTRACTOR',
+            'temporary' => 'TEMPORARY',
+            'internship' => 'INTERN',
+            'seasonal' => 'TEMPORARY',
+            'freelance' => 'CONTRACTOR',
+        ];
+        $employmentTypeSchema = $employmentTypeMap[strtolower((string) $job->contract_type)] ?? null;
         $experienceLevel = cw_localize_job_value('experience_level', $job->experience_level);
         $educationRequired = cw_localize_job_value('education_required', $job->education_required);
 
@@ -104,11 +114,12 @@
             'description' => \Illuminate\Support\Str::limit(strip_tags((string) $job->description), 4000, ''),
             'datePosted' => optional($job->published_at ?? $job->created_at)?->toIso8601String(),
             'validThrough' => optional($job->expires_at)?->toIso8601String(),
-            'employmentType' => $employmentType,
+            'employmentType' => $employmentTypeSchema,
             'hiringOrganization' => [
                 '@type' => 'Organization',
                 'name' => $companyName,
                 'sameAs' => $job->employer?->website,
+                'logo' => $employerLogoUrl,
             ],
             'jobLocation' => $location ? [
                 '@type' => 'Place',
@@ -130,6 +141,7 @@
             ] : null,
             'directApply' => true,
             'url' => route('jobs.show', $job),
+            'inLanguage' => app()->getLocale(),
         ];
 
         $jobPostingSchema = array_filter($jobPostingSchema, fn ($value) => !is_null($value) && $value !== '');
@@ -353,7 +365,7 @@
                         @endif
 
                         <div class="flex flex-col gap-2 mt-3">
-                            <a href="{{ route('jobs.apply', $job) }}" class="cw-button-violet w-full text-center" data-cw-track-click="apply_start">{{ __('ui.jobs_show.apply_now') }}</a>
+                            <a href="{{ route('jobs.apply', $job) }}" class="cw-button-violet w-full text-center" data-cw-track-click="job_apply_click" data-cw-item-type="job" data-cw-item-slug="{{ $job->slug }}">{{ __('ui.jobs_show.apply_now') }}</a>
                         </div>
                     </div>
 
@@ -368,7 +380,7 @@
                                     @if($job->employer)
                                         <p class="text-sm text-slate-700 mb-3">{{ $companyName }}@if($job->employer->city) · {{ $job->employer->city }}@endif</p>
                                         @if($companyProfileUrl)
-                                            <a href="{{ $companyProfileUrl }}" class="cw-button-secondary w-full text-center">{{ __('ui.jobs_page.company_profile') }}</a>
+                                            <a href="{{ $companyProfileUrl }}" class="cw-button-secondary w-full text-center" data-cw-track-click="company_profile_click" data-cw-item-type="company" data-cw-item-slug="{{ $job->employer?->slug }}">{{ __('ui.jobs_page.company_profile') }}</a>
                                         @endif
                                     @endif
                                 </div>
@@ -376,7 +388,7 @@
                                     <div class="flex-shrink-0">
                                         <div class="w-14 h-14 rounded-full border border-slate-300 bg-gradient-to-br from-white to-slate-50 flex items-center justify-center overflow-hidden">
                                             @if($employerLogoUrl)
-                                                <img src="{{ $employerLogoUrl }}" alt="{{ $companyName }} logo" class="w-full h-full object-cover">
+                                                <img src="{{ $employerLogoUrl }}" alt="{{ $companyName }} logo" class="w-full h-full object-cover" loading="lazy" decoding="async" width="56" height="56">
                                             @else
                                                 <span class="text-xs font-bold text-slate-600">{{ substr($companyName, 0, 2) }}</span>
                                             @endif

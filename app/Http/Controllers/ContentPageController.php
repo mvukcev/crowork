@@ -15,13 +15,21 @@ class ContentPageController
         // Fallback to defaults if not found
         if (! $page) {
             $defaults = ContentPage::getDefaultContent($slug, $locale);
+
+            $fallbackDescription = match ($slug) {
+                'privacy' => __('seo.legal.privacy.description'),
+                'terms' => __('seo.legal.terms.description'),
+                'cookies' => __('seo.legal.cookies.description'),
+                default => null,
+            };
+
             return view('pages.content-page', [
                 'slug' => $slug,
                 'locale' => $locale,
                 'title' => $defaults['title'],
                 'body' => $defaults['body'],
                 'metaTitle' => $defaults['title'],
-                'metaDescription' => null,
+                'metaDescription' => $fallbackDescription,
                 'fromDatabase' => false,
             ]);
         }

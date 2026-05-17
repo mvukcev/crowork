@@ -1,8 +1,42 @@
 
 <x-app-layout>
-    <x-slot name="title">The Modern Labor Market</x-slot>
-    <x-slot name="description">Find your next career opportunity or hire top talent on Croatia's leading employment platform. CroWork connects people, employers, and opportunities through transparent, modern employment.</x-slot>
+    <x-slot name="title">{{ __('seo.home.title') }}</x-slot>
+    <x-slot name="description">{{ __('seo.home.description') }}</x-slot>
     <x-slot name="canonical">{{ route('home') }}</x-slot>
+
+    @php
+        $organizationSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => config('app.name', 'CroWork'),
+            'url' => route('home'),
+            'logo' => asset('assets/branding/CW-Logo-Dark.png'),
+            'contactPoint' => [
+                '@type' => 'ContactPoint',
+                'contactType' => 'customer support',
+                'email' => 'support@crowork.app',
+                'availableLanguage' => ['en', 'hr'],
+            ],
+        ];
+
+        $websiteSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => config('app.name', 'CroWork'),
+            'url' => route('home'),
+            'inLanguage' => app()->getLocale(),
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => route('jobs.index', ['q' => '{search_term_string}']),
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+    @endphp
+
+    @push('head')
+        <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endpush
 
     <div class="overflow-x-hidden">
         {{-- HERO SECTION --}}
@@ -21,7 +55,7 @@
                     
                     {{-- Search Box --}}
                     <div class="flex flex-col items-center gap-3 mb-12 max-w-2xl mx-auto">
-                        <form action="{{ route('jobs.index') }}" method="GET" class="w-full flex flex-col sm:flex-row gap-3">
+                        <form action="{{ route('jobs.index') }}" method="GET" class="w-full flex flex-col sm:flex-row gap-3" data-cw-track-submit="homepage_search">
                             <input 
                                 type="text" 
                                 name="q" 
@@ -35,7 +69,7 @@
                                 {{ __('ui.homepage.hero_search_button') }}
                             </button>
                         </form>
-                        <a href="{{ route('for-employers') }}" class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium">
+                        <a href="{{ route('for-employers') }}" class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium" data-cw-track-click="employer_cta_click" data-cw-item-type="cta">
                             {{ __('ui.homepage.hero_employer_cta') }}
                         </a>
                     </div>
@@ -43,7 +77,7 @@
                     {{-- Hero Visual --}}
                     <div class="flex justify-center items-center w-full mt-12">
                         <div class="w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl">
-                            <img src="/assets/pages/home/hero-dashboard-preview-1200x900.jpg" alt="{{ __('ui.homepage.dashboard_preview_alt') }}" class="w-full h-auto object-cover" loading="lazy">
+                            <img src="/assets/pages/home/hero-dashboard-preview-1200x900.jpg" alt="{{ __('ui.homepage.dashboard_preview_alt') }}" class="w-full h-auto object-cover" loading="lazy" decoding="async" width="1200" height="900">
                         </div>
                     </div>
                 </div>
@@ -132,7 +166,7 @@
                     <a href="{{ route('for-employers') }}" class="cw-button-primary cw-press">{{ __('ui.homepage.employer_section.cta_post_job') }}</a>
                 </div>
                 <div class="rounded-2xl overflow-hidden shadow-2xl">
-                    <img src="/assets/pages/home/employer-workflow-1200x800.jpg" alt="Employer workflow" class="w-full h-auto object-cover" loading="lazy">
+                    <img src="/assets/pages/home/employer-workflow-1200x800.jpg" alt="Employer workflow" class="w-full h-auto object-cover" loading="lazy" decoding="async" width="1200" height="800">
                 </div>
             </div>
         </section>
@@ -141,7 +175,7 @@
         <section class="cw-section py-16 md:py-24 cw-home-alt-section">
             <div class="cw-container grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div class="rounded-2xl overflow-hidden shadow-2xl order-2 md:order-1">
-                    <img src="/assets/pages/home/candidate-opportunity-1200x800.jpg" alt="Candidate opportunity" class="w-full h-auto object-cover" loading="lazy">
+                    <img src="/assets/pages/home/candidate-opportunity-1200x800.jpg" alt="Candidate opportunity" class="w-full h-auto object-cover" loading="lazy" decoding="async" width="1200" height="800">
                 </div>
                 <div class="order-1 md:order-2">
                     <h2 class="cw-display text-2xl md:text-4xl mb-4">{{ __('ui.homepage.candidate_section.headline') }}</h2>

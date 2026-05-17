@@ -29,6 +29,7 @@ class SetFrontendLocale
         }
 
         $candidateLocales = [
+            $request->query('lang'),
             optional($request->user())->communication_language,
             $request->session()->get('locale'),
             $request->cookie('cw_locale'),

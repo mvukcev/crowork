@@ -41,7 +41,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('worker.profile.update') }}" enctype="multipart/form-data" class="cw-surface p-6 space-y-6" x-data="cvBuilder(@js($initialSkills ?? []), @js($initialDesiredRoles ?? []), @js($languageRows ?? []))">
+            <form method="POST" action="{{ route('worker.profile.update') }}" enctype="multipart/form-data" class="cw-surface p-6 space-y-6" x-data="cvBuilder(@js($initialSkills ?? []), @js($initialDesiredRoles ?? []), @js($languageRows ?? []))" data-cw-track-submit="worker_profile_update">
                 @csrf
                 @method('PUT')
 

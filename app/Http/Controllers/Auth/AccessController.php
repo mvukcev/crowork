@@ -136,6 +136,10 @@ class AccessController extends Controller
         }
 
         session(['access_stage' => 'verify_code']);
+        $this->queueTrackEvent('verification_code_sent', [
+            'source' => 'access_email',
+            'intent_type' => $intentType,
+        ]);
         return redirect()->route('access.show');
     }
 
@@ -197,6 +201,11 @@ class AccessController extends Controller
             'cw_verified_email'   => $email,
         ]);
 
+        $this->queueTrackEvent('verification_success', [
+            'source' => 'access_verify',
+            'intent_type' => $intentType,
+        ]);
+
         return redirect()->route('access.show');
     }
 
@@ -249,6 +258,11 @@ class AccessController extends Controller
                 ->withErrors(['resend' => __('auth.status_resend_failed')]);
         }
 
+        $this->queueTrackEvent('verification_code_sent', [
+            'source' => 'access_resend',
+            'intent_type' => $intentType,
+        ]);
+
         return redirect()->route('access.show')
             ->with('resend_success', __('auth.status_resend_sent', ['email' => $email]));
     }
@@ -277,6 +291,11 @@ class AccessController extends Controller
         $this->clearAccessSessionState();
 
         $user = Auth::user();
+        $this->queueTrackEvent('login_success', [
+            'source' => 'access_login',
+            'role' => $user->role,
+        ]);
+
         if ($user->role === User::ROLE_ADMIN || $user->role === User::ROLE_MOD) {
             return redirect()->intended('/admin');
         }
@@ -348,6 +367,10 @@ class AccessController extends Controller
 
             event(new Registered($user));
             Auth::login($user);
+            $this->queueTrackEvent('register_complete', [
+                'source' => 'access_register',
+                'account_type' => User::ROLE_WORKER,
+            ]);
 
             return redirect()->route('worker.profile.edit');
         }
@@ -372,6 +395,13 @@ class AccessController extends Controller
         event(new Registered($user));
         $this->clearAccessSessionState();
         Auth::login($user);
+        $this->queueTrackEvent('register_complete', [
+            'source' => 'access_register',
+            'account_type' => User::ROLE_EMPLOYER,
+        ]);
+        $this->queueTrackEvent('employer_register_complete', [
+            'source' => 'access_register',
+        ]);
 
         // If employer requires approval, show the pending approval page
         if ($approvalService->requiresEmployerApproval() && ! $user->employer->approved_at) {
@@ -500,6 +530,21 @@ class AccessController extends Controller
             'verification_cooldown',
             'password_step_state',
         ]);
+    }
+
+    private function queueTrackEvent(string $event, array $payload = []): void
+    {
+        $queue = session('cw_track_queue', []);
+        if (! is_array($queue)) {
+            $queue = [];
+        }
+
+        $queue[] = [
+            'event' => $event,
+            'payload' => $payload,
+        ];
+
+        session(['cw_track_queue' => $queue]);
     }
 
     private function isDevMode(): bool

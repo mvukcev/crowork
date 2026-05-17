@@ -5,7 +5,7 @@
         <div class="cw-container max-w-4xl">
             <h1 class="cw-display text-4xl md:text-6xl mb-6">{{ __('ui.jobs.create_heading') }}</h1>
 
-            <form method="POST" action="{{ route('employer.jobs.store') }}" class="cw-surface p-6 space-y-4">
+            <form method="POST" action="{{ route('employer.jobs.store') }}" class="cw-surface p-6 space-y-4" data-cw-track-submit="employer_job_create">
                 @csrf
 
                 <div>

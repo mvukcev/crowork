@@ -4,7 +4,55 @@
     <x-slot name="description">{{ $resource['description'] }}</x-slot>
     <x-slot name="canonical">{{ route('resources.show', $resource['slug']) }}</x-slot>
 
+    @php
+        $articleBody = collect($resource['sections'] ?? [])->flatMap(function ($section) {
+            $paragraphs = collect($section['body'] ?? [])->filter(fn ($item) => is_string($item));
+            return collect([(string) ($section['title'] ?? '')])->merge($paragraphs)->filter();
+        })->implode("\n");
+
+        $articleSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $resource['title'],
+            'description' => $resource['description'],
+            'inLanguage' => app()->getLocale(),
+            'mainEntityOfPage' => route('resources.show', $resource['slug']),
+            'author' => [
+                '@type' => 'Organization',
+                'name' => config('app.name', 'CroWork'),
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => config('app.name', 'CroWork'),
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => asset('assets/branding/CW-Logo-Dark.png'),
+                ],
+            ],
+            'articleBody' => $articleBody,
+        ];
+
+        $faqPageSchema = null;
+        if ($resource['slug'] === 'faq-foreign-workers') {
+            $faqPageSchema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => collect($resource['sections'] ?? [])->map(function ($section) {
+                    return [
+                        '@type' => 'Question',
+                        'name' => (string) ($section['title'] ?? ''),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => collect($section['body'] ?? [])->filter(fn ($line) => is_string($line))->implode(' '),
+                        ],
+                    ];
+                })->filter(fn ($item) => $item['name'] !== '' && $item['acceptedAnswer']['text'] !== '')->values()->all(),
+            ];
+        }
+    @endphp
+
     @push('head')
+        <script type="application/ld+json">{!! json_encode($articleSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
         <script type="application/ld+json">{!! json_encode([
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
@@ -12,7 +60,7 @@
                 [
                     '@type' => 'ListItem',
                     'position' => 1,
-                    'name' => 'Home',
+                    'name' => __('ui.navigation.home'),
                     'item' => route('home'),
                 ],
                 [
@@ -29,6 +77,9 @@
                 ],
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        @if($faqPageSchema)
+            <script type="application/ld+json">{!! json_encode($faqPageSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        @endif
     @endpush
 
     <section class="cw-section">
@@ -68,6 +119,9 @@
                             @foreach($resources as $navResource)
                                 <a
                                     href="{{ route('resources.show', $navResource['slug']) }}"
+                                    data-cw-track-click="guide_open"
+                                    data-cw-item-type="resource_guide"
+                                    data-cw-item-slug="{{ $navResource['slug'] }}"
                                     @class([
                                         'cw-button-secondary text-left' => true,
                                         'border-violet-700 text-violet-700 font-bold' => $navResource['slug'] === $resource['slug'],
@@ -83,7 +137,7 @@
                         <h2 class="text-lg font-semibold text-violet-700 mb-3">{{ __('resources.show.next_steps') }}</h2>
                         <div class="space-y-3 text-sm text-slate-700">
                             <p>{{ __('resources.show.next_steps_copy') }}</p>
-                            <a href="{{ route('jobs.index') }}" class="cw-button-primary w-full text-center">{{ __('resources.cta.browse_jobs') }}</a>
+                            <a href="{{ route('jobs.index') }}" class="cw-button-primary w-full text-center" data-cw-track-click="job_search" data-cw-item-type="cta">{{ __('resources.cta.browse_jobs') }}</a>
                             <a href="{{ route('contact') }}" class="cw-button-secondary w-full text-center">{{ __('resources.cta.contact') }}</a>
                         </div>
                     </div>
@@ -95,7 +149,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.cwTrack?.('page_view', {
+                window.cwTrack?.('resource_view', {
                     page_type: 'resource_detail',
                     resource_slug: @json($resource['slug'])
                 });

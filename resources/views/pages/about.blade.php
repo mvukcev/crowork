@@ -6,6 +6,19 @@
     @push('head')
         <script type="application/ld+json">{!! json_encode([
             '@context' => 'https://schema.org',
+            '@type' => 'AboutPage',
+            'name' => __('about.seo.title'),
+            'description' => __('about.seo.description'),
+            'url' => route('about'),
+            'inLanguage' => app()->getLocale(),
+            'about' => [
+                '@type' => 'Organization',
+                'name' => config('app.name', 'CroWork'),
+                'url' => route('home'),
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        <script type="application/ld+json">{!! json_encode([
+            '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
             'itemListElement' => [
                 [

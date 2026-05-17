@@ -1,13 +1,24 @@
 <x-app-layout>
-    <x-slot name="title">Cookie Policy</x-slot>
-    <x-slot name="description">CroWork Cookie Policy. Learn about how we use cookies and similar technologies on our platform.</x-slot>
+    <x-slot name="title">{{ __('seo.legal.cookies.title') }}</x-slot>
+    <x-slot name="description">{{ __('seo.legal.cookies.description') }}</x-slot>
     <x-slot name="canonical">{{ route('cookies') }}</x-slot>
+
+    @push('head')
+        <script type="application/ld+json">{!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => __('seo.legal.cookies.title'),
+            'description' => __('seo.legal.cookies.description'),
+            'url' => route('cookies'),
+            'inLanguage' => app()->getLocale(),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endpush
 
     <!-- Hero Section -->
     <x-hero 
         size="sm" 
-        title="Cookie Policy"
-        subtitle="Last updated: {{ date('F j, Y') }}"
+        title="{{ __('seo.legal.cookies.headline') }}"
+        subtitle="{{ __('seo.legal.cookies.updated_prefix') }} {{ date('F j, Y') }}"
     />
 
     <section class="cw-section">

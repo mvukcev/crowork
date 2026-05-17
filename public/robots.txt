@@ -14,6 +14,14 @@ Disallow: /employer
 Disallow: /employer/
 Disallow: /worker
 Disallow: /worker/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /profile
+Disallow: /profile/
+Disallow: /notifications
+Disallow: /notifications/
+Disallow: /settings
+Disallow: /settings/
 Disallow: /login
 Disallow: /register
 Disallow: /access
@@ -29,4 +37,4 @@ Disallow: /debug
 Disallow: /telescope
 Disallow: /horizon
 
-Sitemap: https://crowork.hr/sitemap.xml
+Sitemap: /sitemap.xml

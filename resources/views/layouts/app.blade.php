@@ -6,25 +6,87 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
-        $seoTitle = ($title ?? config('app.name', 'CroWork')).' - Find Your Career in Croatia';
-        $seoDescription = $description ?? 'CroWork connects international talent with Croatian employers. Find jobs, education opportunities, and build your career in Croatia.';
-        $canonicalUrl = trim($__env->yieldContent('canonical')) ?: ($canonical ?? url()->current());
-        $ogTitle = $ogTitle ?? ($title ?? config('app.name', 'CroWork'));
+        $enabledLocales = collect(setting('enabled_locales', ['en', 'hr']))
+            ->filter(fn ($locale) => is_string($locale) && $locale !== '')
+            ->map(fn ($locale) => strtolower(trim((string) $locale)))
+            ->values()
+            ->all();
+
+        if ($enabledLocales === []) {
+            $enabledLocales = ['en'];
+        }
+
+        $defaultLocale = strtolower((string) setting('default_platform_locale', config('app.locale', 'en')));
+        if (! in_array($defaultLocale, $enabledLocales, true)) {
+            $defaultLocale = $enabledLocales[0] ?? 'en';
+        }
+
+        $activeLocale = strtolower((string) app()->getLocale());
+        if (! in_array($activeLocale, $enabledLocales, true)) {
+            $activeLocale = $defaultLocale;
+        }
+
+        $baseCanonical = trim($__env->yieldContent('canonical')) ?: ($canonical ?? url()->current());
+        $canonicalParts = parse_url($baseCanonical);
+        $canonicalQuery = [];
+        if (! empty($canonicalParts['query'])) {
+            parse_str($canonicalParts['query'], $canonicalQuery);
+        }
+
+        $buildLocaleUrl = function (string $locale) use ($canonicalParts, $canonicalQuery, $defaultLocale): string {
+            $query = $canonicalQuery;
+            if ($locale === $defaultLocale) {
+                unset($query['lang']);
+            } else {
+                $query['lang'] = $locale;
+            }
+
+            $scheme = $canonicalParts['scheme'] ?? request()->getScheme();
+            $host = $canonicalParts['host'] ?? request()->getHost();
+            $port = isset($canonicalParts['port']) ? ':' . $canonicalParts['port'] : '';
+            $path = $canonicalParts['path'] ?? request()->getPathInfo();
+            $queryString = http_build_query($query);
+
+            return $scheme . '://' . $host . $port . $path . ($queryString !== '' ? '?' . $queryString : '');
+        };
+
+        $canonicalUrl = $buildLocaleUrl($activeLocale);
+        $xDefaultUrl = $buildLocaleUrl($defaultLocale);
+        $hreflangMap = collect($enabledLocales)->mapWithKeys(fn (string $locale) => [$locale => $buildLocaleUrl($locale)])->all();
+
+        $seoTitle = $title ?? config('app.name', 'CroWork');
+        $seoDescription = $description ?? __('seo.defaults.description');
+        $ogTitle = $ogTitle ?? $seoTitle;
         $ogDescription = $ogDescription ?? $seoDescription;
         $ogType = $ogType ?? 'website';
         $ogImage = $ogImage ?? asset('assets/branding/CW-Logo-Dark.png');
         $robots = $robots ?? 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+        $localeMap = [
+            'en' => 'en_US',
+            'hr' => 'hr_HR',
+        ];
+        $ogLocale = $localeMap[$activeLocale] ?? str_replace('-', '_', app()->getLocale());
     @endphp
 
     <title>{{ $seoTitle }}</title>
     <meta name="description" content="{{ $seoDescription }}">
     <meta name="robots" content="{{ $robots }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    @foreach($hreflangMap as $locale => $href)
+        <link rel="alternate" hreflang="{{ $locale }}" href="{{ $href }}">
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
     <meta property="og:title" content="{{ $ogTitle }}">
     <meta property="og:site_name" content="CroWork">
+    <meta property="og:locale" content="{{ $ogLocale }}">
+    @foreach($enabledLocales as $locale)
+        @if($locale !== $activeLocale && isset($localeMap[$locale]))
+            <meta property="og:locale:alternate" content="{{ $localeMap[$locale] }}">
+        @endif
+    @endforeach
     <meta property="og:description" content="{{ $ogDescription }}">
     <meta property="og:type" content="{{ $ogType }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
@@ -43,6 +105,15 @@
 
     <!-- Analytics & Tracking -->
     @include('components.analytics-head')
+
+    @php
+        $queuedTrackEvents = session()->pull('cw_track_queue', []);
+    @endphp
+    @if(is_array($queuedTrackEvents) && count($queuedTrackEvents) > 0)
+        <script>
+            window.__cwTrackQueue = @json($queuedTrackEvents);
+        </script>
+    @endif
 
     @stack('head')
     @stack('styles')
@@ -70,14 +141,16 @@
     $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
     $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
     $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+    $trackDebug = app()->environment('local') || config('app.debug');
 @endphp
 <body @class([
     'h-full cw-page' => true,
-    'cw-brand-display' => $useBrandDisplay,
+    'cw-brand-display' => ($useBrandDisplay ?? false),
 ])
 data-cw-consent-required="{{ $consentRequired ? '1' : '0' }}"
 data-cw-analytics-enabled="{{ $analyticsEnabled ? '1' : '0' }}"
 data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
+data-cw-track-debug="{{ $trackDebug ? '1' : '0' }}"
 x-data>
     @php($isHome = request()->routeIs('home'))
     @php($isImpersonating = session('impersonation_original_admin_id'))

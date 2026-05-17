@@ -128,11 +128,7 @@ if (!window.__cwAlpineStarted) {
 	window.Alpine.start();
 }
 
-const cwTrack = (eventName, payload = {}) => {
-	if (!eventName || typeof eventName !== 'string') {
-		return;
-	}
-
+const readConsentState = () => {
 	const body = document.body;
 	const consentRequired = body?.dataset?.cwConsentRequired === '1';
 	const analyticsEnabled = body?.dataset?.cwAnalyticsEnabled === '1';
@@ -156,59 +152,225 @@ const cwTrack = (eventName, payload = {}) => {
 	const analyticsAllowed = !consentRequired || cookieAnalytics || storedChoice === 'all' || storedConsent?.analytics === true;
 	const marketingAllowed = !consentRequired || cookieMarketing || storedChoice === 'all' || storedConsent?.marketing === true;
 
-	const shouldSendAnalytics = analyticsEnabled && analyticsAllowed;
-	const shouldSendMarketing = marketingEnabled && marketingAllowed;
+	return {
+		analyticsAllowed: analyticsEnabled && analyticsAllowed,
+		marketingAllowed: marketingEnabled && marketingAllowed,
+	};
+};
+
+const resolvePageType = () => {
+	const path = window.location.pathname;
+	if (path === '/') return 'homepage';
+	if (path.startsWith('/jobs/')) return 'job_detail';
+	if (path === '/jobs') return 'jobs_listing';
+	if (path.startsWith('/educations/')) return 'education_detail';
+	if (path === '/educations') return 'educations_listing';
+	if (path.startsWith('/resources/')) return 'resource_detail';
+	if (path === '/resources') return 'resources_listing';
+	if (path === '/for-employers') return 'for_employers';
+	if (path === '/about') return 'about';
+	if (path === '/access') return 'access';
+	if (path.startsWith('/worker')) return 'worker_dashboard';
+	if (path.startsWith('/employer')) return 'employer_dashboard';
+	return 'page';
+};
+
+const resolveRole = () => {
+	const path = window.location.pathname;
+	if (path.startsWith('/worker')) return 'worker';
+	if (path.startsWith('/employer')) return 'employer';
+	if (path.startsWith('/admin')) return 'admin';
+	return 'guest';
+};
+
+const EVENT_ALIASES = {
+	language_change: 'language_switch',
+	theme_change: 'theme_switch',
+	apply_start: 'job_apply_click',
+	job_application_submit: 'job_apply_submit',
+	education_application_submit: 'education_apply_submit',
+	job_filter_open: 'filter_open',
+	job_filter_apply: 'filter_apply',
+	job_filter_reset: 'filter_clear',
+	education_filter_open: 'filter_open',
+	education_filter_apply: 'filter_apply',
+	education_filter_reset: 'filter_clear',
+	registration_start: 'register_start',
+	registration_complete: 'register_complete',
+	email_verification_resend: 'verification_code_sent',
+	email_verification_completed: 'verification_success',
+	login: 'login_success',
+	resource_detail_view: 'resource_view',
+};
+
+const SENSITIVE_KEYS = [
+	'email',
+	'em',
+	'phone',
+	'ph',
+	'name',
+	'first_name',
+	'last_name',
+	'message',
+	'text',
+	'query',
+	'q',
+];
+
+const ANALYTICS_EVENT_SCOPE = {
+	default: 'analytics',
+	employer_cta_click: 'marketing',
+	post_job_click: 'marketing',
+	job_apply_click: 'marketing',
+	job_apply_submit: 'marketing',
+	education_apply_click: 'marketing',
+	education_apply_submit: 'marketing',
+	register_complete: 'marketing',
+	employer_register_start: 'marketing',
+	employer_register_complete: 'marketing',
+	verification_success: 'marketing',
+};
+
+const META_EVENT_MAP = {
+	job_view: { type: 'track', name: 'ViewContent' },
+	education_view: { type: 'track', name: 'ViewContent' },
+	resource_view: { type: 'track', name: 'ViewContent' },
+	guide_open: { type: 'track', name: 'ViewContent' },
+	job_search: { type: 'track', name: 'Search' },
+	education_search: { type: 'track', name: 'Search' },
+	resource_search: { type: 'track', name: 'Search' },
+	employer_cta_click: { type: 'track', name: 'Lead' },
+	post_job_click: { type: 'track', name: 'Lead' },
+	employer_register_start: { type: 'track', name: 'Lead' },
+	register_complete: { type: 'track', name: 'CompleteRegistration' },
+	employer_register_complete: { type: 'track', name: 'CompleteRegistration' },
+	job_apply_submit: { type: 'trackCustom', name: 'JobApplySubmit' },
+	education_apply_submit: { type: 'trackCustom', name: 'EducationApplySubmit' },
+	password_reset_request: { type: 'trackCustom', name: 'PasswordResetRequest' },
+};
+
+const eventDedupeCache = new Map();
+
+const getTrackDebugMode = () => {
+	const bodyDebug = document.body?.dataset?.cwTrackDebug === '1';
+	const explicitDebug = window.__CW_TRACK_DEBUG__ === true;
+	const localHostDebug = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+	return bodyDebug || explicitDebug || localHostDebug;
+};
+
+const normalizeEventName = (eventName) => EVENT_ALIASES[eventName] || eventName;
+
+const sanitizePayload = (payload = {}) => {
+	const safePayload = {};
+	Object.entries(payload || {}).forEach(([key, value]) => {
+		if (value === null || typeof value === 'undefined') return;
+		const lowerKey = key.toLowerCase();
+		if (SENSITIVE_KEYS.includes(lowerKey)) {
+			if (lowerKey === 'query' || lowerKey === 'q' || lowerKey === 'text') {
+				safePayload.query_length = String(value).trim().length;
+			}
+			return;
+		}
+
+		if (typeof value === 'string') {
+			safePayload[key] = value.slice(0, 120);
+			return;
+		}
+
+		if (typeof value === 'number' || typeof value === 'boolean') {
+			safePayload[key] = value;
+			return;
+		}
+
+		if (Array.isArray(value)) {
+			safePayload[key] = value.slice(0, 10).map((item) => (typeof item === 'string' ? item.slice(0, 40) : item));
+		}
+	});
+
+	return safePayload;
+};
+
+const shouldDeduplicate = (eventName, payload) => {
+	const dedupeKey = `${eventName}:${payload.page_type || 'page'}:${payload.item_slug || payload.job_slug || payload.education_slug || ''}:${payload.path || ''}`;
+	const now = Date.now();
+	const previous = eventDedupeCache.get(dedupeKey);
+	if (previous && now - previous < 800) {
+		return true;
+	}
+	eventDedupeCache.set(dedupeKey, now);
+	return false;
+};
+
+const cwTrack = (eventName, payload = {}) => {
+	if (!eventName || typeof eventName !== 'string') {
+		return;
+	}
+
+	const normalizedEventName = normalizeEventName(eventName);
+	const consentState = readConsentState();
+	const eventScope = ANALYTICS_EVENT_SCOPE[normalizedEventName] || ANALYTICS_EVENT_SCOPE.default;
 
 	const eventId = payload.event_id || `cw_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+	const cleanedPayload = sanitizePayload(payload);
+	const finalPayload = {
+		...cleanedPayload,
+		event_id: eventId,
+		locale: document.documentElement.lang || null,
+		page_type: cleanedPayload.page_type || resolvePageType(),
+		role: cleanedPayload.role || resolveRole(),
+		path: cleanedPayload.path || window.location.pathname,
+	};
+
+	if (shouldDeduplicate(normalizedEventName, finalPayload)) {
+		return;
+	}
+
+	const shouldSendAnalytics = consentState.analyticsAllowed;
+	const shouldSendMarketing = consentState.marketingAllowed;
+	const canSend = eventScope === 'marketing' ? shouldSendMarketing : shouldSendAnalytics;
 
 	const detail = {
-		event: eventName,
-		payload: {
-			...payload,
-			event_id: eventId,
-		},
+		event: normalizedEventName,
+		payload: finalPayload,
 		timestamp: new Date().toISOString(),
+		scope: eventScope,
 	};
 
 	window.dispatchEvent(new CustomEvent('cw:analytics', { detail }));
 
-	if (shouldSendAnalytics && Array.isArray(window.dataLayer)) {
-		window.dataLayer.push({ event: eventName, ...payload });
+	if (!canSend) {
+		if (getTrackDebugMode()) {
+			console.debug('[cwTrack:block]', normalizedEventName, detail);
+		}
+		return;
 	}
 
-	if (shouldSendAnalytics && typeof window.gtag === 'function') {
-		window.gtag('event', eventName, payload);
+	if (Array.isArray(window.dataLayer)) {
+		window.dataLayer.push({ event: normalizedEventName, ...finalPayload });
+	}
+
+	if (typeof window.gtag === 'function') {
+		window.gtag('event', normalizedEventName, finalPayload);
 	}
 
 	if (shouldSendMarketing && typeof window.fbq === 'function') {
-		const metaMap = {
-			page_view: { type: 'track', name: 'PageView' },
-			job_view: { type: 'track', name: 'ViewContent' },
-			education_view: { type: 'track', name: 'ViewContent' },
-			company_view: { type: 'track', name: 'ViewContent' },
-			job_search: { type: 'track', name: 'Search' },
-			education_search: { type: 'track', name: 'Search' },
-			apply_start: { type: 'track', name: 'Lead' },
-			employer_cta_click: { type: 'track', name: 'Lead' },
-			registration_complete: { type: 'track', name: 'CompleteRegistration' },
-			job_application_submit: { type: 'trackCustom', name: 'SubmitApplication' },
-			education_application_submit: { type: 'trackCustom', name: 'EducationApplicationSubmit' },
-			contact_submit: { type: 'trackCustom', name: 'Contact' },
-		};
-
-		const mapped = metaMap[eventName];
+		const mapped = META_EVENT_MAP[normalizedEventName];
 		if (mapped) {
 			const options = { eventID: eventId };
 			if (mapped.type === 'track') {
-				window.fbq('track', mapped.name, payload, options);
+				window.fbq('track', mapped.name, finalPayload, options);
 			} else {
-				window.fbq('trackCustom', mapped.name, payload, options);
+				window.fbq('trackCustom', mapped.name, finalPayload, options);
 			}
 		}
 	}
 
-	if (typeof window.plausible === 'function') {
-		window.plausible(eventName, { props: payload });
+	if (typeof window.plausible === 'function' && shouldSendAnalytics) {
+		window.plausible(normalizedEventName, { props: finalPayload });
+	}
+
+	if (getTrackDebugMode()) {
+		console.debug('[cwTrack]', normalizedEventName, detail);
 	}
 };
 
@@ -221,16 +383,24 @@ const initCroworkUi = () => {
 		if (nav.dataset.cwPublicNavBound === '1') return;
 		nav.dataset.cwPublicNavBound = '1';
 
-		// Sticky nav logic (unchanged)
+		// Sticky nav logic with rAF batching to reduce scroll handler work.
 		const scrolledClass = 'cw-public-nav-scrolled';
 		const threshold = 12;
+		let navRafId = null;
 		const updateState = () => {
+			navRafId = null;
 			const scrolled = window.scrollY > threshold;
 			nav.classList.toggle(scrolledClass, scrolled);
 		};
+		const scheduleUpdateState = () => {
+			if (navRafId !== null) {
+				return;
+			}
+			navRafId = window.requestAnimationFrame(updateState);
+		};
 		updateState();
-		window.addEventListener('scroll', updateState, { passive: true });
-		window.addEventListener('resize', updateState, { passive: true });
+		window.addEventListener('scroll', scheduleUpdateState, { passive: true });
+		window.addEventListener('resize', scheduleUpdateState, { passive: true });
 
 		// Premium fullscreen mobile nav overlay logic
 		const mobileToggle = nav.querySelector('[data-cw-mobile-toggle]');
@@ -612,6 +782,17 @@ const initCroworkUi = () => {
 		theme: document.documentElement.dataset.theme || null,
 	});
 
+	if (Array.isArray(window.__cwTrackQueue)) {
+		window.__cwTrackQueue.forEach((queued) => {
+			if (!queued || typeof queued.event !== 'string') {
+				return;
+			}
+
+			cwTrack(queued.event, queued.payload || {});
+		});
+		window.__cwTrackQueue = [];
+	}
+
 	const maybeInitFilterFallback = () => {
 		const hasActiveAlpine = !!document.querySelector('[x-data]')?.__x;
 		if (hasActiveAlpine) {
@@ -641,11 +822,28 @@ const initCroworkUi = () => {
 			const closers = form.querySelectorAll(`[data-cw-filter-close][aria-controls="${panelId}"]`);
 
 			const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
+			const lockBodyScroll = () => {
+				if (document.body.dataset.cwFilterScrollLock !== '1') {
+					document.body.dataset.cwFilterScrollLock = '1';
+					document.body.style.overflow = 'hidden';
+				}
+			};
+			const unlockBodyScroll = () => {
+				if (document.body.dataset.cwFilterScrollLock === '1') {
+					delete document.body.dataset.cwFilterScrollLock;
+					document.body.style.overflow = '';
+				}
+			};
 
 			const setOpen = (nextOpen) => {
 				panel.style.display = nextOpen ? 'block' : 'none';
 				if (overlay) {
 					overlay.style.display = !isDesktop() && nextOpen ? 'block' : 'none';
+				}
+				if (!isDesktop() && nextOpen) {
+					lockBodyScroll();
+				} else {
+					unlockBodyScroll();
 				}
 
 				toggles.forEach((button) => {
@@ -693,6 +891,9 @@ const initCroworkUi = () => {
 				if (isDesktop() && overlay) {
 					overlay.style.display = 'none';
 				}
+				if (isDesktop()) {
+					unlockBodyScroll();
+				}
 			});
 		});
 	};
@@ -700,75 +901,71 @@ const initCroworkUi = () => {
 	maybeInitFilterFallback();
 
 	const banner = document.querySelector('[data-cw-cookie-banner]');
-	if (!banner) {
-		return;
-	}
-
-	const consentRequired = document.body?.dataset?.cwConsentRequired === '1';
-	if (!consentRequired) {
-		banner.setAttribute('hidden', 'hidden');
-		return;
-	}
-
-	const setConsent = (choice) => {
-		const analytics = choice === 'all';
-		const marketing = choice === 'all';
-
-		document.cookie = `consent_analytics=${analytics ? '1' : '0'}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
-		document.cookie = `consent_marketing=${marketing ? '1' : '0'}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
-
-		try {
-			localStorage.setItem('crowork_consent', JSON.stringify({
-				analytics,
-				marketing,
-				timestamp: new Date().toISOString(),
-			}));
-		} catch (_) {
-			// Ignore storage failures in restricted/private contexts.
-		}
-	};
-
-	let savedChoice = null;
-	try {
-		savedChoice = localStorage.getItem('cw_cookie_choice');
-	} catch (_) {
-		savedChoice = null;
-	}
-
-	if (savedChoice === 'required' || savedChoice === 'all') {
-		banner.setAttribute('hidden', 'hidden');
-		return;
-	}
-
-	banner.removeAttribute('hidden');
-
-	const choiceButtons = banner.querySelectorAll('[data-cw-cookie-choice]');
-	choiceButtons.forEach((button) => {
-		button.addEventListener('click', () => {
-			const choice = button.getAttribute('data-cw-cookie-choice');
-			if (choice !== 'required' && choice !== 'all') {
-				return;
-			}
-
-			try {
-				localStorage.setItem('cw_cookie_choice', choice);
-			} catch (_) {
-				// Ignore storage failures in restricted/private contexts.
-			}
-
-			setConsent(choice);
-			cwTrack(choice === 'all' ? 'cookie_consent_accept_all' : 'cookie_consent_required_only', {
-				choice,
-			});
-
+	if (banner) {
+		const consentRequired = document.body?.dataset?.cwConsentRequired === '1';
+		if (!consentRequired) {
 			banner.setAttribute('hidden', 'hidden');
-			window.setTimeout(() => window.location.reload(), 120);
-		});
-	});
+		} else {
+			const setConsent = (choice) => {
+				const analytics = choice === 'all';
+				const marketing = choice === 'all';
+
+				document.cookie = `consent_analytics=${analytics ? '1' : '0'}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
+				document.cookie = `consent_marketing=${marketing ? '1' : '0'}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
+
+				try {
+					localStorage.setItem('crowork_consent', JSON.stringify({
+						analytics,
+						marketing,
+						timestamp: new Date().toISOString(),
+					}));
+				} catch (_) {
+					// Ignore storage failures in restricted/private contexts.
+				}
+			};
+
+			let savedChoice = null;
+			try {
+				savedChoice = localStorage.getItem('cw_cookie_choice');
+			} catch (_) {
+				savedChoice = null;
+			}
+
+			if (savedChoice === 'required' || savedChoice === 'all') {
+				banner.setAttribute('hidden', 'hidden');
+			} else {
+				banner.removeAttribute('hidden');
+
+				const choiceButtons = banner.querySelectorAll('[data-cw-cookie-choice]');
+				choiceButtons.forEach((button) => {
+					button.addEventListener('click', () => {
+						const choice = button.getAttribute('data-cw-cookie-choice');
+						if (choice !== 'required' && choice !== 'all') {
+							return;
+						}
+
+						try {
+							localStorage.setItem('cw_cookie_choice', choice);
+						} catch (_) {
+							// Ignore storage failures in restricted/private contexts.
+						}
+
+						setConsent(choice);
+						cwTrack(choice === 'all' ? 'cookie_consent_accept_all' : 'cookie_consent_required_only', {
+							choice,
+						});
+
+						banner.setAttribute('hidden', 'hidden');
+						window.setTimeout(() => window.location.reload(), 120);
+					});
+				});
+			}
+		}
+	}
 
 	document.querySelectorAll('[data-cw-language-option]').forEach((button) => {
 		button.addEventListener('click', () => {
-			cwTrack('language_change', {
+			cwTrack('language_switch', {
 				locale: button.getAttribute('data-cw-language-option'),
 				path: window.location.pathname,
 			});
@@ -777,7 +974,7 @@ const initCroworkUi = () => {
 
 	document.querySelectorAll('[data-cw-theme-option]').forEach((button) => {
 		button.addEventListener('click', () => {
-			cwTrack('theme_change', {
+			cwTrack('theme_switch', {
 				theme: button.getAttribute('data-cw-theme-option'),
 				path: window.location.pathname,
 			});
@@ -802,8 +999,9 @@ const initCroworkUi = () => {
 		}
 
 		cwTrack(eventName, {
-			href: trackedElement.getAttribute('href') || null,
-			text: (trackedElement.textContent || '').trim().slice(0, 120),
+			item_slug: trackedElement.getAttribute('data-cw-item-slug') || null,
+			item_type: trackedElement.getAttribute('data-cw-item-type') || null,
+			has_href: Boolean(trackedElement.getAttribute('href')),
 		});
 	});
 
@@ -831,16 +1029,19 @@ const initCroworkUi = () => {
 		}
 
 		const eventName = form.getAttribute('data-cw-track-submit');
-		if (!eventName) {
-			return;
+		if (eventName) {
+			const method = (form.getAttribute('method') || 'GET').toUpperCase();
+			const action = (form.getAttribute('action') || '').toLowerCase();
+			const isHandledSearchForm = method === 'GET' && (action.includes('/jobs') || action.includes('/educations'));
+			if (isHandledSearchForm && (eventName === 'homepage_search' || eventName === 'job_search' || eventName === 'education_search')) {
+				return;
+			}
+
+			cwTrack(eventName, {
+				action: form.getAttribute('action') || null,
+				method,
+			});
 		}
-
-		cwTrack(eventName, {
-			action: form.getAttribute('action') || null,
-			method: (form.getAttribute('method') || 'GET').toUpperCase(),
-		});
-
-		return;
 	});
 
 	document.addEventListener('submit', (event) => {
@@ -851,22 +1052,34 @@ const initCroworkUi = () => {
 
 		const action = (form.getAttribute('action') || '').toLowerCase();
 		const method = (form.getAttribute('method') || 'GET').toUpperCase();
+		const accountType = form.querySelector('[name="account_type"]')?.value || null;
+		const intentType = form.querySelector('[name="intent_type"]')?.value || null;
+		const isPublishChecked = form.querySelector('[name="is_active"]')?.checked === true;
 
-		if (method === 'POST' && action.includes('/access/email')) {
-			cwTrack('registration_start', { source: 'access_email' });
-			cwTrack('email_verification_started', { source: 'access_email' });
+		if (method === 'GET' && action.includes('/jobs')) {
+			const queryValue = form.querySelector('[name="q"]')?.value || '';
+			const isHomepage = window.location.pathname === '/';
+			cwTrack(isHomepage ? 'homepage_search' : 'job_search', {
+				query_length: String(queryValue).trim().length,
+			});
 		}
 
-		if (method === 'POST' && action.includes('/access/verify-code')) {
-			cwTrack('email_verification_completed', { source: 'access_verify' });
+		if (method === 'GET' && action.includes('/educations')) {
+			const queryValue = form.querySelector('[name="q"]')?.value || '';
+			cwTrack('education_search', {
+				query_length: String(queryValue).trim().length,
+			});
+		}
+
+		if (method === 'POST' && action.includes('/access/email')) {
+			cwTrack('access_start', { source: 'access_email' });
 		}
 
 		if (method === 'POST' && action.includes('/access/register')) {
-			cwTrack('registration_complete', { source: 'access_register' });
-		}
-
-		if (method === 'POST' && (action.endsWith('/access/login') || action.endsWith('/admin/login'))) {
-			cwTrack('login', { source: 'access_login' });
+			cwTrack('register_start', { source: 'access_register', account_type: accountType });
+			if (accountType === 'employer') {
+				cwTrack('employer_register_start', { source: 'access_register' });
+			}
 		}
 
 		if (method === 'POST' && action.includes('/logout')) {
@@ -881,8 +1094,52 @@ const initCroworkUi = () => {
 			cwTrack('education_application_submit', { source: 'education_apply_form' });
 		}
 
+		if (method === 'POST' && action.includes('/password/email')) {
+			cwTrack('password_reset_request', { source: 'forgot_password' });
+		}
+
+		if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && action.includes('/worker/profile')) {
+			cwTrack('worker_profile_update', { source: 'worker_dashboard' });
+		}
+
+		if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && action.includes('/employer/settings/profile')) {
+			cwTrack('employer_branding_update', { source: 'employer_dashboard' });
+		}
+
+		if (method === 'POST' && action.includes('/employer/jobs')) {
+			cwTrack('employer_job_create', { source: 'employer_jobs' });
+			if (isPublishChecked) {
+				cwTrack('employer_job_publish', { source: 'employer_jobs' });
+			}
+		}
+
+		if ((method === 'PUT' || method === 'PATCH') && /\/employer\/jobs\//.test(action) && isPublishChecked) {
+			cwTrack('employer_job_publish', { source: 'employer_jobs' });
+		}
+
 		if (method === 'POST' && action.includes('/notifications/read-all')) {
 			cwTrack('notification_mark_all_read', { source: 'notifications' });
+		}
+	});
+
+	const resourceSearchInput = document.querySelector('[data-cw-resource-search]');
+	if (resourceSearchInput instanceof HTMLInputElement) {
+		let searchDebounceId = null;
+		resourceSearchInput.addEventListener('input', (event) => {
+			window.clearTimeout(searchDebounceId);
+			const value = event.target.value || '';
+			searchDebounceId = window.setTimeout(() => {
+				if (String(value).trim().length >= 2) {
+					cwTrack('resource_search', { query_length: String(value).trim().length });
+				}
+			}, 380);
+		});
+	}
+
+	document.addEventListener('click', (event) => {
+		const faqToggle = event.target.closest('[data-cw-faq-toggle]');
+		if (faqToggle) {
+			cwTrack('faq_open', { section: faqToggle.getAttribute('data-cw-faq-section') || 'resources' });
 		}
 	});
 };

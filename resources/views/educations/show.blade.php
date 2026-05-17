@@ -4,6 +4,41 @@
     <x-slot name="canonical">{{ route('educations.show', $education) }}</x-slot>
 
     @php
+        $providerName = $provider ?? ($education->createdByUser?->name ?? __('ui.educations_show.provider_fallback'));
+        $locationValue = $locationDisplay ?? ($education->is_online ? __('ui.educations_show.online') : ($education->city ?: __('ui.educations_show.default_country')));
+        $priceValue = (int) ($education->price_cents ?? 0);
+
+        $educationSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => $priceValue > 0 ? 'Course' : 'EducationalOccupationalProgram',
+            'name' => $education->title,
+            'description' => \Illuminate\Support\Str::limit(strip_tags((string) $education->description), 3000, ''),
+            'provider' => [
+                '@type' => 'Organization',
+                'name' => $providerName,
+            ],
+            'url' => route('educations.show', $education),
+            'inLanguage' => app()->getLocale(),
+            'courseMode' => $education->is_online ? 'online' : 'onsite',
+            'location' => $education->is_online ? null : [
+                '@type' => 'Place',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressLocality' => $education->city,
+                    'addressCountry' => 'HR',
+                ],
+            ],
+            'offers' => $priceValue > 0 ? [
+                '@type' => 'Offer',
+                'price' => number_format($priceValue / 100, 2, '.', ''),
+                'priceCurrency' => strtoupper((string) ($education->currency ?? 'EUR')),
+                'availability' => 'https://schema.org/InStock',
+                'url' => route('educations.show', $education),
+            ] : null,
+        ];
+
+        $educationSchema = array_filter($educationSchema, fn ($value) => ! is_null($value) && $value !== '');
+
         $breadcrumbSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
@@ -31,6 +66,7 @@
     @endphp
 
     @push('head')
+        <script type="application/ld+json">{!! json_encode($educationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
         <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     @endpush
 
@@ -46,7 +82,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <article class="lg:col-span-2 cw-surface p-6 md:p-7">
-                    <p class="text-xs text-slate-500 mb-1">{{ $provider ?? ($education->createdByUser?->name ?? __('ui.educations_show.provider_fallback')) }}</p>
+                    <p class="text-xs text-slate-500 mb-1">{{ $providerName }}</p>
                     <h1 class="cw-display text-4xl md:text-6xl mb-3">{{ $education->title }}</h1>
                     <p class="text-sm text-slate-500 mb-4">{{ __('ui.educations_show.posted_prefix') }} {{ $postedDisplay ?? ($education->published_at?->diffForHumans() ?? $education->created_at?->diffForHumans()) }}</p>
                     <div class="prose max-w-none text-slate-700 leading-relaxed">{!! nl2br(e($education->description)) !!}</div>
@@ -54,7 +90,7 @@
 
                 <aside class="cw-surface p-5">
                     <h2 class="text-lg font-semibold text-slate-900 mb-3">{{ __('ui.educations_show.details_heading') }}</h2>
-                    <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.educations_show.location_label') }}</strong> {{ $locationDisplay ?? ($education->is_online ? __('ui.educations_show.online') : ($education->city ?: __('ui.educations_show.default_country'))) }}</p>
+                    <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.educations_show.location_label') }}</strong> {{ $locationValue }}</p>
                     <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.educations_show.price_label') }}</strong> {{ $priceDisplay ?? (($education->currency ?? 'EUR') . ' ' . number_format(($education->price_cents ?? 0) / 100, 2)) }}</p>
                     @if($education->start_date)
                         <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.educations_show.start_label') }}</strong> {{ $startDateDisplay ?? $education->start_date->translatedFormat('j M Y') }}</p>
@@ -63,7 +99,7 @@
                         <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.educations_show.capacity_label') }}</strong> {{ $education->capacity }}</p>
                     @endif
 
-                    <a href="{{ route('educations.apply', $education) }}" class="cw-button-primary w-full mt-3" data-cw-track-click="apply_start">{{ __('ui.educations_show.apply_now') }}</a>
+                    <a href="{{ route('educations.apply', $education) }}" class="cw-button-primary w-full mt-3" data-cw-track-click="education_apply_click" data-cw-item-type="education" data-cw-item-slug="{{ $education->slug }}">{{ __('ui.educations_show.apply_now') }}</a>
                 </aside>
             </div>
         </div>

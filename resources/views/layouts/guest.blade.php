@@ -5,7 +5,26 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $title ?? __('auth.page_title_default') }} - {{ config('app.name', 'CroWork') }}</title>
+        @php
+            $guestTitle = ($title ?? __('auth.page_title_default')).' - '.config('app.name', 'CroWork');
+            $guestDescription = $description ?? __('seo.auth.access_description');
+            $guestCanonical = $canonical ?? url()->current();
+            $guestRobots = $robots ?? 'noindex,nofollow';
+        @endphp
+
+        <title>{{ $guestTitle }}</title>
+        <meta name="description" content="{{ $guestDescription }}">
+        <meta name="robots" content="{{ $guestRobots }}">
+        <link rel="canonical" href="{{ $guestCanonical }}">
+        <meta property="og:title" content="{{ $guestTitle }}">
+        <meta property="og:description" content="{{ $guestDescription }}">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ $guestCanonical }}">
+        <meta property="og:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $guestTitle }}">
+        <meta name="twitter:description" content="{{ $guestDescription }}">
+        <meta name="twitter:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
         <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
         <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
@@ -16,17 +35,28 @@
 
         <!-- Analytics & Tracking -->
         @include('components.analytics-head')
+
+        @php
+            $queuedTrackEvents = session()->pull('cw_track_queue', []);
+        @endphp
+        @if(is_array($queuedTrackEvents) && count($queuedTrackEvents) > 0)
+            <script>
+                window.__cwTrackQueue = @json($queuedTrackEvents);
+            </script>
+        @endif
     </head>
     @php
         $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
         $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
         $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+        $trackDebug = app()->environment('local') || config('app.debug');
     @endphp
     <body
         class="h-full cw-page overflow-x-hidden"
         data-cw-consent-required="{{ $consentRequired ? '1' : '0' }}"
         data-cw-analytics-enabled="{{ $analyticsEnabled ? '1' : '0' }}"
         data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
+        data-cw-track-debug="{{ $trackDebug ? '1' : '0' }}"
     >
         <div class="min-h-screen flex flex-col cw-page-shell">
             <div class="cw-page-ambient cw-organic-bg" aria-hidden="true">

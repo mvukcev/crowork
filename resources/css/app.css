@@ -163,7 +163,7 @@
         position: absolute;
         border-radius: 999px;
         pointer-events: none;
-        filter: blur(78px);
+        filter: blur(64px);
         opacity: 0.85;
         transform: translate3d(0, 0, 0);
         will-change: transform;
@@ -193,7 +193,7 @@
         position: absolute;
         pointer-events: none;
         border-radius: 999px;
-        filter: blur(92px);
+        filter: blur(72px);
         opacity: 0.82;
     }
 
@@ -412,8 +412,8 @@
         background: rgba(255, 255, 255, 0.84);
         border-bottom-color: rgba(34, 34, 34, 0.14);
         box-shadow: 0 10px 30px rgba(34, 34, 34, 0.1);
-        -webkit-backdrop-filter: blur(18px);
-        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
     }
 
     html:not(.cw-theme-dark) .cw-public-nav-scrolled::before {
@@ -808,8 +808,8 @@
         border-radius: 24px;
         background: color-mix(in srgb, var(--cw-surface) 92%, transparent);
         box-shadow: 0 18px 44px rgba(34, 34, 34, 0.09);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
         padding: clamp(1.6rem, 3.6vw, 2.7rem);
     }
 
@@ -1018,7 +1018,7 @@
         background: rgba(255, 255, 255, 0.96);
         border: 1px solid var(--cw-hairline);
         box-shadow: 0 10px 26px rgba(34, 34, 34, 0.09);
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(6px);
     }
 
     .cw-filter-shell > .cw-surface {
@@ -1060,7 +1060,7 @@
         border-radius: 14px;
         border: 1px solid rgba(34, 34, 34, 0.14);
         background: color-mix(in srgb, var(--cw-surface) 94%, transparent);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(6px);
         box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
     }
 
@@ -1196,7 +1196,7 @@
         padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
         border-top: 1px solid rgba(34, 34, 34, 0.12);
         background: color-mix(in srgb, var(--cw-surface) 88%, transparent);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(6px);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -1265,6 +1265,7 @@
         transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
         animation: cw-card-rise 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
         animation-delay: var(--cw-card-delay, 0ms);
+        contain: layout paint;
     }
 
     .cw-listing-card::before {
@@ -1364,7 +1365,7 @@
         border-radius: 14px;
         border: 1px solid rgba(148, 163, 184, 0.22);
         background: rgba(255, 255, 255, 0.72);
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(3px);
     }
 
     .cw-listing-salary-primary {
@@ -2395,12 +2396,12 @@
     background: rgba(255, 255, 255, 0.95);
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(8px);
 }
 
 html.cw-theme-dark .cw-mobile-nav-overlay {
     background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(8px);
 }
 
 /* Mobile menu state animations respecting prefers-reduced-motion */
@@ -2427,8 +2428,8 @@ html.cw-theme-dark .cw-mobile-nav-overlay {
     background: rgba(255, 255, 255, 0.84);
     border-bottom-color: rgba(34, 34, 34, 0.14);
     box-shadow: 0 10px 30px rgba(34, 34, 34, 0.1);
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
 }
 
 html:not(.cw-theme-dark) [data-cw-public-nav].cw-public-nav-scrolled::before {
@@ -2444,4 +2445,30 @@ html.cw-theme-dark [data-cw-public-nav].cw-public-nav-scrolled {
     background: rgba(0, 0, 0, 0.62);
     border-bottom-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.26);
+}
+
+@media (max-width: 767px) {
+    .cw-public-nav-scrolled,
+    [data-cw-public-nav].cw-public-nav-scrolled {
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+
+    .cw-mobile-nav-overlay,
+    html.cw-theme-dark .cw-mobile-nav-overlay {
+        backdrop-filter: blur(6px);
+    }
+
+    .cw-filter-shell,
+    .cw-mobile-filter-bar,
+    .cw-select-popover,
+    .cw-preview-card,
+    .cw-listing-salary {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .cw-listing-card {
+        animation: none;
+    }
 }

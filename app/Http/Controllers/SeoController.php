@@ -11,8 +11,14 @@ use Illuminate\Support\Collection;
 
 class SeoController extends Controller
 {
+    /**
+     * @var array<int, string>
+     */
+    private array $locales = [];
+
     public function sitemap(): Response
     {
+        $this->locales = $this->enabledLocales();
         $urls = $this->baseSitemapUrls();
 
         Job::query()
@@ -21,12 +27,14 @@ class SeoController extends Controller
             ->orderBy('id')
             ->chunkById(500, function (Collection $jobs) use ($urls): void {
                 foreach ($jobs as $job) {
-                    $urls->push($this->url(
-                        route('jobs.show', $job),
-                        'daily',
-                        '0.85',
-                        $job->updated_at ?? $job->published_at ?? $job->created_at
-                    ));
+                    foreach ($this->localizedUrls(route('jobs.show', $job)) as $localizedUrl) {
+                        $urls->push($this->url(
+                            $localizedUrl,
+                            'daily',
+                            '0.85',
+                            $job->updated_at ?? $job->published_at ?? $job->created_at
+                        ));
+                    }
                 }
             });
 
@@ -36,12 +44,14 @@ class SeoController extends Controller
             ->orderBy('id')
             ->chunkById(500, function (Collection $educations) use ($urls): void {
                 foreach ($educations as $education) {
-                    $urls->push($this->url(
-                        route('educations.show', $education),
-                        'weekly',
-                        '0.75',
-                        $education->updated_at ?? $education->published_at ?? $education->created_at
-                    ));
+                    foreach ($this->localizedUrls(route('educations.show', $education)) as $localizedUrl) {
+                        $urls->push($this->url(
+                            $localizedUrl,
+                            'weekly',
+                            '0.75',
+                            $education->updated_at ?? $education->published_at ?? $education->created_at
+                        ));
+                    }
                 }
             });
 
@@ -52,12 +62,14 @@ class SeoController extends Controller
             ->orderBy('id')
             ->chunkById(500, function (Collection $companies) use ($urls): void {
                 foreach ($companies as $company) {
-                    $urls->push($this->url(
-                        route('companies.show', $company),
-                        'weekly',
-                        '0.7',
-                        $company->updated_at ?? $company->approved_at
-                    ));
+                    foreach ($this->localizedUrls(route('companies.show', $company)) as $localizedUrl) {
+                        $urls->push($this->url(
+                            $localizedUrl,
+                            'weekly',
+                            '0.7',
+                            $company->updated_at ?? $company->approved_at
+                        ));
+                    }
                 }
             });
 
@@ -115,24 +127,89 @@ class SeoController extends Controller
 
     private function baseSitemapUrls(): Collection
     {
-        $urls = collect([
-            $this->url(route('home'), 'daily', '1.0'),
-            $this->url(route('jobs.index'), 'daily', '0.9'),
-            $this->url(route('educations.index'), 'weekly', '0.85'),
-            $this->url(route('resources.index'), 'weekly', '0.8'),
-            $this->url(route('for-employers'), 'weekly', '0.75'),
-            $this->url(route('about'), 'monthly', '0.7'),
-            $this->url(route('contact'), 'monthly', '0.6'),
-            $this->url(route('privacy'), 'yearly', '0.35'),
-            $this->url(route('terms'), 'yearly', '0.35'),
-            $this->url(route('cookies'), 'yearly', '0.3'),
-        ]);
+        $urls = collect();
+
+        $baseEntries = [
+            [route('home'), 'daily', '1.0'],
+            [route('jobs.index'), 'daily', '0.9'],
+            [route('educations.index'), 'weekly', '0.85'],
+            [route('resources.index'), 'weekly', '0.8'],
+            [route('for-employers'), 'weekly', '0.75'],
+            [route('about'), 'monthly', '0.7'],
+            [route('contact'), 'monthly', '0.6'],
+            [route('privacy'), 'yearly', '0.35'],
+            [route('terms'), 'yearly', '0.35'],
+            [route('cookies'), 'yearly', '0.3'],
+        ];
+
+        foreach ($baseEntries as [$url, $changefreq, $priority]) {
+            foreach ($this->localizedUrls($url) as $localizedUrl) {
+                $urls->push($this->url($localizedUrl, $changefreq, $priority));
+            }
+        }
 
         foreach ($this->resourceSlugs() as $slug) {
-            $urls->push($this->url(route('resources.show', $slug), 'monthly', '0.7'));
+            foreach ($this->localizedUrls(route('resources.show', $slug)) as $localizedUrl) {
+                $urls->push($this->url($localizedUrl, 'monthly', '0.7'));
+            }
         }
 
         return $urls;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function enabledLocales(): array
+    {
+        $locales = collect(setting('enabled_locales', ['en', 'hr']))
+            ->filter(fn ($locale) => is_string($locale) && $locale !== '')
+            ->map(fn (string $locale) => strtolower(trim($locale)))
+            ->values()
+            ->all();
+
+        return $locales === [] ? ['en'] : $locales;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function localizedUrls(string $url): array
+    {
+        $defaultLocale = strtolower((string) setting('default_platform_locale', config('app.locale', 'en')));
+        if (! in_array($defaultLocale, $this->locales, true)) {
+            $defaultLocale = $this->locales[0] ?? 'en';
+        }
+
+        $urls = [$url];
+        foreach ($this->locales as $locale) {
+            if ($locale === $defaultLocale) {
+                continue;
+            }
+
+            $urls[] = $this->withLocaleQuery($url, $locale);
+        }
+
+        return $urls;
+    }
+
+    private function withLocaleQuery(string $url, string $locale): string
+    {
+        $parts = parse_url($url);
+        $query = [];
+        if (! empty($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+
+        $query['lang'] = $locale;
+        $queryString = http_build_query($query);
+
+        $scheme = $parts['scheme'] ?? 'https';
+        $host = $parts['host'] ?? parse_url(config('app.url', ''), PHP_URL_HOST);
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $path = $parts['path'] ?? '/';
+
+        return $scheme.'://'.$host.$port.$path.($queryString !== '' ? '?'.$queryString : '');
     }
 
     /**

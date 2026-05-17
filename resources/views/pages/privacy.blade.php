@@ -1,13 +1,24 @@
 <x-app-layout>
-    <x-slot name="title">Privacy Policy</x-slot>
-    <x-slot name="description">CroWork Privacy Policy. Learn how we collect, use, and protect your personal information.</x-slot>
+    <x-slot name="title">{{ __('seo.legal.privacy.title') }}</x-slot>
+    <x-slot name="description">{{ __('seo.legal.privacy.description') }}</x-slot>
     <x-slot name="canonical">{{ route('privacy') }}</x-slot>
+
+    @push('head')
+        <script type="application/ld+json">{!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => __('seo.legal.privacy.title'),
+            'description' => __('seo.legal.privacy.description'),
+            'url' => route('privacy'),
+            'inLanguage' => app()->getLocale(),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endpush
 
     <!-- Hero Section -->
     <x-hero 
         size="sm" 
-        title="Privacy Policy"
-        subtitle="Last updated: {{ date('F j, Y') }}"
+        title="{{ __('seo.legal.privacy.headline') }}"
+        subtitle="{{ __('seo.legal.privacy.updated_prefix') }} {{ date('F j, Y') }}"
     />
 
     <section class="cw-section">

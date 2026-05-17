@@ -87,25 +87,35 @@
             <div class="min-w-0">
                 <p class="cw-listing-company">
                     @if($company_href && $company)
-                        <a href="{{ $company_href }}" class="hover:text-slate-900 underline-offset-2 hover:underline">{{ $company }}</a>
+                        <a href="{{ $company_href }}" class="hover:text-slate-900 underline-offset-2 hover:underline" data-cw-track-click="company_profile_click" data-cw-item-type="company" data-cw-item-slug="{{ $company }}">{{ $company }}</a>
                     @else
                         {{ $companyName }}
                     @endif
                 </p>
                 <p class="cw-listing-location">{{ $city ?: __('jobs.location_not_specified') }}</p>
             </div>
-            <div class="cw-employer-logo" aria-label="{{ $companyName }}">
-                @if($employer_logo_url)
-                    <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover">
-                @else
-                    <span>{{ $logoInitials }}</span>
-                @endif
-            </div>
+            @if($company_href)
+                <a href="{{ $company_href }}" class="cw-employer-logo" aria-label="{{ $companyName }}" data-cw-track-click="employer_logo_click" data-cw-item-type="company" data-cw-item-slug="{{ $company }}">
+                    @if($employer_logo_url)
+                        <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72">
+                    @else
+                        <span>{{ $logoInitials }}</span>
+                    @endif
+                </a>
+            @else
+                <div class="cw-employer-logo" aria-label="{{ $companyName }}">
+                    @if($employer_logo_url)
+                        <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72">
+                    @else
+                        <span>{{ $logoInitials }}</span>
+                    @endif
+                </div>
+            @endif
         </div>
 
         <div class="cw-listing-middle">
             <h3 class="cw-listing-title">
-                <a href="{{ $href }}" class="hover:text-slate-700">{{ $title }}</a>
+                <a href="{{ $href }}" class="hover:text-slate-700" data-cw-track-click="job_view" data-cw-item-type="job">{{ $title }}</a>
             </h3>
 
             <div class="cw-listing-salary" aria-label="{{ __('jobs.salary_label') }}">
@@ -149,9 +159,9 @@
             </div>
 
             <div class="cw-listing-actions">
-                <a href="{{ $href }}" class="cw-card-cta-primary">{{ __('ui.jobs_page.view_role') }}</a>
+                <a href="{{ $href }}" class="cw-card-cta-primary" data-cw-track-click="job_view" data-cw-item-type="job">{{ __('ui.jobs_page.view_role') }}</a>
                 @if($company_href)
-                    <a href="{{ $company_href }}" class="cw-card-cta-secondary">{{ __('ui.jobs_page.company_profile') }}</a>
+                    <a href="{{ $company_href }}" class="cw-card-cta-secondary" data-cw-track-click="company_profile_click" data-cw-item-type="company" data-cw-item-slug="{{ $company }}">{{ __('ui.jobs_page.company_profile') }}</a>
                 @endif
             </div>
         </div>

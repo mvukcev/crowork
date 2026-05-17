@@ -27,9 +27,31 @@
         ];
 
         $faqItems = __('resources.faq.items');
+
+        $resourcesCollectionSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => __('resources.headline'),
+            'description' => __('resources.supporting'),
+            'url' => route('resources.index'),
+            'inLanguage' => app()->getLocale(),
+            'mainEntity' => [
+                '@type' => 'ItemList',
+                'numberOfItems' => count($resources),
+                'itemListElement' => collect($resources)->values()->map(function ($resource, $index) {
+                    return [
+                        '@type' => 'ListItem',
+                        'position' => $index + 1,
+                        'url' => route('resources.show', $resource['slug']),
+                        'name' => $resource['title'],
+                    ];
+                })->all(),
+            ],
+        ];
     @endphp
 
     @push('head')
+        <script type="application/ld+json">{!! json_encode($resourcesCollectionSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
         <script type="application/ld+json">{!! json_encode([
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
@@ -37,7 +59,7 @@
                 [
                     '@type' => 'ListItem',
                     'position' => 1,
-                    'name' => 'Home',
+                    'name' => __('ui.navigation.home'),
                     'item' => route('home'),
                 ],
                 [
@@ -54,7 +76,7 @@
     <section class="cw-section relative overflow-hidden">
         <div class="cw-container">
             <div class="resources-hero-frame relative overflow-hidden rounded-3xl border border-white/60 shadow-[0_20px_70px_rgba(15,23,42,0.08)]">
-                <img src="{{ asset('assets/resources/hero/resources-hero-1600x900.jpg') }}" alt="Resources hero" class="absolute inset-0 h-full w-full object-cover" />
+                <img src="{{ asset('assets/resources/hero/resources-hero-1600x900.jpg') }}" alt="{{ __('resources.headline') }}" class="absolute inset-0 h-full w-full object-cover" decoding="async" width="1600" height="900" />
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(124,58,237,0.30),transparent_55%),radial-gradient(circle_at_80%_70%,rgba(59,130,246,0.24),transparent_48%),linear-gradient(180deg,rgba(15,23,42,0.56),rgba(15,23,42,0.72))]"></div>
 
                 <div class="relative z-10 px-6 py-12 md:px-10 md:py-16 lg:px-14 lg:py-20">
@@ -76,7 +98,7 @@
             <div class="mb-8">
                 <div class="resources-search-wrap px-0 py-0">
                     <label for="resources-search" class="sr-only">{{ __('resources.search_placeholder') }}</label>
-                    <input id="resources-search" type="text" x-model="query" class="resources-search-input cw-input w-full px-5 py-3 rounded-2xl bg-white/90 backdrop-blur shadow-[0_12px_40px_rgba(15,23,42,0.08)]" placeholder="{{ __('resources.search_placeholder') }}" />
+                    <input id="resources-search" type="text" x-model="query" data-cw-resource-search class="resources-search-input cw-input w-full px-5 py-3 rounded-2xl bg-white/90 backdrop-blur shadow-[0_12px_40px_rgba(15,23,42,0.08)]" placeholder="{{ __('resources.search_placeholder') }}" />
                     <div class="mt-3 overflow-x-auto">
                         <div class="resources-pill-row flex items-center gap-2 min-w-max">
                             <button type="button" @click="activeCat='all'" :class="activeCat==='all' ? 'bg-violet-600 text-white' : 'bg-violet-50 text-violet-700'" class="resources-pill rounded-full px-4 py-2 text-sm font-medium transition">{{ __('resources.filter_all') }}</button>
@@ -100,7 +122,7 @@
                         data-description="{{ strtolower($resource['description']) }}"
                         class="resources-guide-card group relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_20px_45px_rgba(15,23,42,0.10)] hover:-translate-y-1 transition"
                     >
-                        <img src="{{ asset('assets/resources/guides/permit-guide-800x600.jpg') }}" alt="{{ $resource['title'] }}" class="h-44 w-full object-cover" />
+                        <img src="{{ asset('assets/resources/guides/permit-guide-800x600.jpg') }}" alt="{{ $resource['title'] }}" class="h-44 w-full object-cover" loading="lazy" decoding="async" width="800" height="600" />
                         <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent"></div>
                         <div class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{{ __('resources.categories.' . $categoryKey) }}</div>
                         <div class="p-5">
@@ -108,7 +130,7 @@
                             <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $resource['description'] }}</p>
                             <div class="mt-4 flex items-center justify-between">
                                 <span class="text-xs text-slate-500">{{ $readTime }}</span>
-                                <a href="{{ route('resources.show', $resource['slug']) }}" class="cw-button-secondary">{{ __('resources.cta.read_guide') }}</a>
+                                <a href="{{ route('resources.show', $resource['slug']) }}" class="cw-button-secondary" data-cw-track-click="guide_open" data-cw-item-type="resource_guide" data-cw-item-slug="{{ $resource['slug'] }}">{{ __('resources.cta.read_guide') }}</a>
                             </div>
                         </div>
                     </article>
@@ -125,7 +147,7 @@
                     <div>
                         <h2 class="cw-display text-3xl md:text-5xl">{{ __('resources.relocation_journey.title') }}</h2>
                         <p class="mt-3 text-slate-600">{{ __('resources.relocation_journey.subtitle') }}</p>
-                        <img src="{{ asset('assets/resources/onboarding/onboarding-journey-1200x800.jpg') }}" alt="Relocation journey" class="mt-6 rounded-2xl w-full object-cover shadow-sm" />
+                        <img src="{{ asset('assets/resources/onboarding/onboarding-journey-1200x800.jpg') }}" alt="{{ __('resources.relocation_journey.title') }}" class="mt-6 rounded-2xl w-full object-cover shadow-sm" loading="lazy" decoding="async" width="1200" height="800" />
                     </div>
                     <ol class="space-y-4">
                         @foreach(__('resources.relocation_journey.steps') as $index => $step)
@@ -147,7 +169,7 @@
         <div class="cw-container">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-stretch">
                 <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
-                    <img src="{{ asset('assets/resources/relocation/relocation-steps-1200x800.jpg') }}" alt="Life and work in Croatia" class="h-full w-full object-cover" />
+                    <img src="{{ asset('assets/resources/relocation/relocation-steps-1200x800.jpg') }}" alt="{{ __('resources.life_work.title') }}" class="h-full w-full object-cover" loading="lazy" decoding="async" width="1200" height="800" />
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-slate-900/20 to-transparent"></div>
                     <blockquote class="absolute bottom-0 p-6 md:p-8 text-white">
                         <p class="text-sm uppercase tracking-[0.08em] text-violet-200">{{ __('resources.life_work.title') }}</p>
@@ -179,7 +201,7 @@
                 <p class="mt-3 text-slate-600 max-w-3xl">{{ __('resources.faq.subtitle') }}</p>
 
                 <div class="mt-6 grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
-                    <img src="{{ asset('assets/resources/faq/faq-accordion-800x600.jpg') }}" alt="FAQ" class="rounded-2xl w-full object-cover" />
+                    <img src="{{ asset('assets/resources/faq/faq-accordion-800x600.jpg') }}" alt="{{ __('resources.faq.title') }}" class="rounded-2xl w-full object-cover" loading="lazy" decoding="async" width="800" height="600" />
 
                     <div>
                         <input type="text" x-model="search" class="cw-input w-full" placeholder="{{ __('resources.search_placeholder') }}" />
@@ -187,7 +209,7 @@
                         <div class="mt-4 space-y-3">
                             <template x-for="(item, idx) in {{ json_encode($faqItems, JSON_UNESCAPED_UNICODE) }}.filter(x => x.q.toLowerCase().includes(search.toLowerCase()))" :key="idx">
                                 <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                                    <button type="button" @click="open === idx ? open = null : open = idx" class="w-full text-left px-4 py-4 flex items-start justify-between gap-4">
+                                    <button type="button" @click="open === idx ? open = null : open = idx" class="w-full text-left px-4 py-4 flex items-start justify-between gap-4" data-cw-faq-toggle data-cw-faq-section="resources_index">
                                         <span class="font-medium text-slate-900" x-text="item.q"></span>
                                         <span class="text-violet-600" x-text="open === idx ? '−' : '+'"></span>
                                     </button>
@@ -204,7 +226,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                window.cwTrack?.('page_view', {
+                window.cwTrack?.('resource_view', {
                     page_type: 'resources_index',
                     resource_count: {{ count($resources) }},
                 });

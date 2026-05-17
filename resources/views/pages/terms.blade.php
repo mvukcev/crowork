@@ -1,13 +1,24 @@
 <x-app-layout>
-    <x-slot name="title">Terms of Service</x-slot>
-    <x-slot name="description">CroWork Terms of Service. Read our terms and conditions for using the platform.</x-slot>
+    <x-slot name="title">{{ __('seo.legal.terms.title') }}</x-slot>
+    <x-slot name="description">{{ __('seo.legal.terms.description') }}</x-slot>
     <x-slot name="canonical">{{ route('terms') }}</x-slot>
+
+    @push('head')
+        <script type="application/ld+json">{!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => __('seo.legal.terms.title'),
+            'description' => __('seo.legal.terms.description'),
+            'url' => route('terms'),
+            'inLanguage' => app()->getLocale(),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endpush
 
     <!-- Hero Section -->
     <x-hero 
         size="sm" 
-        title="Terms of Service"
-        subtitle="Last updated: {{ date('F j, Y') }}"
+        title="{{ __('seo.legal.terms.headline') }}"
+        subtitle="{{ __('seo.legal.terms.updated_prefix') }} {{ date('F j, Y') }}"
     />
 
     <section class="cw-section">

@@ -11,7 +11,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="{{ route('home') }}" class="cw-button-secondary">{{ __('employer.dashboard.back_to_homepage') }}</a>
-                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">
+                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary" data-cw-track-click="post_job_click" data-cw-item-type="cta">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -29,7 +29,7 @@
                 <p class="text-sm text-blue-800 mt-1">{{ __('employer.dashboard.first_time_setup_body') }}</p>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <a href="{{ route('employer.settings.profile') }}" class="cw-button-secondary">{{ __('employer.dashboard.complete_company_profile') }}</a>
-                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary">{{ __('employer.dashboard.create_first_job') }}</a>
+                    <a href="{{ route('employer.jobs.create') }}" class="cw-button-primary" data-cw-track-click="post_job_click" data-cw-item-type="cta">{{ __('employer.dashboard.create_first_job') }}</a>
                 </div>
             </div>
         @endif

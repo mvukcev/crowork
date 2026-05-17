@@ -6,6 +6,20 @@
     @push('head')
         <script type="application/ld+json">{!! json_encode([
             '@context' => 'https://schema.org',
+            '@type' => 'Service',
+            'name' => __('for_employers.seo.title'),
+            'description' => __('for_employers.seo.description'),
+            'serviceType' => 'Employer onboarding and hiring workflow support',
+            'url' => route('for-employers'),
+            'inLanguage' => app()->getLocale(),
+            'provider' => [
+                '@type' => 'Organization',
+                'name' => config('app.name', 'CroWork'),
+                'url' => route('home'),
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        <script type="application/ld+json">{!! json_encode([
+            '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
             'itemListElement' => [
                 [
@@ -53,7 +67,7 @@
                         <p class="mt-4 text-base md:text-lg text-slate-700 max-w-2xl leading-relaxed">{{ __('for_employers.hero.supporting') }}</p>
 
                         <div class="mt-6 flex flex-wrap gap-3">
-                            <a href="{{ url('/employer/register') }}" class="cw-button-accent for-employers-primary-cta" data-cw-track-click="employer_cta_click">{{ __('for_employers.hero.cta_primary') }}</a>
+                            <a href="{{ url('/employer/register') }}" class="cw-button-accent for-employers-primary-cta" data-cw-track-click="post_job_click" data-cw-item-type="cta">{{ __('for_employers.hero.cta_primary') }}</a>
                             <a href="#platform-previews" class="cw-button-secondary">{{ __('for_employers.hero.cta_secondary') }}</a>
                         </div>
 
@@ -274,7 +288,7 @@
                 </div>
 
                 <div class="mt-6 flex flex-wrap gap-3">
-                    <a href="{{ url('/employer/register') }}" class="cw-button-accent for-employers-primary-cta" data-cw-track-click="employer_cta_click">{{ __('for_employers.trust.cta_primary') }}</a>
+                    <a href="{{ url('/employer/register') }}" class="cw-button-accent for-employers-primary-cta" data-cw-track-click="post_job_click" data-cw-item-type="cta">{{ __('for_employers.trust.cta_primary') }}</a>
                     <a href="{{ route('contact') }}" class="cw-button-secondary" data-cw-track-click="contact_submit">{{ __('for_employers.trust.cta_secondary') }}</a>
                 </div>
             </div>
