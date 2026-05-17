@@ -409,11 +409,20 @@
     }
 
     .cw-public-nav-scrolled {
-        background: rgba(255, 255, 255, 0.72);
-        border-bottom-color: rgba(34, 34, 34, 0.1);
-        box-shadow: 0 8px 28px rgba(34, 34, 34, 0.08);
+        background: rgba(255, 255, 255, 0.84);
+        border-bottom-color: rgba(34, 34, 34, 0.14);
+        box-shadow: 0 10px 30px rgba(34, 34, 34, 0.1);
         -webkit-backdrop-filter: blur(18px);
         backdrop-filter: blur(18px);
+    }
+
+    html:not(.cw-theme-dark) .cw-public-nav-scrolled::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.12));
+        pointer-events: none;
+        z-index: 0;
     }
 
     html.cw-theme-dark .cw-public-nav-scrolled {
@@ -2411,4 +2420,28 @@ html.cw-theme-dark .cw-mobile-nav-overlay {
     [data-cw-mobile-content-theme] {
         transition: none;
     }
+}
+
+/* Sticky public nav readability guard kept outside Tailwind layers to avoid purge. */
+[data-cw-public-nav].cw-public-nav-scrolled {
+    background: rgba(255, 255, 255, 0.84);
+    border-bottom-color: rgba(34, 34, 34, 0.14);
+    box-shadow: 0 10px 30px rgba(34, 34, 34, 0.1);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+}
+
+html:not(.cw-theme-dark) [data-cw-public-nav].cw-public-nav-scrolled::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.12));
+    pointer-events: none;
+    z-index: 0;
+}
+
+html.cw-theme-dark [data-cw-public-nav].cw-public-nav-scrolled {
+    background: rgba(0, 0, 0, 0.62);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.26);
 }
