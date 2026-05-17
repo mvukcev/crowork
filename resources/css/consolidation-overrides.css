@@ -84,13 +84,13 @@
 
     /* Fix placeholder text in dark mode */
     .cw-theme-dark ::placeholder {
-        color: rgba(255, 255, 255, 0.5) !important;
+        color: rgba(255, 255, 255, 0.5);
     }
 
     .cw-theme-dark .placeholder-slate-400,
     .cw-theme-dark .placeholder-slate-500 {
         --tw-placeholder-opacity: 1;
-        color: rgba(255, 255, 255, 0.5) !important;
+        color: rgba(255, 255, 255, 0.5);
     }
 
     /* Ensure proper contrast in dark mode for all interactive elements */

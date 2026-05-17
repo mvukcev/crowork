@@ -56,42 +56,42 @@ class ApplicationController extends Controller
 
         $pipelineBreakdown = [
             [
-                'label' => 'New',
+                'label' => __('employer.dashboard.pipeline.new'),
                 'key' => JobApplication::STATUS_NEW,
                 'count' => $newApplications,
                 'color' => 'text-blue-600',
                 'bg' => 'bg-blue-100',
             ],
             [
-                'label' => 'Reviewing',
+                'label' => __('employer.dashboard.pipeline.reviewing'),
                 'key' => JobApplication::STATUS_REVIEWING,
                 'count' => $reviewingCount,
                 'color' => 'text-indigo-600',
                 'bg' => 'bg-indigo-100',
             ],
             [
-                'label' => 'Shortlisted',
+                'label' => __('employer.dashboard.pipeline.shortlisted'),
                 'key' => JobApplication::STATUS_SHORTLISTED,
                 'count' => $shortlistedCount,
                 'color' => 'text-violet-600',
                 'bg' => 'bg-violet-100',
             ],
             [
-                'label' => 'Interview',
+                'label' => __('employer.dashboard.pipeline.interview'),
                 'key' => JobApplication::STATUS_INTERVIEW,
                 'count' => $interviewCount,
                 'color' => 'text-purple-600',
                 'bg' => 'bg-purple-100',
             ],
             [
-                'label' => 'Offer',
+                'label' => __('employer.dashboard.pipeline.offer'),
                 'key' => JobApplication::STATUS_OFFER,
                 'count' => $offerCount,
                 'color' => 'text-emerald-600',
                 'bg' => 'bg-emerald-100',
             ],
             [
-                'label' => 'Hired',
+                'label' => __('employer.dashboard.pipeline.hired'),
                 'key' => JobApplication::STATUS_HIRED,
                 'count' => $hiredCount,
                 'color' => 'text-green-700',
@@ -395,7 +395,7 @@ class ApplicationController extends Controller
         $employer->update($validated);
 
         return redirect()->route('employer.settings.profile')
-            ->with('success', 'Company profile updated successfully.');
+            ->with('success', __('employer.settings.profile_updated_success'));
     }
 
     /**
@@ -404,17 +404,17 @@ class ApplicationController extends Controller
     private function getMissingFields(object $employer): array
     {
         $fields = [
-            'company_name' => 'Company Name',
-            'company_display_name' => 'Company Display Name',
-            'city' => 'City',
-            'country' => 'Country',
-            'industry' => 'Industry',
-            'website' => 'Website',
-            'contact_email' => 'Contact Email',
-            'contact_phone' => 'Contact Phone',
-            'company_address' => 'Company Address',
-            'description' => 'Description',
-            'logo_path' => 'Logo',
+            'company_name' => __('employer.settings.company_name'),
+            'company_display_name' => __('employer.settings.company_display_name'),
+            'city' => __('employer.settings.city'),
+            'country' => __('employer.settings.country'),
+            'industry' => __('employer.settings.industry'),
+            'website' => __('employer.settings.website'),
+            'contact_email' => __('employer.settings.contact_email'),
+            'contact_phone' => __('employer.settings.contact_phone'),
+            'company_address' => __('employer.settings.company_address'),
+            'description' => __('employer.settings.company_description'),
+            'logo_path' => __('employer.settings.company_logo'),
         ];
 
         $missing = [];

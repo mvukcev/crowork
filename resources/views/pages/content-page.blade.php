@@ -11,18 +11,6 @@
                     {!! $body !!}
                 </div>
 
-                @if(! $fromDatabase)
-                    <div class="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p class="text-sm text-amber-800">
-                            This is a default placeholder.
-                            @if(auth()->user()?->isAdmin())
-                                <a href="{{ route('filament.admin.resources.content-pages.index') }}" class="font-semibold underline">Edit in admin</a>
-                            @else
-                                Please check back soon for the full content.
-                            @endif
-                        </p>
-                    </div>
-                @endif
             </article>
 
             <div class="mt-6 text-center">

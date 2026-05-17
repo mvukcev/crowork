@@ -53,7 +53,7 @@
                         <p class="mt-4 text-base md:text-lg text-slate-700 max-w-2xl leading-relaxed">{{ __('for_employers.hero.supporting') }}</p>
 
                         <div class="mt-6 flex flex-wrap gap-3">
-                            <a href="{{ url('/employer/register') }}" class="cw-button-primary" data-cw-track-click="employer_cta_click">{{ __('for_employers.hero.cta_primary') }}</a>
+                            <a href="{{ url('/employer/register') }}" class="cw-button-accent for-employers-primary-cta" data-cw-track-click="employer_cta_click">{{ __('for_employers.hero.cta_primary') }}</a>
                             <a href="#platform-previews" class="cw-button-secondary">{{ __('for_employers.hero.cta_secondary') }}</a>
                         </div>
 
@@ -274,7 +274,7 @@
                 </div>
 
                 <div class="mt-6 flex flex-wrap gap-3">
-                    <a href="{{ url('/employer/register') }}" class="cw-button-primary" data-cw-track-click="employer_cta_click">{{ __('for_employers.trust.cta_primary') }}</a>
+                    <a href="{{ url('/employer/register') }}" class="cw-button-accent for-employers-primary-cta" data-cw-track-click="employer_cta_click">{{ __('for_employers.trust.cta_primary') }}</a>
                     <a href="{{ route('contact') }}" class="cw-button-secondary" data-cw-track-click="contact_submit">{{ __('for_employers.trust.cta_secondary') }}</a>
                 </div>
             </div>
@@ -559,6 +559,10 @@
             .dark .for-employers-page .text-slate-700,
             .dark .for-employers-page .text-slate-600 {
                 color: #cbd5e1 !important;
+            }
+
+            .dark .for-employers-page .for-employers-primary-cta {
+                color: #111827;
             }
 
 

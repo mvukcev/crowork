@@ -10,6 +10,8 @@ use App\Models\EmailSendLog;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Lang::handleMissingKeysUsing(function (string $key, array $replace, ?string $locale): string {
+            Log::warning('Missing translation key', [
+                'key' => $key,
+                'locale' => $locale ?? app()->getLocale(),
+                'url' => request()?->fullUrl(),
+            ]);
+
+            return $key;
+        });
+
         Employer::observe(EmployerObserver::class);
         Job::observe(JobObserver::class);
 

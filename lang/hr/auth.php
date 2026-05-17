@@ -80,7 +80,7 @@ return [
     'agree_privacy' => 'Slazem se s pravilima :privacy.',
     'terms_of_use' => 'Uvjeti koristenja',
     'privacy_policy' => 'Pravila privatnosti',
-    'by_continuing' => 'Nastavkom se slažete s Uvjetima korištenja i Obradom osobnih podataka.',
+    'by_continuing' => 'Nastavkom se slažete s našim :terms i :privacy.',
 
     'password_reset' => 'Reset lozinke',
     'dev_mode' => 'Razvojni nacin',

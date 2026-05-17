@@ -212,6 +212,24 @@
         padding-inline: clamp(1rem, 2.2vw, 2rem);
     }
 
+    .cw-shell-spacing {
+        max-width: 80rem;
+        margin-inline: auto;
+        padding-inline: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .cw-shell-spacing {
+            padding-inline: 1.5rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .cw-shell-spacing {
+            padding-inline: 2rem;
+        }
+    }
+
     .cw-content-wide {
         width: 100%;
         max-width: 1120px;
@@ -302,6 +320,51 @@
         color: #334155;
     }
 
+    .cw-card-shell {
+        border: 1px solid var(--cw-hairline);
+        border-radius: var(--cw-radius-lg);
+        background: var(--cw-surface);
+    }
+
+    .cw-card-shell-interactive {
+        border: 1px solid var(--cw-hairline);
+        border-radius: var(--cw-radius-lg);
+        background: var(--cw-surface);
+        transition: border-color var(--cw-transition-base) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-base) var(--cw-easing-out),
+                    transform var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    .cw-card-shell-interactive:hover {
+        border-color: var(--cw-hairline-strong);
+        transform: translateY(-1px);
+    }
+
+    .cw-empty-state {
+        border-radius: var(--cw-radius-lg);
+        border: 2px dashed var(--cw-hairline);
+        background: linear-gradient(135deg, var(--cw-surface-soft) 0%, var(--cw-surface) 100%);
+        padding: var(--cw-space-xl);
+        text-align: center;
+    }
+
+    .cw-progress-track {
+        height: 0.5rem;
+        overflow: hidden;
+        border-radius: var(--cw-radius-full);
+        background: var(--cw-surface-muted);
+    }
+
+    .cw-progress-fill {
+        height: 100%;
+        width: var(--cw-progress, 0%);
+    }
+
+    .cw-ring-rotate-top {
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+
     /* Secondary, accent, violet button variants defined in design-tokens.css */
 
     .cw-control-select {
@@ -331,10 +394,18 @@
         inset-inline: 0;
         top: 0;
         width: 100%;
-        z-index: 90;
+        z-index: 1200;
         background: transparent;
         border-bottom: 1px solid transparent;
         box-shadow: none;
+        isolation: isolate;
+        pointer-events: auto;
+    }
+
+    .cw-public-nav > .cw-container,
+    .cw-public-nav nav {
+        position: relative;
+        z-index: 1;
     }
 
     .cw-public-nav-scrolled {
@@ -2130,10 +2201,46 @@
 
 /* Mobile nav overlay and premium mobile nav styles */
 .cw-mobile-nav-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    min-height: 100dvh;
     background: rgba(255,255,255,0.82);
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     overflow: hidden;
+    pointer-events: auto;
+}
+
+.cw-mobile-nav-overlay [data-cw-mobile-backdrop] {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+.cw-mobile-panel-toolbar {
+    pointer-events: none;
+}
+
+.cw-mobile-panel-toolbar > * {
+    pointer-events: auto;
+}
+
+.cw-mobile-toggle-trigger {
+    position: relative;
+    z-index: 1245;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cw-public-nav-scrolled .cw-mobile-toggle-trigger {
+    pointer-events: auto;
 }
 
 [data-cw-mobile-panels] {

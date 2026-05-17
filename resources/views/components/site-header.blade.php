@@ -180,7 +180,7 @@
     'backdrop-blur-md transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-out' => true,
     'cw-public-nav' => true,
 ])
-style="position: fixed; inset-inline: 0; top: 0; z-index: 90;"
+style="position: fixed; inset-inline: 0; top: 0; z-index: 1200;"
 data-cw-public-nav>
     <div class="cw-container h-16 md:h-[72px]">
         <nav class="h-full flex items-center gap-4">
@@ -325,7 +325,7 @@ data-cw-public-nav>
 
             <button
                 type="button"
-                class="lg:hidden cw-header-icon-button justify-self-end text-slate-900"
+                class="lg:hidden cw-header-icon-button cw-mobile-toggle-trigger justify-self-end text-slate-900"
                 aria-label="{{ __('settings.toggle_navigation') }}"
                 aria-expanded="false"
                 aria-controls="cw-mobile-nav-panel"
@@ -336,8 +336,10 @@ data-cw-public-nav>
             </button>
         </nav>
 
-        <div id="cw-mobile-nav-panel" data-cw-mobile-panel hidden style="display: none;" class="cw-mobile-nav-overlay fixed inset-0 z-[120] flex flex-col overflow-hidden" data-cw-mobile-state="main">
-            <div class="flex items-center justify-between px-6 pt-6 pb-2 relative z-[130]">
+        <div id="cw-mobile-nav-panel" data-cw-mobile-panel hidden style="display: none;" class="cw-mobile-nav-overlay fixed inset-0 z-[1280] flex flex-col overflow-hidden" data-cw-mobile-state="main">
+            <button type="button" class="absolute inset-0 z-[1270] bg-transparent" data-cw-mobile-backdrop aria-label="{{ __('settings.close_menu') }}"></button>
+
+            <div class="cw-mobile-panel-toolbar flex items-center justify-between px-6 pt-6 pb-2 relative z-[1320]">
                 <a href="{{ route('home') }}" class="flex items-center gap-2" data-cw-mobile-panel-main>
                     <img src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-6 w-auto cw-logo-on-light">
                     <img src="{{ asset('assets/branding/CW-Logo-Light.svg') }}" alt="CroWork" class="h-6 w-auto cw-logo-on-dark">
@@ -347,8 +349,8 @@ data-cw-public-nav>
                 </button>
             </div>
 
-            <div class="relative flex-1 overflow-hidden" data-cw-mobile-panels>
-                <div class="absolute inset-0 z-[120] flex flex-col overflow-y-auto" data-cw-mobile-content-main style="transform: translateX(0); opacity: 1; pointer-events: auto;">
+            <div class="relative z-[1300] flex-1 overflow-hidden" data-cw-mobile-panels>
+                <div class="absolute inset-0 z-[1300] flex flex-col overflow-y-auto" data-cw-mobile-content-main style="transform: translateX(0); opacity: 1; pointer-events: auto;">
                     <div class="flex flex-col items-start justify-start gap-2 px-6 py-6">
                         <a href="{{ route('jobs.index') }}" class="cw-mobile-nav-link">{{ __('navigation.jobs') }}</a>
                         <a href="{{ route('educations.index') }}" class="cw-mobile-nav-link">{{ __('navigation.educations') }}</a>
@@ -401,7 +403,7 @@ data-cw-public-nav>
                 </div>
 
                 <!-- Language Submenu Panel -->
-                <div class="absolute inset-0 z-[125] flex flex-col overflow-y-auto" data-cw-mobile-content-language style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-language style="transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>
@@ -423,7 +425,7 @@ data-cw-public-nav>
                 </div>
 
                 <!-- Theme Submenu Panel -->
-                <div class="absolute inset-0 z-[125] flex flex-col overflow-y-auto" data-cw-mobile-content-theme style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-theme style="transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>
@@ -444,7 +446,7 @@ data-cw-public-nav>
                     </div>
                 </div>
 
-                <div class="absolute inset-0 z-[125] flex flex-col overflow-y-auto" data-cw-mobile-content-profile style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-profile style="transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>

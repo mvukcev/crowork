@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
         // Seed default settings
         $this->call(SettingsSeeder::class);
 
+        // Seed legal/static content pages
+        $this->call(ContentPageSeeder::class);
+
         // Seed jobs (legacy)
         $this->call(JobListingSeeder::class);
         

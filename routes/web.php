@@ -236,6 +236,25 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/{notificationId}/open', [NotificationCenterController::class, 'open'])->name('notifications.open');
 });
 
+// Stable employer entrypoint
+Route::get('/employer', function () {
+    $user = auth()->user();
+
+    if (! $user) {
+        return redirect()->route('access.show', ['type' => 'employer']);
+    }
+
+    if ($user->isEmployer()) {
+        return redirect()->route('employer.dashboard');
+    }
+
+    if ($user->isWorker()) {
+        return redirect()->route('worker.dashboard');
+    }
+
+    return redirect()->route('dashboard');
+})->name('employer.entry');
+
 // Worker Profile routes (CV management)
 Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () {
     Route::get('/dashboard', [WorkerApplicationController::class, 'dashboard'])->name('dashboard');
@@ -251,11 +270,6 @@ Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () 
     Route::patch('/settings/password', [WorkerSettingsController::class, 'updatePassword'])->name('settings.password');
     Route::get('/applications', [WorkerApplicationController::class, 'jobApplications'])->name('applications.index');
     Route::get('/education-applications', [WorkerApplicationController::class, 'educationApplications'])->name('education-applications.index');
-});
-
-// Employer routes (must be verified and approved)
-Route::middleware(['auth', 'employer.approved', 'impersonation.readonly'])->prefix('employer')->name('employer.')->group(function () {
-    Route::resource('jobs', EmployerJobController::class);
 });
 
 // Employer ATS Dashboard & Applications (must be verified and approved)

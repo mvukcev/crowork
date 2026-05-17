@@ -353,6 +353,10 @@ return [
         'error_no_longer_available' => 'This job is no longer available.',
     ],
     'jobs' => [
+        'create' => 'Create job',
+        'create_heading' => 'Create job listing',
+        'edit' => 'Edit job',
+        'edit_heading' => 'Edit job listing',
         'title' => 'Job Title',
         'description' => 'Description',
         'requirements' => 'Requirements',
@@ -360,10 +364,17 @@ return [
         'benefits' => 'Benefits',
         'location' => 'Location',
         'type' => 'Job Type',
+        'full_time' => 'Full-time',
+        'part_time' => 'Part-time',
+        'contract' => 'Contract',
+        'seasonal' => 'Seasonal',
         'apply' => 'Apply',
         'save' => 'Save Job',
         'posted' => 'Posted',
         'expires' => 'Expires',
+    ],
+    'employer' => [
+        'company_name' => 'Company name',
     ],
     'educations' => [
         'title' => 'Education Title',

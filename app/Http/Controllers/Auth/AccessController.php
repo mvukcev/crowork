@@ -282,7 +282,7 @@ class AccessController extends Controller
         }
 
         if ($user->role === User::ROLE_EMPLOYER) {
-            return redirect()->intended('/employer');
+            return redirect()->intended(route('employer.dashboard'));
         }
 
         return redirect()->intended('/jobs');
@@ -378,7 +378,7 @@ class AccessController extends Controller
             return redirect()->route('employer.pending-approval');
         }
 
-        return redirect('/employer');
+        return redirect()->route('employer.dashboard');
     }
 
     // -------------------------------------------------------------------------

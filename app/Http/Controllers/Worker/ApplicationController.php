@@ -57,22 +57,22 @@ class ApplicationController extends Controller
 
         $onboardingChecklist = [
             [
-                'label' => 'Complete profile to at least 80%',
+                'label' => __('worker.dashboard.checklist.complete_profile_80'),
                 'done' => $completeness >= 80,
                 'href' => route('worker.profile.edit'),
             ],
             [
-                'label' => 'Set communication language and account settings',
+                'label' => __('worker.dashboard.checklist.set_communication_language'),
                 'done' => ! empty($user->communication_language),
                 'href' => route('worker.settings.edit'),
             ],
             [
-                'label' => 'Submit your first job application',
+                'label' => __('worker.dashboard.checklist.submit_first_application'),
                 'done' => $totalJobApplications > 0,
                 'href' => route('jobs.index'),
             ],
             [
-                'label' => 'Track your application updates',
+                'label' => __('worker.dashboard.checklist.track_updates'),
                 'done' => $activeApplicationsCount > 0,
                 'href' => route('worker.applications.index'),
             ],
@@ -82,37 +82,37 @@ class ApplicationController extends Controller
 
         if ($completeness < 80) {
             $recommendedNextActions[] = [
-                'title' => 'Finish your profile details',
-                'description' => 'Profiles with stronger detail are easier for employers to shortlist.',
+                'title' => __('worker.dashboard.next_actions.finish_profile_title'),
+                'description' => __('worker.dashboard.next_actions.finish_profile_description'),
                 'href' => route('worker.profile.edit'),
-                'label' => 'Complete profile',
+                'label' => __('worker.dashboard.next_actions.complete_profile_label'),
             ];
         }
 
         if ($totalJobApplications === 0) {
             $recommendedNextActions[] = [
-                'title' => 'Apply to your first role',
-                'description' => 'Use your profile snapshot to apply quickly to matching jobs.',
+                'title' => __('worker.dashboard.next_actions.first_role_title'),
+                'description' => __('worker.dashboard.next_actions.first_role_description'),
                 'href' => route('jobs.index'),
-                'label' => 'Browse jobs',
+                'label' => __('worker.dashboard.next_actions.browse_jobs_label'),
             ];
         }
 
         if ($totalEducationApplications === 0) {
             $recommendedNextActions[] = [
-                'title' => 'Explore education opportunities',
-                'description' => 'Upskilling options can improve match quality and hiring speed.',
+                'title' => __('worker.dashboard.next_actions.education_title'),
+                'description' => __('worker.dashboard.next_actions.education_description'),
                 'href' => route('educations.index'),
-                'label' => 'Browse educations',
+                'label' => __('worker.dashboard.next_actions.browse_educations_label'),
             ];
         }
 
         if ($recommendedNextActions === []) {
             $recommendedNextActions[] = [
-                'title' => 'Review your active applications',
-                'description' => 'Stay ready for interview requests and status updates.',
+                'title' => __('worker.dashboard.next_actions.review_active_title'),
+                'description' => __('worker.dashboard.next_actions.review_active_description'),
                 'href' => route('worker.applications.index'),
-                'label' => 'Track applications',
+                'label' => __('worker.dashboard.next_actions.track_applications_label'),
             ];
         }
 
@@ -120,19 +120,23 @@ class ApplicationController extends Controller
             ->merge($latestJobApplications->map(function (JobApplication $application) {
                 return [
                     'type' => 'job',
-                    'title' => $application->job?->title ?? 'Job unavailable',
-                    'subtitle' => $application->job?->employer?->company_name ?? 'Employer unavailable',
-                    'status' => ucfirst((string) $application->status),
+                    'type_label' => __('worker.dashboard.types.job'),
+                    'title' => $application->job?->title ?? __('worker.dashboard.job_unavailable'),
+                    'subtitle' => $application->job?->employer?->company_name ?? __('worker.dashboard.employer_unavailable'),
+                    'status' => $this->localizedStatus((string) $application->status),
                     'date' => $application->status_updated_at ?? $application->created_at,
                     'href' => $application->job ? route('jobs.show', $application->job) : route('worker.applications.index'),
                 ];
             }))
             ->merge($latestEducationApplications->map(function (EducationApplication $application) {
+                $status = (string) ($application->status ?: 'new');
+
                 return [
                     'type' => 'education',
-                    'title' => $application->education?->title ?? 'Program unavailable',
-                    'subtitle' => 'Education application',
-                    'status' => ucfirst((string) ($application->status ?: 'new')),
+                    'type_label' => __('worker.dashboard.types.education'),
+                    'title' => $application->education?->title ?? __('worker.dashboard.program_unavailable'),
+                    'subtitle' => __('worker.dashboard.education_application_subtitle'),
+                    'status' => $this->localizedStatus($status),
                     'date' => $application->updated_at ?? $application->created_at,
                     'href' => route('worker.education-applications.index'),
                 ];
@@ -205,5 +209,13 @@ class ApplicationController extends Controller
         if (!$request->user()->isWorker()) {
             abort(403, 'Only workers can access application tracking.');
         }
+    }
+
+    private function localizedStatus(string $status): string
+    {
+        $key = 'worker.dashboard.statuses.' . $status;
+        $translated = __($key);
+
+        return $translated === $key ? ucfirst($status) : $translated;
     }
 }

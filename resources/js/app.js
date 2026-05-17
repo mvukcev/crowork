@@ -227,20 +227,6 @@ const initCroworkUi = () => {
 		const updateState = () => {
 			const scrolled = window.scrollY > threshold;
 			nav.classList.toggle(scrolledClass, scrolled);
-			if (scrolled) {
-				const isDark = document.documentElement.classList.contains('cw-theme-dark');
-				nav.style.backgroundColor = isDark ? 'rgba(0, 0, 0, 0.62)' : 'rgba(255, 255, 255, 0.72)';
-				nav.style.borderBottomColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 34, 34, 0.1)';
-				nav.style.boxShadow = isDark ? '0 8px 28px rgba(0, 0, 0, 0.26)' : '0 8px 28px rgba(34, 34, 34, 0.08)';
-				nav.style.backdropFilter = 'blur(18px)';
-				nav.style.webkitBackdropFilter = 'blur(18px)';
-			} else {
-				nav.style.backgroundColor = 'transparent';
-				nav.style.borderBottomColor = 'transparent';
-				nav.style.boxShadow = 'none';
-				nav.style.backdropFilter = 'none';
-				nav.style.webkitBackdropFilter = 'none';
-			}
 		};
 		updateState();
 		window.addEventListener('scroll', updateState, { passive: true });
@@ -250,6 +236,7 @@ const initCroworkUi = () => {
 		const mobileToggle = nav.querySelector('[data-cw-mobile-toggle]');
 		const mobilePanel = nav.querySelector('[data-cw-mobile-panel]');
 		const mobileClose = nav.querySelector('[data-cw-mobile-close]');
+		const mobileBackdrop = nav.querySelector('[data-cw-mobile-backdrop]');
 		let lastFocused = null;
 
 		if (!mobileToggle || !mobilePanel) return;
@@ -272,16 +259,29 @@ const initCroworkUi = () => {
 		setMobileOpen(false);
 
 		// Open overlay
-		mobileToggle.addEventListener('click', (event) => {
+		const toggleMobilePanel = (event) => {
 			event.preventDefault();
 			event.stopPropagation();
 			const isOpen = mobileToggle.getAttribute('aria-expanded') === 'true';
 			setMobileOpen(!isOpen);
-		});
+		};
+
+		if (window.PointerEvent) {
+			mobileToggle.addEventListener('pointerup', toggleMobilePanel);
+		} else {
+			mobileToggle.addEventListener('click', toggleMobilePanel);
+		}
 
 		// Close overlay (X button)
 		if (mobileClose) {
 			mobileClose.addEventListener('click', (event) => {
+				event.preventDefault();
+				setMobileOpen(false);
+			});
+		}
+
+		if (mobileBackdrop) {
+			mobileBackdrop.addEventListener('click', (event) => {
 				event.preventDefault();
 				setMobileOpen(false);
 			});
