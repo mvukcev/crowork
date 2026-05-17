@@ -1,4 +1,6 @@
 @import './motion.css';
+@import './design-tokens.css';
+@import './consolidation-overrides.css';
 @import '@fontsource/geist/400.css';
 @import '@fontsource/geist/500.css';
 @import '@fontsource/geist/600.css';
@@ -270,77 +272,21 @@
         letter-spacing: -0.03em;
     }
 
-    .cw-surface {
-        border: 1px solid var(--cw-hairline);
-        border-radius: 16px;
-        background: var(--cw-surface);
-        /* box-shadow removed for form/filter UI clarity */
-        box-shadow: none;
-    }
+    /* Surface and card system now unified in design-tokens.css as .cw-card
+       with variants: .cw-card-sm, .cw-card-lg, .cw-card-interactive
+       .cw-surface and .cw-product-window are aliased to .cw-card for backwards compatibility */
 
     .cw-surface-header {
         background: transparent;
     }
 
+    /* Product window is now an alias to .cw-card in design-tokens.css */
     .cw-product-window {
-        border: 1px solid var(--cw-hairline);
-        border-radius: 16px;
-        background: var(--cw-surface);
-        /* box-shadow removed for form/filter UI clarity */
-        box-shadow: none;
+        /* Now uses .cw-card base from design-tokens.css */
     }
 
-    .cw-button-primary,
-    .cw-button-secondary,
-    .cw-button-accent,
-    .cw-button-violet {
-        @apply inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-xl;
-        transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease, border-color 180ms ease, color 180ms ease;
-        cursor: pointer;
-        text-decoration: none;
-        white-space: nowrap;
-        user-select: none;
-        min-height: 44px;
-    }
-
-    @media (max-width: 640px) {
-        .cw-button-primary,
-        .cw-button-secondary,
-        .cw-button-accent,
-        .cw-button-violet {
-            min-height: 44px;
-            min-width: 44px;
-            padding: 0.75rem 1rem;
-        }
-    }
-
-    .cw-button-primary:disabled,
-    .cw-button-secondary:disabled,
-    .cw-button-accent:disabled,
-    .cw-button-violet:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .cw-button-primary {
-        background: var(--cw-ink);
-        color: #ffffff;
-        border: 1px solid transparent;
-    }
-
-    .cw-button-primary:hover:not(:disabled) {
-        transform: translateY(-2px);
-        background: #000000;
-    }
-
-    .cw-button-primary:focus-visible {
-        outline: 2px solid rgba(var(--cw-blue) / 0.5);
-        outline-offset: 2px;
-    }
-
-    .cw-button-primary:active:not(:disabled) {
-        transform: translateY(0);
-    }
+    /* Button system now defined in design-tokens.css with unified .cw-button base */
+    /* All variants inherit from design tokens: primary, secondary, accent, violet */
 
     .cw-badge {
         @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em];
@@ -356,68 +302,7 @@
         color: #334155;
     }
 
-    .cw-button-secondary {
-        background: var(--cw-surface);
-        color: var(--cw-ink);
-        border: 1px solid var(--cw-hairline);
-    }
-
-    .cw-button-secondary:hover:not(:disabled) {
-        transform: translateY(-2px);
-        background: var(--cw-surface-soft);
-        border-color: var(--cw-hairline-strong);
-    }
-
-    .cw-button-secondary:focus-visible {
-        outline: 2px solid rgba(var(--cw-blue) / 0.5);
-        outline-offset: 2px;
-    }
-
-    .cw-button-secondary:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    .cw-button-accent {
-        background: rgb(var(--cw-orange));
-        color: #ffffff;
-        border: 1px solid rgba(var(--cw-orange) / 0.45);
-    }
-
-    .cw-button-accent:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px rgba(255, 85, 0, 0.25);
-        background: rgb(231 77 0);
-    }
-
-    .cw-button-accent:focus-visible {
-        outline: 2px solid rgba(var(--cw-orange) / 0.5);
-        outline-offset: 2px;
-    }
-
-    .cw-button-accent:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    .cw-button-violet {
-        background: #6967cf;
-        color: #ffffff;
-        border: 1px solid rgba(105, 103, 207 / 0.45);
-    }
-
-    .cw-button-violet:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px rgba(105, 103, 207 / 0.25);
-        background: #5957ad;
-    }
-
-    .cw-button-violet:focus-visible {
-        outline: 2px solid rgba(105, 103, 207 / 0.5);
-        outline-offset: 2px;
-    }
-
-    .cw-button-violet:active:not(:disabled) {
-        transform: translateY(0);
-    }
+    /* Secondary, accent, violet button variants defined in design-tokens.css */
 
     .cw-control-select {
         @apply text-xs rounded-lg px-2.5 py-2;
@@ -435,6 +320,10 @@
     .cw-nav-control {
         min-height: 2.5rem;
         height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
     }
 
     .cw-public-nav {
@@ -467,6 +356,16 @@
     .cw-button-accent.cw-nav-control {
         padding-top: 0;
         padding-bottom: 0;
+        border-radius: var(--cw-radius-lg);
+        border: 1px solid transparent;
+    }
+
+    .cw-button-secondary.cw-nav-control {
+        border-color: var(--cw-hairline);
+    }
+
+    .cw-button-accent.cw-nav-control {
+        border-color: rgba(var(--cw-orange) / 0.45);
     }
 
     .cw-icon-control,
@@ -617,8 +516,10 @@
         color: rgb(153 27 27);
     }
 
+    /* Shadow system now consolidated in design-tokens.css
+       Use: .cw-shadow-sm, .cw-shadow-md, .cw-shadow-lg, .cw-shadow-xl, .cw-shadow-2xl, .cw-shadow-soft */
     .shadow-soft {
-        box-shadow: 0 10px 28px rgba(34, 34, 34, 0.09);
+        @extend .cw-shadow-soft;
     }
 
     .cw-hover-lift,
@@ -718,80 +619,8 @@
         outline-offset: 4px;
     }
 
-    .cw-input {
-        @apply w-full px-4 py-3 text-sm rounded-xl;
-        border: 1px solid var(--cw-hairline);
-        background: #ffffff;
-        color: var(--cw-ink);
-        transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
-    }
-
-    .cw-input:disabled {
-        background: var(--cw-bg-soft);
-        color: var(--cw-subtle);
-        cursor: not-allowed;
-    }
-
-    .cw-label {
-        @apply block text-sm font-medium mb-1.5;
-        color: var(--cw-ink);
-    }
-
-    .cw-label-required::after {
-        content: ' *';
-        color: #ef4444;
-    }
-
-    .cw-field {
-        @apply w-full px-4 py-3 text-sm rounded-xl;
-        border: 1px solid var(--cw-hairline);
-        background: #ffffff;
-        color: var(--cw-ink);
-        transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
-        min-height: 44px;
-    }
-
-    @media (max-width: 640px) {
-        .cw-field {
-            min-height: 44px;
-            padding: 0.75rem 1rem;
-        }
-    }
-
-    .cw-field::placeholder {
-        color: var(--cw-subtle);
-    }
-
-    .cw-field:focus {
-        outline: none;
-        border-color: rgba(var(--cw-blue) / 0.45);
-        box-shadow: 0 0 0 3px rgba(var(--cw-blue) / 0.14);
-    }
-
-    .cw-field:disabled {
-        background: var(--cw-bg-soft);
-        color: var(--cw-subtle);
-        cursor: not-allowed;
-    }
-
-    .cw-field:invalid:not(:placeholder-shown) {
-        border-color: #ef4444;
-    }
-
-    .cw-field:invalid:not(:placeholder-shown):focus {
-        border-color: #ef4444;
-        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-    }
-
-    .cw-input::placeholder {
-        color: var(--cw-subtle);
-    }
-
-    .cw-input:focus {
-        outline: none;
-        border-color: rgba(var(--cw-blue) / 0.45);
-        box-shadow: 0 0 0 3px rgba(var(--cw-blue) / 0.14);
-    }
+    /* Input/field system now unified in design-tokens.css as .cw-input-base
+       .cw-input and .cw-field are aliased to .cw-input-base for backwards compatibility */
 
     .cw-story-panel {
         border: 1px solid var(--cw-hairline);
@@ -824,16 +653,10 @@
         overflow: hidden;
     }
 
+    /* Mini card now uses .cw-card-sm variant from design-tokens.css */
     .cw-mini-card {
-        border: 1px solid var(--cw-hairline);
-        border-radius: 14px;
-        background: #ffffff;
-        @apply p-4;
-    }
-
-    .cw-mini-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        @extend .cw-card-interactive;
+        @extend .cw-card-sm;
     }
 
     .cw-soft-reveal {

@@ -319,7 +319,7 @@ data-cw-public-nav>
                         <button class="cw-button-secondary cw-nav-control">{{ __('navigation.logout') }}</button>
                     </form>
                 @else
-                    <a href="{{ route('access.show') }}" class="cw-button-primary cw-nav-control" data-cw-track-click="navigation_click">{{ __('navigation.login') }}</a>
+                    <a href="{{ route('access.show') }}" class="cw-button-accent cw-nav-control" data-cw-track-click="navigation_click">{{ __('navigation.login') }}</a>
                 @endauth
             </div>
 

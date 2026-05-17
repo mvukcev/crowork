@@ -1,0 +1,654 @@
+/**
+ * CroWork Design System — Unified Design Tokens
+ * Consolidates spacing, shadows, radii, typography, and motion
+ * Used by app.css to ensure consistency across frontend
+ */
+
+@layer components {
+    /* ============================================
+       SPACING SCALE (based on 4px unit)
+       ============================================ */
+    :root {
+        /* Spacing */
+        --cw-space-xs: 0.25rem;   /* 4px */
+        --cw-space-sm: 0.5rem;    /* 8px */
+        --cw-space-md: 1rem;      /* 16px */
+        --cw-space-lg: 1.5rem;    /* 24px */
+        --cw-space-xl: 2rem;      /* 32px */
+        --cw-space-2xl: 2.5rem;   /* 40px */
+        --cw-space-3xl: 3rem;     /* 48px */
+        --cw-space-4xl: 4rem;     /* 64px */
+
+        /* Border Radius Scale */
+        --cw-radius-sm: 8px;
+        --cw-radius-md: 12px;     /* Standard for inputs, dropdowns */
+        --cw-radius-lg: 16px;     /* Standard for cards, surfaces */
+        --cw-radius-xl: 18px;     /* Filter shells, auth */
+        --cw-radius-2xl: 22px;    /* Large cards, modals */
+        --cw-radius-3xl: 24px;    /* Preview cards */
+        --cw-radius-full: 9999px; /* Chips, pills, fully rounded */
+
+        /* Typography Scale */
+        --cw-font-size-xs: 0.75rem;    /* 12px - labels, captions */
+        --cw-font-size-sm: 0.875rem;   /* 14px - metadata, small text */
+        --cw-font-size-base: 1rem;     /* 16px - body text, default */
+        --cw-font-size-lg: 1.125rem;   /* 18px - larger paragraphs */
+        --cw-font-size-xl: 1.25rem;    /* 20px - heading level 3 */
+        --cw-font-size-2xl: 1.5rem;    /* 24px - heading level 2 */
+        --cw-font-size-3xl: 1.875rem;  /* 30px - heading level 1 */
+        --cw-font-size-4xl: 2.25rem;   /* 36px - large headlines */
+        --cw-font-size-5xl: 3.125rem;  /* 50px - display headlines */
+
+        /* Line Heights */
+        --cw-line-height-tight: 1.2;
+        --cw-line-height-normal: 1.5;
+        --cw-line-height-relaxed: 1.68;
+        --cw-line-height-loose: 1.8;
+
+        /* Letter Spacing */
+        --cw-letter-spacing-normal: 0;
+        --cw-letter-spacing-tight: -0.03em;
+        --cw-letter-spacing-tracking: 0.05em;
+        --cw-letter-spacing-caps: 0.12em;
+
+        /* Motion & Transitions */
+        --cw-transition-fast: 140ms;
+        --cw-transition-base: 160ms;
+        --cw-transition-slow: 220ms;
+        --cw-easing-out: cubic-bezier(0.4, 0, 0.2, 1);
+        --cw-easing-in: cubic-bezier(0.8, 0, 0.6, 1);
+        --cw-easing-in-out: cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    /* ============================================
+       SHADOW SYSTEM — Consolidated
+       ============================================ */
+
+    /* Subtle shadow for hover states */
+    .cw-shadow-sm {
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    /* Default shadow for cards, dropdowns */
+    .cw-shadow-md {
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Stronger shadow for lifted elements */
+    .cw-shadow-lg {
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    /* Deep shadow for modals, overlays */
+    .cw-shadow-xl {
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
+    }
+
+    /* Extra large shadow for preview cards */
+    .cw-shadow-2xl {
+        box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+    }
+
+    /* Soft shadow (original branding) */
+    .cw-shadow-soft {
+        box-shadow: 0 10px 28px rgba(34, 34, 34, 0.09);
+    }
+
+    /* Dark mode shadows — automatically inverted via CSS var */
+    .cw-theme-dark .cw-shadow-sm {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .cw-theme-dark .cw-shadow-md {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .cw-theme-dark .cw-shadow-lg {
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .cw-theme-dark .cw-shadow-xl {
+        box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55);
+    }
+
+    .cw-theme-dark .cw-shadow-2xl {
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.65);
+    }
+
+    .cw-theme-dark .cw-shadow-soft {
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ============================================
+       FOCUS STATE SYSTEM
+       ============================================ */
+    .cw-focus-ring {
+        outline: 2px solid rgba(var(--cw-blue) / 0.5);
+        outline-offset: 2px;
+    }
+
+    .cw-focus-ring-offset {
+        outline-offset: 4px;
+    }
+
+    /* ============================================
+       TRANSITION UTILITIES
+       ============================================ */
+    .cw-transition-fast {
+        transition: all var(--cw-transition-fast) var(--cw-easing-out);
+    }
+
+    .cw-transition-base {
+        transition: all var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    .cw-transition-slow {
+        transition: all var(--cw-transition-slow) var(--cw-easing-out);
+    }
+
+    .cw-transition-colors {
+        transition: color var(--cw-transition-base) var(--cw-easing-out),
+                    background-color var(--cw-transition-base) var(--cw-easing-out),
+                    border-color var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    .cw-transition-transform {
+        transition: transform var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    .cw-transition-all {
+        transition: transform var(--cw-transition-base) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-base) var(--cw-easing-out),
+                    background-color var(--cw-transition-base) var(--cw-easing-out),
+                    border-color var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    /* ============================================
+       BUTTON BASE SYSTEM
+       ============================================ */
+    .cw-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0.625rem 0.75rem; /* py-2.5 px-5 — original sizing */
+        font-size: var(--cw-font-size-sm);
+        font-weight: 500;
+        border-radius: var(--cw-radius-lg);
+        border: 1px solid transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        user-select: none;
+        transition: transform var(--cw-transition-base) var(--cw-easing-out),
+                    background-color var(--cw-transition-base) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-base) var(--cw-easing-out),
+                    border-color var(--cw-transition-base) var(--cw-easing-out),
+                    color var(--cw-transition-base) var(--cw-easing-out);
+        text-decoration: none;
+    }
+
+    .cw-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .cw-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+    }
+
+    .cw-button:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .cw-button:focus-visible {
+        outline: 2px solid rgba(var(--cw-blue) / 0.5);
+        outline-offset: 2px;
+    }
+
+    /* Primary button — dark background */
+    .cw-button-primary {
+        padding: 0.625rem 0.75rem;
+        border-radius: var(--cw-radius-lg);
+        border: 1px solid transparent;
+        background: var(--cw-ink);
+        color: #ffffff;
+    }
+
+    .cw-button-primary:hover:not(:disabled) {
+        background: #000000;
+    }
+
+    /* Secondary button — surface background */
+    .cw-button-secondary {
+        padding: 0.625rem 0.75rem;
+        border-radius: var(--cw-radius-lg);
+        border: 1px solid var(--cw-hairline);
+        background: var(--cw-surface);
+        color: var(--cw-ink);
+    }
+
+    .cw-button-secondary:hover:not(:disabled) {
+        background: var(--cw-surface-soft);
+        border-color: var(--cw-hairline-strong);
+    }
+
+    /* Accent button — orange */
+    .cw-button-accent {
+        padding: 0.625rem 0.75rem;
+        border-radius: var(--cw-radius-lg);
+        border: 1px solid rgba(var(--cw-orange) / 0.45);
+        background: rgb(var(--cw-orange));
+        color: #ffffff;
+    }
+
+    .cw-button-accent:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(255, 85, 0, 0.25);
+        background: rgb(231, 77, 0);
+    }
+
+    /* Violet button — secondary accent */
+    .cw-button-violet {
+        padding: 0.625rem 0.75rem;
+        border-radius: var(--cw-radius-lg);
+        border: 1px solid rgba(105, 103, 207 / 0.45);
+        background: #6967cf;
+        color: #ffffff;
+    }
+
+    .cw-button-violet:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(105, 103, 207 / 0.25);
+        background: #5957ad;
+    }
+
+    /* ============================================
+       INPUT SYSTEM — Unified
+       ============================================ */
+    .cw-input-base {
+        width: 100%;
+        padding: var(--cw-space-md) var(--cw-space-md);
+        font-size: var(--cw-font-size-sm);
+        border: 1px solid var(--cw-hairline);
+        border-radius: var(--cw-radius-lg);
+        background: #ffffff;
+        color: var(--cw-ink);
+        min-height: 44px;
+        transition: border-color var(--cw-transition-base) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-base) var(--cw-easing-out),
+                    background-color var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    .cw-input-base::placeholder {
+        color: var(--cw-subtle);
+    }
+
+    .cw-input-base:focus {
+        outline: none;
+        border-color: rgba(var(--cw-blue) / 0.45);
+        box-shadow: 0 0 0 3px rgba(var(--cw-blue) / 0.14);
+    }
+
+    .cw-input-base:disabled {
+        background: var(--cw-bg-soft);
+        color: var(--cw-subtle);
+        cursor: not-allowed;
+    }
+
+    .cw-input-base:invalid:not(:placeholder-shown) {
+        border-color: #ef4444;
+    }
+
+    .cw-input-base:invalid:not(:placeholder-shown):focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    /* Unified input aliases for backwards compatibility */
+    .cw-input,
+    .cw-field {
+        @extend .cw-input-base;
+    }
+
+    /* ============================================
+       CARD SYSTEM — Unified
+       ============================================ */
+    .cw-card {
+        border: 1px solid var(--cw-hairline);
+        border-radius: var(--cw-radius-lg);
+        background: var(--cw-surface);
+        padding: var(--cw-space-lg);
+    }
+
+    /* Surface variant (used throughout) */
+    .cw-surface {
+        @extend .cw-card;
+    }
+
+    /* Small card variant */
+    .cw-card-sm {
+        padding: var(--cw-space-md);
+    }
+
+    /* Large card variant */
+    .cw-card-lg {
+        padding: var(--cw-space-2xl);
+    }
+
+    /* Card with hover elevation */
+    .cw-card-interactive {
+        @extend .cw-card;
+        transition: transform var(--cw-transition-base) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    .cw-card-interactive:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--cw-shadow-lg, 0 12px 24px rgba(15, 23, 42, 0.12));
+    }
+
+    /* ============================================
+       CHIP / BADGE SYSTEM
+       ============================================ */
+    .cw-chip-base {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--cw-space-xs) var(--cw-space-sm);
+        font-size: var(--cw-font-size-xs);
+        font-weight: 600;
+        border-radius: var(--cw-radius-full);
+        border: 1px solid transparent;
+    }
+
+    /* Default chip */
+    .cw-chip {
+        @extend .cw-chip-base;
+        border-color: rgba(var(--cw-blue) / 0.22);
+        background: rgba(var(--cw-blue) / 0.06);
+        color: rgb(51, 65, 85);
+    }
+
+    /* Blue chip */
+    .cw-chip-blue {
+        @extend .cw-chip-base;
+        border-color: rgba(var(--cw-blue) / 0.3);
+        background: rgba(var(--cw-blue) / 0.1);
+        color: rgb(30, 64, 175);
+    }
+
+    /* Orange chip */
+    .cw-chip-orange {
+        @extend .cw-chip-base;
+        border-color: rgba(var(--cw-orange) / 0.35);
+        background: rgba(var(--cw-orange) / 0.12);
+        color: rgb(154, 52, 18);
+    }
+
+    /* Urgent chip (red) */
+    .cw-chip-urgent {
+        @extend .cw-chip-base;
+        border-color: rgba(248, 113, 113, 0.4);
+        background: rgba(254, 226, 226, 0.9);
+        color: rgb(153, 27, 27);
+    }
+
+    /* ============================================
+       LABEL SYSTEM
+       ============================================ */
+    .cw-label {
+        display: block;
+        font-size: var(--cw-font-size-sm);
+        font-weight: 500;
+        margin-bottom: var(--cw-space-sm);
+        color: var(--cw-ink);
+    }
+
+    .cw-label-required::after {
+        content: ' *';
+        color: #ef4444;
+    }
+
+    /* ============================================
+       ICON CONTROL SYSTEM
+       ============================================ */
+    .cw-icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        min-height: 40px;
+        border: 1px solid transparent;
+        border-radius: var(--cw-radius-full);
+        background: transparent;
+        color: var(--cw-muted);
+        cursor: pointer;
+        transition: background-color var(--cw-transition-base) var(--cw-easing-out),
+                    color var(--cw-transition-base) var(--cw-easing-out),
+                    transform var(--cw-transition-base) var(--cw-easing-out);
+        flex-shrink: 0;
+        line-height: 1;
+    }
+
+    .cw-icon-button:hover {
+        transform: translateY(-1px);
+        background: var(--cw-surface-soft);
+        color: var(--cw-ink);
+    }
+
+    .cw-icon-button:focus-visible {
+        outline: 2px solid rgba(var(--cw-blue) / 0.5);
+        outline-offset: 2px;
+    }
+
+    /* Aliases for backwards compatibility */
+    .cw-icon-control,
+    .cw-header-icon-button,
+    .cw-dashboard-icon-button {
+        @extend .cw-icon-button;
+    }
+
+    /* ============================================
+       DROPDOWN SYSTEM
+       ============================================ */
+    .cw-dropdown-panel {
+        border: 1px solid var(--cw-hairline);
+        background: var(--cw-surface);
+        border-radius: var(--cw-radius-md);
+        box-shadow: var(--cw-shadow-lg, 0 12px 24px rgba(15, 23, 42, 0.12));
+        padding: var(--cw-space-sm);
+        min-width: 12.75rem;
+        z-index: 110;
+        pointer-events: auto;
+    }
+
+    .cw-dropdown-item {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--cw-space-md);
+        border-radius: var(--cw-radius-md);
+        padding: var(--cw-space-sm) var(--cw-space-md);
+        color: var(--cw-muted);
+        font-size: var(--cw-font-size-sm);
+        transition: background-color var(--cw-transition-base) var(--cw-easing-out),
+                    color var(--cw-transition-base) var(--cw-easing-out);
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .cw-dropdown-item:hover,
+    .cw-dropdown-item:focus-visible {
+        background: var(--cw-surface-soft);
+        color: var(--cw-ink);
+        outline: none;
+    }
+
+    .cw-dropdown-item-active {
+        color: var(--cw-ink);
+        font-weight: 600;
+    }
+
+    /* ============================================
+       CONTAINER WIDTHS (Consistency)
+       ============================================ */
+    .cw-container-max-xl {
+        max-width: 1300px;
+    }
+
+    .cw-container-max-lg {
+        max-width: 1120px;
+    }
+
+    .cw-container-max-md {
+        max-width: 920px;
+    }
+
+    .cw-container-max-sm {
+        max-width: 520px;
+    }
+
+    /* ============================================
+       DISPLAY TEXT SYSTEM
+       ============================================ */
+    .cw-text-display {
+        font-family: var(--font-display);
+        font-weight: 500;
+        letter-spacing: var(--cw-letter-spacing-tight);
+        line-height: var(--cw-line-height-tight);
+        color: var(--cw-ink);
+    }
+
+    .cw-text-heading-1 {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: clamp(1.95rem, 4.1vw, 3.15rem);
+        letter-spacing: -0.03em;
+        line-height: 1.02;
+        color: var(--cw-ink);
+    }
+
+    .cw-text-heading-2 {
+        font-size: clamp(1.25rem, 2.2vw, 1.85rem);
+        font-weight: 600;
+        line-height: var(--cw-line-height-tight);
+        color: var(--cw-ink);
+    }
+
+    .cw-text-heading-3 {
+        font-size: var(--cw-font-size-xl);
+        font-weight: 600;
+        line-height: var(--cw-line-height-tight);
+        color: var(--cw-ink);
+    }
+
+    /* ============================================
+       KICKER (Small caps label)
+       ============================================ */
+    .cw-kicker {
+        font-size: var(--cw-font-size-xs);
+        font-weight: 500;
+        letter-spacing: var(--cw-letter-spacing-caps);
+        text-transform: uppercase;
+        color: var(--cw-subtle);
+    }
+
+    /* ============================================
+       NAV LINK SYSTEM
+       ============================================ */
+    .cw-nav-link {
+        font-size: var(--cw-font-size-sm);
+        font-weight: 500;
+        color: var(--cw-muted);
+        transition: color var(--cw-transition-base) var(--cw-easing-out);
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .cw-nav-link:hover,
+    .cw-nav-link-active {
+        color: var(--cw-ink);
+    }
+
+    .cw-nav-link:focus-visible {
+        outline: 2px solid rgba(var(--cw-blue) / 0.5);
+        outline-offset: 4px;
+        border-radius: 2px;
+    }
+
+    /* ============================================
+       DARK MODE ADJUSTMENTS
+       ============================================ */
+    .cw-theme-dark .cw-input-base {
+        background: var(--cw-surface-soft);
+        border-color: var(--cw-hairline);
+        color: #ffffff;
+    }
+
+    .cw-theme-dark .cw-input-base::placeholder {
+        color: var(--cw-subtle);
+    }
+
+    .cw-theme-dark .cw-button-secondary {
+        background: var(--cw-surface-soft);
+        border-color: var(--cw-hairline);
+        color: #ffffff;
+    }
+
+    .cw-theme-dark .cw-button-secondary:hover:not(:disabled) {
+        background: var(--cw-surface-muted);
+        border-color: var(--cw-hairline-strong);
+    }
+
+    .cw-theme-dark .cw-button-primary {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .cw-theme-dark .cw-button-primary:hover:not(:disabled) {
+        background: #f5f5f5;
+    }
+
+    .cw-theme-dark .cw-icon-button {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .cw-theme-dark .cw-icon-button:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+    }
+
+    .cw-theme-dark .cw-chip {
+        border-color: rgba(96, 165, 250, 0.52);
+        background: rgba(37, 99, 235, 0.24);
+        color: #dbeafe;
+    }
+
+    .cw-theme-dark .cw-dropdown-panel {
+        background: var(--cw-surface);
+        border-color: var(--cw-hairline);
+    }
+}
+
+/* ============================================
+   REDUCE MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+    .cw-button:hover:not(:disabled),
+    .cw-icon-button:hover,
+    .cw-card-interactive:hover,
+    .cw-transition-fast,
+    .cw-transition-base,
+    .cw-transition-slow,
+    .cw-transition-colors,
+    .cw-transition-transform,
+    .cw-transition-all {
+        transform: none !important;
+        transition: none !important;
+        animation: none !important;
+    }
+}

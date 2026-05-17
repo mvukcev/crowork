@@ -9,8 +9,8 @@ return [
     'copyright' => '© :year CroWork. Sva prava pridrzana.',
     'slogan' => 'Jasni putevi do rada u Hrvatskoj',
     'cookie' => [
-        'text' => 'Koristimo kolacice kako bismo poboljsali vase CroWork iskustvo. Procitajte nasu :link i odaberite koje kolacice zelite prihvatiti.',
-        'link_label' => 'Izjava o kolacicima',
+        'text' => 'Koristimo kolačiće kako bismo poboljšali vaše CroWork iskustvo. Pročitajte našu :link i odaberite koje kolačiće želite prihvatiti.',
+        'link_label' => 'Izjava o kolačićima',
         'required_only' => 'Samo obavezni',
         'allow_all' => 'Prihvati sve',
     ],

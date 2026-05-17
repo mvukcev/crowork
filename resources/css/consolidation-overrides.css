@@ -1,0 +1,512 @@
+/**
+ * CroWork Consolidation Overrides
+ * 
+ * Fixes specific consistency issues without redesigning from scratch:
+ * - Ensures unified spacing across components
+ * - Consolidates duplicate definitions
+ * - Ensures complete dark mode coverage
+ * - Standardizes hover states and transitions
+ * 
+ * This file is imported AFTER app.css to safely override problematic patterns
+ */
+
+@layer components {
+    /* ============================================
+       SPACING CONSISTENCY
+       ============================================ */
+
+    /* Standardize section padding */
+    .cw-section {
+        padding-top: var(--cw-space-3xl);
+        padding-bottom: var(--cw-space-3xl);
+    }
+
+    @media (max-width: 768px) {
+        .cw-section {
+            padding-top: var(--cw-space-2xl);
+            padding-bottom: var(--cw-space-2xl);
+        }
+    }
+
+    /* Standardize page container */
+    .cw-container {
+        padding-left: var(--cw-space-lg);
+        padding-right: var(--cw-space-lg);
+    }
+
+    @media (max-width: 768px) {
+        .cw-container {
+            padding-left: var(--cw-space-md);
+            padding-right: var(--cw-space-md);
+        }
+    }
+
+    /* ============================================
+       DARK MODE COMPREHENSIVE COVERAGE
+       ============================================ */
+
+    /* Fix all light-colored backgrounds in dark mode */
+    .cw-theme-dark .bg-white,
+    .cw-theme-dark .bg-slate-50,
+    .cw-theme-dark .bg-slate-100,
+    .cw-theme-dark .bg-neutral-50,
+    .cw-theme-dark .bg-neutral-100,
+    .cw-theme-dark .bg-gray-50 {
+        @apply bg-slate-900;
+    }
+
+    /* Fix all light borders */
+    .cw-theme-dark .border-slate-200,
+    .cw-theme-dark .border-slate-300,
+    .cw-theme-dark .border-neutral-200,
+    .cw-theme-dark .border-neutral-300,
+    .cw-theme-dark .border-gray-200 {
+        @apply border-slate-800;
+    }
+
+    /* Fix all dark text in dark mode */
+    .cw-theme-dark .text-slate-900,
+    .cw-theme-dark .text-slate-800,
+    .cw-theme-dark .text-slate-700,
+    .cw-theme-dark .text-neutral-900,
+    .cw-theme-dark .text-neutral-800,
+    .cw-theme-dark .text-gray-900 {
+        @apply text-white;
+    }
+
+    .cw-theme-dark .text-slate-600,
+    .cw-theme-dark .text-slate-500,
+    .cw-theme-dark .text-neutral-600,
+    .cw-theme-dark .text-neutral-500,
+    .cw-theme-dark .text-gray-600 {
+        @apply text-slate-300;
+    }
+
+    /* Fix placeholder text in dark mode */
+    .cw-theme-dark ::placeholder {
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    .cw-theme-dark .placeholder-slate-400,
+    .cw-theme-dark .placeholder-slate-500 {
+        --tw-placeholder-opacity: 1;
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    /* Ensure proper contrast in dark mode for all interactive elements */
+    .cw-theme-dark input[type="text"],
+    .cw-theme-dark input[type="email"],
+    .cw-theme-dark input[type="password"],
+    .cw-theme-dark input[type="search"],
+    .cw-theme-dark textarea,
+    .cw-theme-dark select {
+        background-color: var(--cw-surface-soft) !important;
+        border-color: var(--cw-hairline) !important;
+        color: #ffffff !important;
+    }
+
+    .cw-theme-dark input::placeholder,
+    .cw-theme-dark textarea::placeholder {
+        color: var(--cw-subtle) !important;
+    }
+
+    .cw-theme-dark input:focus,
+    .cw-theme-dark textarea:focus,
+    .cw-theme-dark select:focus {
+        outline: none;
+        border-color: rgba(var(--cw-blue) / 0.45) !important;
+        box-shadow: 0 0 0 3px rgba(var(--cw-blue) / 0.14) !important;
+    }
+
+    /* ============================================
+       BUTTON CONSISTENCY FIXES
+       ============================================ */
+
+    /* Ensure all buttons use consistent min-height but NOT override padding from design-tokens */
+    .cw-button,
+    .cw-button-primary,
+    .cw-button-secondary,
+    .cw-button-accent,
+    .cw-button-violet,
+    button[type="submit"],
+    button[type="button"],
+    a.cw-button {
+        min-height: 44px;
+        transition: transform var(--cw-transition-base) var(--cw-easing-out),
+                    background-color var(--cw-transition-base) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-base) var(--cw-easing-out),
+                    border-color var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    /* Fix button radius consistency — use design-tokens value */
+    /* (buttons use var(--cw-radius-lg) via design-tokens already) */
+
+    /* ============================================
+       CARD CONSISTENCY FIXES
+       ============================================ */
+
+    /* Ensure all card-like surfaces use consistent border and shadow */
+    .cw-surface,
+    .cw-product-window,
+    .cw-mini-card,
+    .cw-story-panel,
+    .cw-dropdown-panel {
+        border: 1px solid var(--cw-hairline);
+        border-radius: var(--cw-radius-lg);
+    }
+
+    /* Ensure card content has consistent padding */
+    .cw-surface,
+    .cw-product-window,
+    .cw-story-panel {
+        padding: var(--cw-space-lg);
+    }
+
+    .cw-mini-card {
+        padding: var(--cw-space-md);
+    }
+
+    /* ============================================
+       TYPOGRAPHY CONSISTENCY FIXES
+       ============================================ */
+
+    /* Ensure heading hierarchy is consistent */
+    h1, .cw-heading-1, .cw-text-heading-1 {
+        font-size: clamp(1.95rem, 4.1vw, 3.15rem);
+        font-weight: 600;
+        line-height: 1.1;
+        margin-bottom: var(--cw-space-lg);
+    }
+
+    h2, .cw-heading-2, .cw-text-heading-2 {
+        font-size: clamp(1.25rem, 2.2vw, 1.85rem);
+        font-weight: 600;
+        line-height: 1.2;
+        margin-bottom: var(--cw-space-md);
+    }
+
+    h3, .cw-heading-3, .cw-text-heading-3 {
+        font-size: var(--cw-font-size-xl);
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: var(--cw-space-sm);
+    }
+
+    p {
+        line-height: var(--cw-line-height-relaxed);
+        margin-bottom: var(--cw-space-md);
+    }
+
+    /* ============================================
+       INPUT/FORM CONSISTENCY FIXES
+       ============================================ */
+
+    /* Ensure all input-like elements have consistent sizing */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="number"],
+    textarea,
+    select,
+    .cw-input,
+    .cw-field,
+    .cw-control-select {
+        min-height: 44px;
+        border-radius: var(--cw-radius-lg);
+        transition: border-color var(--cw-transition-base) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-base) var(--cw-easing-out),
+                    background-color var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    /* ============================================
+       CHIP/BADGE CONSISTENCY FIXES
+       ============================================ */
+
+    /* Ensure all chips/badges have consistent padding */
+    .cw-chip,
+    .cw-chip-blue,
+    .cw-chip-orange,
+    .cw-chip-urgent,
+    .cw-chip-featured,
+    .cw-badge,
+    .cw-badge-success,
+    .cw-badge-neutral {
+        padding: var(--cw-space-xs) var(--cw-space-sm);
+        border-radius: var(--cw-radius-full);
+        font-size: var(--cw-font-size-xs);
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--cw-space-xs);
+    }
+
+    /* ============================================
+       MOBILE UX IMPROVEMENTS
+       ============================================ */
+
+    /* Ensure mobile-friendly tap targets */
+    @media (max-width: 640px) {
+        button,
+        .cw-button,
+        .cw-button-primary,
+        .cw-button-secondary,
+        .cw-button-accent,
+        a[role="button"],
+        .cw-icon-button {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Increase form field padding on mobile */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="search"],
+        textarea,
+        select,
+        .cw-input,
+        .cw-field {
+            padding: var(--cw-space-sm) var(--cw-space-md);
+            font-size: 16px; /* Prevent zoom on iOS */
+        }
+
+        /* Ensure proper spacing for mobile forms */
+        .cw-form-group {
+            margin-bottom: var(--cw-space-xl);
+        }
+
+        .cw-label {
+            margin-bottom: var(--cw-space-sm);
+        }
+    }
+
+    /* ============================================
+       HOVER STATE CONSISTENCY
+       ============================================ */
+
+    /* Unified hover states for all interactive elements */
+    .cw-card-hover,
+    .cw-listing-card {
+        transition: transform var(--cw-transition-slow) var(--cw-easing-out),
+                    box-shadow var(--cw-transition-slow) var(--cw-easing-out),
+                    border-color var(--cw-transition-slow) var(--cw-easing-out);
+    }
+
+    .cw-card-hover:hover,
+    .cw-listing-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    .cw-theme-dark .cw-card-hover:hover,
+    .cw-theme-dark .cw-listing-card:hover {
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ============================================
+       FOCUS STATE CONSISTENCY
+       ============================================ */
+
+    /* Ensure all focusable elements have consistent focus ring */
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [role="button"]:focus-visible {
+        outline: 2px solid rgba(var(--cw-blue) / 0.5);
+        outline-offset: 2px;
+    }
+
+    /* ============================================
+       ANIMATION CONSISTENCY
+       ============================================ */
+
+    /* Ensure animations use consistent easing and timing */
+    .cw-soft-reveal {
+        animation: cw-soft-reveal 620ms var(--cw-ease-out) both;
+    }
+
+    @keyframes cw-soft-reveal {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ============================================
+       REDUCE MOTION SUPPORT
+       ============================================ */
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+
+        .cw-button:hover:not(:disabled),
+        .cw-card:hover,
+        .cw-card-hover:hover,
+        .cw-listing-card:hover,
+        .cw-icon-button:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    }
+
+    /* ============================================
+       EMPTY STATE CONSISTENCY
+       ============================================ */
+
+    .cw-empty-state {
+        border: 1px solid var(--cw-hairline);
+        border-radius: var(--cw-radius-lg);
+        background: var(--cw-bg-soft);
+        padding: var(--cw-space-2xl);
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .cw-empty-state-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto var(--cw-space-lg);
+        opacity: 0.5;
+    }
+
+    .cw-empty-state-title {
+        font-size: var(--cw-font-size-lg);
+        font-weight: 600;
+        color: var(--cw-ink);
+        margin-bottom: var(--cw-space-sm);
+    }
+
+    .cw-empty-state-description {
+        font-size: var(--cw-font-size-sm);
+        color: var(--cw-muted);
+        max-width: 320px;
+        margin: 0 auto var(--cw-space-xl);
+    }
+
+    /* ============================================
+       LOADING STATE CONSISTENCY
+       ============================================ */
+
+    .cw-skeleton {
+        border-radius: var(--cw-radius-lg);
+        background: var(--cw-surface-soft);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .cw-loading-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid var(--cw-hairline);
+        border-top-color: var(--cw-ink);
+        border-radius: var(--cw-radius-full);
+        animation: spin 600ms linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ============================================
+       LINK CONSISTENCY
+       ============================================ */
+
+    a:not([class]) {
+        color: rgb(var(--cw-blue));
+        text-decoration: none;
+        transition: color var(--cw-transition-base) var(--cw-easing-out);
+    }
+
+    a:not([class]):hover {
+        color: rgb(30, 64, 175);
+        text-decoration: underline;
+    }
+
+    a:not([class]):focus-visible {
+        outline: 2px solid rgba(var(--cw-blue) / 0.5);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
+
+/* ============================================
+   MEDIA QUERIES FOR RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (min-width: 1024px) {
+    .cw-container {
+        max-width: 1300px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Tablet adjustments */
+    .cw-section {
+        padding-top: var(--cw-space-2xl);
+        padding-bottom: var(--cw-space-2xl);
+    }
+
+    /* Ensure readable font size on mobile */
+    body {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 640px) {
+    /* Mobile adjustments */
+    .cw-section {
+        padding-top: var(--cw-space-xl);
+        padding-bottom: var(--cw-space-xl);
+    }
+
+    .cw-container {
+        padding-left: var(--cw-space-md);
+        padding-right: var(--cw-space-md);
+    }
+
+    /* Ensure buttons are full-width on mobile when needed */
+    .cw-button-full-mobile {
+        width: 100%;
+    }
+
+    /* Stack action buttons */
+    .cw-button-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cw-space-sm);
+    }
+
+    .cw-button-group .cw-button,
+    .cw-button-group button {
+        width: 100%;
+    }
+}
