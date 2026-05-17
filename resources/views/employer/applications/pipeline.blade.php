@@ -17,6 +17,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <p id="pipelineStatusNotice" class="sr-only" aria-live="polite"></p>
 
+        <div class="mb-6 rounded-xl border border-sky-200 bg-sky-50 p-4">
+            <p class="text-sm font-semibold text-sky-900">{{ __('employer.gdpr.pipeline_notice_title') }}</p>
+            <p class="text-sm text-sky-800 mt-1">{{ __('employer.gdpr.pipeline_notice_body') }}</p>
+        </div>
+
         <!-- Filters -->
         <div class="mb-6 flex flex-col gap-4 lg:flex-row">
             <form method="GET" class="flex flex-col gap-4 flex-1 lg:flex-row" id="filterForm">
@@ -69,6 +74,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Rating</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Applied</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Interview</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">{{ __('employer.gdpr.data_access') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Action</th>
                         </tr>
                     </thead>
@@ -143,6 +149,19 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                             </svg>
                                             <span>{{ $application->interview_at->format('M d') }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-neutral-500">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    @php($access = $application->candidate_data_access ?? null)
+                                    @if(is_array($access))
+                                        <div class="flex flex-col gap-1">
+                                            <span class="font-medium text-neutral-800">{{ $access['label'] ?? '' }}</span>
+                                            @if(!empty($access['data_available_until_human']))
+                                                <span class="text-xs text-neutral-500">{{ __('employer.gdpr.available_until', ['date' => $access['data_available_until_human']]) }}</span>
+                                            @endif
                                         </div>
                                     @else
                                         <span class="text-neutral-500">—</span>

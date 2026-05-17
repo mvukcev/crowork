@@ -2,21 +2,24 @@
 
 namespace App\Http\Controllers\Employer;
 
-use App\Jobs\SendMetaCapiEvent;
+use App\Jobs\SendMetaEventJob;
 use App\Http\Controllers\Controller;
 use App\Models\Job;
 use App\Models\JobApplication;
 use App\Notifications\JobApplicationStatusChanged;
 use App\Services\ApplicationVisibilityService;
+use App\Services\EmployerCandidateDataAccessService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
 {
     public function __construct(
-        private ApplicationVisibilityService $visibilityService
+        private ApplicationVisibilityService $visibilityService,
+        private EmployerCandidateDataAccessService $candidateDataAccessService,
     ) {}
 
     /**
@@ -106,6 +109,24 @@ class ApplicationController extends Controller
             ->limit(6)
             ->get();
 
+        $recentCandidates->transform(function (JobApplication $application) use ($employer) {
+            $maskedProfile = $this->visibilityService->maskSnapshotForWorker(
+                $application->profile_snapshot ?? [],
+                $employer,
+                $application->worker
+            );
+
+            $displayName = trim((string) (($maskedProfile['first_name'] ?? '') . ' ' . ($maskedProfile['last_name'] ?? '')));
+
+            $application->masked_profile = $maskedProfile;
+            $application->candidate_display_name = $displayName !== ''
+                ? $displayName
+                : __('employer.dashboard.candidate_fallback');
+            $application->candidate_data_access = $this->candidateDataAccessService->forApplication($application);
+
+            return $application;
+        });
+
         $jobPerformance = $employer->jobs()
             ->where('status', 'published')
             ->withCount([
@@ -193,6 +214,8 @@ class ApplicationController extends Controller
                 $employer,
                 $application->worker
             );
+            $application->candidate_data_access = $this->candidateDataAccessService->forApplication($application);
+
             return $application;
         });
 
@@ -231,6 +254,7 @@ class ApplicationController extends Controller
             'job' => $application->job,
             'worker' => $application->worker,
             'maskedProfile' => $maskedProfile,
+            'candidateDataAccess' => $this->candidateDataAccessService->forApplication($application),
         ]);
     }
 
@@ -269,7 +293,17 @@ class ApplicationController extends Controller
         if ($oldStatus !== $validated['status']) {
             $application->loadMissing('worker', 'job.employer');
             $application->worker?->notify(new JobApplicationStatusChanged($application, $oldStatus));
-            SendMetaCapiEvent::dispatch('application_status_changed', $application->id, $validated['status']);
+            SendMetaEventJob::dispatch(
+                'application_status_changed',
+                [
+                    'application_id' => $application->id,
+                    'status' => $validated['status'],
+                    'event_source_url' => $request->fullUrl(),
+                    'client_user_agent' => $request->userAgent(),
+                    'client_ip_address' => $request->ip(),
+                ],
+                (string) Str::uuid(),
+            );
         }
 
         return response()->json(['success' => true, 'status' => $validated['status']]);

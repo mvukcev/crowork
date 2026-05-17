@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\JobApplication;
+use App\Services\ConsentConfigService;
 use App\Services\MetaConversionsAPIService;
 use App\Services\MetaPixelConfigService;
 use Illuminate\Bus\Queueable;
@@ -39,6 +40,10 @@ class SendMetaCapiEvent implements ShouldQueue
             ->find($this->jobApplicationId);
 
         if (! $application) {
+            return;
+        }
+
+        if (! ConsentConfigService::hasMarketingConsent(null, $application->worker)) {
             return;
         }
 

@@ -13,7 +13,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class User extends Authenticatable implements MustVerifyEmail, FilamentUser, HasLocalePreference
 {
@@ -160,7 +162,21 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify((new AuthVerifyEmailNotification())->locale($this->preferredLocale()));
+        try {
+            $this->notify((new AuthVerifyEmailNotification())->locale($this->preferredLocale()));
+        } catch (Throwable $exception) {
+            if (app()->environment(['local', 'testing'])) {
+                Log::warning('Email verification notification failed in local/testing environment', [
+                    'user_id' => $this->id,
+                    'role' => $this->role,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return;
+            }
+
+            throw $exception;
+        }
     }
 
     public function sendPasswordResetNotification($token): void

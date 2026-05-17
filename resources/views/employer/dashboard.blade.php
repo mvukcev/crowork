@@ -53,6 +53,19 @@
             </div>
         @endif
 
+        <div class="mb-6 rounded-xl border border-sky-200 bg-sky-50 p-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <p class="text-sm font-semibold text-sky-900">{{ __('employer.gdpr.dashboard_notice_title') }}</p>
+                    <p class="text-sm text-sky-800 mt-1">{{ __('employer.gdpr.dashboard_notice_body') }}</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="{{ route('privacy') }}" class="cw-button-secondary">{{ __('employer.gdpr.privacy_policy') }}</a>
+                    <a href="{{ route('terms') }}" class="cw-button-secondary">{{ __('employer.gdpr.terms_of_service') }}</a>
+                </div>
+            </div>
+        </div>
+
         <div class="mb-8">
             <h2 class="cw-heading-2 mb-4">{{ __('employer.dashboard.job_overview') }}</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -155,15 +168,19 @@
                             <a href="{{ route('employer.applications.candidate', $application) }}" class="block cw-card-shell-interactive p-3">
                                 <div class="flex items-center justify-between gap-2">
                                     <div>
-                                        @php($candidateName = ($application->worker && ! $application->worker->pending_deletion)
-                                            ? $application->worker->name
-                                            : __('employer.dashboard.candidate_fallback'))
+                                        @php($candidateName = $application->candidate_display_name ?? __('employer.dashboard.candidate_fallback'))
                                         <p class="text-sm font-semibold text-neutral-900">{{ $candidateName }}</p>
                                         <p class="text-xs text-neutral-500">{{ $application->job?->title ?? __('employer.dashboard.job_unavailable') }}</p>
                                     </div>
                                     @php($statusKey = 'employer.dashboard.pipeline.' . $application->status)
                                     @php($statusLabel = __($statusKey))
-                                    <x-badge tone="info">{{ $statusLabel === $statusKey ? ucfirst((string) $application->status) : $statusLabel }}</x-badge>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <x-badge tone="info">{{ $statusLabel === $statusKey ? ucfirst((string) $application->status) : $statusLabel }}</x-badge>
+                                        @php($access = $application->candidate_data_access ?? null)
+                                        @if(is_array($access))
+                                            <span class="text-[11px] text-neutral-600">{{ $access['label'] ?? '' }}</span>
+                                        @endif
+                                    </div>
                                 </div>
                                 <p class="text-xs text-neutral-500 mt-2">{{ __('employer.dashboard.applied_when', ['time' => $application->created_at?->diffForHumans()]) }}</p>
                             </a>

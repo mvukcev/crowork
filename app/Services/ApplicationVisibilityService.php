@@ -93,6 +93,10 @@ class ApplicationVisibilityService
             'education_summary',
             'work_experience',
             'skills',
+            'languages',
+            'structured_experiences',
+            'structured_educations',
+            'structured_certifications',
         ];
     }
 
@@ -105,6 +109,10 @@ class ApplicationVisibilityService
      */
     public function maskSnapshot(array $profileSnapshot, Employer $employer): array
     {
+        if (($profileSnapshot['retained_anonymized'] ?? false) === true) {
+            return $this->retentionAnonymizedSnapshot($profileSnapshot);
+        }
+
         $visibility = $this->getEffectiveVisibility($employer);
         
         return match ($visibility) {
@@ -117,6 +125,10 @@ class ApplicationVisibilityService
 
     public function maskSnapshotForWorker(array $profileSnapshot, Employer $employer, ?User $worker): array
     {
+        if (($profileSnapshot['retained_anonymized'] ?? false) === true) {
+            return $this->retentionAnonymizedSnapshot($profileSnapshot);
+        }
+
         if ($worker && ($worker->pending_deletion || $worker->trashed())) {
             return $this->applyAnonymousVisibility($profileSnapshot);
         }
@@ -170,6 +182,10 @@ class ApplicationVisibilityService
             'education_summary',
             'work_experience',
             'skills',
+            'languages',
+            'structured_experiences',
+            'structured_educations',
+            'structured_certifications',
         ];
 
         $masked = [];
@@ -180,6 +196,19 @@ class ApplicationVisibilityService
         }
 
         return $masked;
+    }
+
+    private function retentionAnonymizedSnapshot(array $snapshot): array
+    {
+        return [
+            'retained_anonymized' => true,
+            'retention_reason' => $snapshot['retention_reason'] ?? 'rejected_application_retention',
+            'retention_processed_at' => $snapshot['retention_processed_at'] ?? null,
+            'skills_count' => (int) ($snapshot['skills_count'] ?? 0),
+            'languages_count' => (int) ($snapshot['languages_count'] ?? 0),
+            'experience_entries_count' => (int) ($snapshot['experience_entries_count'] ?? 0),
+            'education_entries_count' => (int) ($snapshot['education_entries_count'] ?? 0),
+        ];
     }
 
     /**

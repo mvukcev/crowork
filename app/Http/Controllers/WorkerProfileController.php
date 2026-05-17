@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\WorkerProfile;
+use App\Support\StructuredCvLegacyFormatter;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class WorkerProfileController extends Controller
@@ -17,35 +19,62 @@ class WorkerProfileController extends Controller
     {
         $this->ensureWorker();
 
-        $profile = $this->firstOrCreateProfile();
+        $profile = $this->firstOrCreateProfile()->load([
+            'experiences',
+            'educations',
+            'certificationsList',
+            'referencesList',
+            'skillsList',
+            'languagesList',
+        ]);
 
-        $initialSkills = $this->normalizeSkills(old('skills', $profile->skills ?? []));
+        $initialSkills = $this->normalizeSkills(old('skills', $profile->skillsArray()));
         $initialDesiredRoles = $this->normalizeStringList(old('desired_roles', $profile->desired_roles ?? []));
+        $experienceRows = $this->normalizeExperiences(old('experiences', $profile->experienceSnapshot()));
+        $educationRows = $this->normalizeEducations(old('educations', $profile->educationSnapshot()));
+        $certificationRows = $this->normalizeCertifications(old('certifications_list', $profile->certificationSnapshot()));
+        $referenceRows = $this->normalizeReferences(old('references_list', $profile->referenceSnapshot()));
 
-        $languageRows = old('languages');
-        if (!is_array($languageRows)) {
-            $languageRows = array_map(function ($item) {
-                return [
-                    'language' => is_array($item) ? ($item['language'] ?? '') : '',
-                    'level' => is_array($item) ? ($item['level'] ?? '') : '',
-                ];
-            }, $profile->languages ?? []);
-        }
-
+        $languageRows = $this->normalizeLanguages(old('languages', $profile->languagesArray()));
         if (empty($languageRows)) {
             $languageRows = [['language' => '', 'level' => '']];
         }
 
-        $completeness = $profile->completenessPercent();
-        $missingChecklist = $profile->missingFieldChecklist();
+        if (empty($experienceRows)) {
+            $experienceRows = [['job_title' => '', 'company_name' => '', 'country' => '', 'city' => '', 'start_date' => '', 'end_date' => '', 'is_current' => false, 'description' => '']];
+        }
+
+        if (empty($educationRows)) {
+            $educationRows = [['institution' => '', 'degree' => '', 'field_of_study' => '', 'country' => '', 'city' => '', 'start_date' => '', 'end_date' => '', 'description' => '']];
+        }
+
+        if (empty($certificationRows)) {
+            $certificationRows = [['name' => '', 'issuer' => '', 'issued_on' => '', 'expires_on' => '', 'credential_id' => '', 'credential_url' => '']];
+        }
+
+        if (empty($referenceRows)) {
+            $referenceRows = [['full_name' => '', 'position' => '', 'company' => '', 'contact_email' => '', 'contact_phone' => '', 'notes' => '']];
+        }
+
+        $completenessData = $profile->completenessData();
+        $completeness = $completenessData['percentage'];
+        $missingChecklist = $completenessData['missing'];
+        $completenessStateLabel = $completenessData['state_label'];
+        $completenessHelperText = $completenessData['helper_text'];
 
         return view('worker.profile-edit', compact(
             'profile',
             'initialSkills',
             'initialDesiredRoles',
             'languageRows',
+            'experienceRows',
+            'educationRows',
+            'certificationRows',
+            'referenceRows',
             'completeness',
             'missingChecklist',
+            'completenessStateLabel',
+            'completenessHelperText',
         ));
     }
 
@@ -53,11 +82,27 @@ class WorkerProfileController extends Controller
     {
         $this->ensureWorker();
 
-        $profile = $this->firstOrCreateProfile();
-        $completeness = $profile->completenessPercent();
-        $missingChecklist = $profile->missingFieldChecklist();
+        $profile = $this->firstOrCreateProfile()->load([
+            'experiences',
+            'educations',
+            'certificationsList',
+            'referencesList',
+            'skillsList',
+            'languagesList',
+        ]);
+        $completenessData = $profile->completenessData();
+        $completeness = $completenessData['percentage'];
+        $missingChecklist = $completenessData['missing'];
+        $completenessStateLabel = $completenessData['state_label'];
+        $completenessHelperText = $completenessData['helper_text'];
 
-        return view('worker.profile-preview', compact('profile', 'completeness', 'missingChecklist'));
+        return view('worker.profile-preview', compact(
+            'profile',
+            'completeness',
+            'missingChecklist',
+            'completenessStateLabel',
+            'completenessHelperText',
+        ));
     }
 
     public function showPhoto(string $path)
@@ -79,6 +124,10 @@ class WorkerProfileController extends Controller
             'skills' => $this->normalizeSkills($request->input('skills', [])),
             'desired_roles' => $this->normalizeStringList($request->input('desired_roles', [])),
             'languages' => $this->normalizeLanguages($request->input('languages', [])),
+            'experiences' => $this->normalizeExperiences($request->input('experiences', [])),
+            'educations' => $this->normalizeEducations($request->input('educations', [])),
+            'certifications_list' => $this->normalizeCertifications($request->input('certifications_list', [])),
+            'references_list' => $this->normalizeReferences($request->input('references_list', [])),
         ]);
 
         $profile = $this->firstOrCreateProfile();
@@ -100,9 +149,31 @@ class WorkerProfileController extends Controller
             'languages.*.language' => ['nullable', 'string', 'max:60'],
             'languages.*.level' => ['nullable', 'string', 'max:30'],
             'professional_summary' => ['nullable', 'string', 'max:1000'],
-            'education_summary' => ['nullable', 'string', 'max:5000'],
-            'work_experience' => ['nullable', 'string', 'max:5000'],
-            'certifications' => ['nullable', 'string', 'max:5000'],
+            'experiences' => ['nullable', 'array', 'max:30'],
+            'experiences.*.job_title' => ['nullable', 'string', 'max:120'],
+            'experiences.*.company_name' => ['nullable', 'string', 'max:120'],
+            'experiences.*.country' => ['nullable', 'string', 'max:100'],
+            'experiences.*.city' => ['nullable', 'string', 'max:100'],
+            'experiences.*.start_date' => ['nullable', 'date'],
+            'experiences.*.end_date' => ['nullable', 'date'],
+            'experiences.*.is_current' => ['nullable', 'boolean'],
+            'experiences.*.description' => ['nullable', 'string', 'max:3000'],
+            'educations' => ['nullable', 'array', 'max:30'],
+            'educations.*.institution' => ['nullable', 'string', 'max:150'],
+            'educations.*.degree' => ['nullable', 'string', 'max:120'],
+            'educations.*.field_of_study' => ['nullable', 'string', 'max:120'],
+            'educations.*.country' => ['nullable', 'string', 'max:100'],
+            'educations.*.city' => ['nullable', 'string', 'max:100'],
+            'educations.*.start_date' => ['nullable', 'date'],
+            'educations.*.end_date' => ['nullable', 'date'],
+            'educations.*.description' => ['nullable', 'string', 'max:3000'],
+            'certifications_list' => ['nullable', 'array', 'max:30'],
+            'certifications_list.*.name' => ['nullable', 'string', 'max:160'],
+            'certifications_list.*.issuer' => ['nullable', 'string', 'max:120'],
+            'certifications_list.*.issued_on' => ['nullable', 'date'],
+            'certifications_list.*.expires_on' => ['nullable', 'date'],
+            'certifications_list.*.credential_id' => ['nullable', 'string', 'max:160'],
+            'certifications_list.*.credential_url' => ['nullable', 'url', 'max:255'],
             'skills' => ['nullable', 'array', 'max:30'],
             'skills.*' => ['string', 'max:40'],
             'desired_roles' => ['nullable', 'array', 'max:20'],
@@ -110,7 +181,13 @@ class WorkerProfileController extends Controller
             'salary_expectation' => ['nullable', 'integer', 'min:0', 'max:999999'],
             'accommodation_needed' => ['nullable', 'boolean'],
             'visa_work_permit_status' => ['nullable', 'string', 'max:120'],
-            'recommendations' => ['nullable', 'string', 'max:3000'],
+            'references_list' => ['nullable', 'array', 'max:30'],
+            'references_list.*.full_name' => ['nullable', 'string', 'max:160'],
+            'references_list.*.position' => ['nullable', 'string', 'max:120'],
+            'references_list.*.company' => ['nullable', 'string', 'max:120'],
+            'references_list.*.contact_email' => ['nullable', 'email:rfc,dns', 'max:255'],
+            'references_list.*.contact_phone' => ['nullable', 'string', 'max:60'],
+            'references_list.*.notes' => ['nullable', 'string', 'max:1000'],
             'profile_visibility' => ['required', 'in:' . implode(',', array_keys(WorkerProfile::visibilityOptions()))],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'], // 2MB max
         ], [
@@ -121,6 +198,11 @@ class WorkerProfileController extends Controller
 
         $validated['nationality_country_code'] = strtoupper((string) $validated['nationality_country_code']);
         $validated['accommodation_needed'] = filter_var($request->input('accommodation_needed', false), FILTER_VALIDATE_BOOL);
+
+        $validated['education_summary'] = StructuredCvLegacyFormatter::educationSummary($validated['educations'] ?? []);
+        $validated['work_experience'] = StructuredCvLegacyFormatter::experienceSummary($validated['experiences'] ?? []);
+        $validated['certifications'] = StructuredCvLegacyFormatter::certificationSummary($validated['certifications_list'] ?? []);
+        $validated['recommendations'] = StructuredCvLegacyFormatter::referenceSummary($validated['references_list'] ?? []);
 
         // Handle photo upload
         if ($request->hasFile('photo')) {
@@ -134,8 +216,21 @@ class WorkerProfileController extends Controller
             $validated['photo_path'] = $path;
         }
 
-        // Update profile
-        $profile->update($validated);
+        DB::transaction(function () use ($profile, $validated): void {
+            $profile->update(Arr::except($validated, [
+                'experiences',
+                'educations',
+                'certifications_list',
+                'references_list',
+            ]));
+
+            $this->syncStructuredRows($profile, 'experiences', $validated['experiences'] ?? []);
+            $this->syncStructuredRows($profile, 'educations', $validated['educations'] ?? []);
+            $this->syncStructuredRows($profile, 'certificationsList', $validated['certifications_list'] ?? []);
+            $this->syncStructuredRows($profile, 'referencesList', $validated['references_list'] ?? []);
+            $this->syncStructuredRows($profile, 'skillsList', $this->skillsToRows($validated['skills'] ?? []));
+            $this->syncStructuredRows($profile, 'languagesList', $validated['languages'] ?? []);
+        });
 
         return redirect()
             ->route('worker.profile.edit')
@@ -230,6 +325,148 @@ class WorkerProfileController extends Controller
         }
 
         return $normalized;
+    }
+
+    private function normalizeExperiences(mixed $rows): array
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($rows as $row) {
+            $item = [
+                'job_title' => trim((string) Arr::get($row, 'job_title', '')),
+                'company_name' => trim((string) Arr::get($row, 'company_name', '')),
+                'country' => trim((string) Arr::get($row, 'country', '')),
+                'city' => trim((string) Arr::get($row, 'city', '')),
+                'start_date' => trim((string) Arr::get($row, 'start_date', '')),
+                'end_date' => trim((string) Arr::get($row, 'end_date', '')),
+                'is_current' => filter_var(Arr::get($row, 'is_current', false), FILTER_VALIDATE_BOOL),
+                'description' => trim((string) Arr::get($row, 'description', '')),
+            ];
+
+            if (collect($item)->except('is_current')->filter()->isEmpty()) {
+                continue;
+            }
+
+            if ($item['is_current']) {
+                $item['end_date'] = '';
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeEducations(mixed $rows): array
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($rows as $row) {
+            $item = [
+                'institution' => trim((string) Arr::get($row, 'institution', '')),
+                'degree' => trim((string) Arr::get($row, 'degree', '')),
+                'field_of_study' => trim((string) Arr::get($row, 'field_of_study', '')),
+                'country' => trim((string) Arr::get($row, 'country', '')),
+                'city' => trim((string) Arr::get($row, 'city', '')),
+                'start_date' => trim((string) Arr::get($row, 'start_date', '')),
+                'end_date' => trim((string) Arr::get($row, 'end_date', '')),
+                'description' => trim((string) Arr::get($row, 'description', '')),
+            ];
+
+            if (collect($item)->filter()->isEmpty()) {
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeCertifications(mixed $rows): array
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($rows as $row) {
+            $item = [
+                'name' => trim((string) Arr::get($row, 'name', '')),
+                'issuer' => trim((string) Arr::get($row, 'issuer', '')),
+                'issued_on' => trim((string) Arr::get($row, 'issued_on', '')),
+                'expires_on' => trim((string) Arr::get($row, 'expires_on', '')),
+                'credential_id' => trim((string) Arr::get($row, 'credential_id', '')),
+                'credential_url' => trim((string) Arr::get($row, 'credential_url', '')),
+            ];
+
+            if (collect($item)->filter()->isEmpty()) {
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeReferences(mixed $rows): array
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($rows as $row) {
+            $item = [
+                'full_name' => trim((string) Arr::get($row, 'full_name', '')),
+                'position' => trim((string) Arr::get($row, 'position', '')),
+                'company' => trim((string) Arr::get($row, 'company', '')),
+                'contact_email' => trim((string) Arr::get($row, 'contact_email', '')),
+                'contact_phone' => trim((string) Arr::get($row, 'contact_phone', '')),
+                'notes' => trim((string) Arr::get($row, 'notes', '')),
+            ];
+
+            if (collect($item)->filter()->isEmpty()) {
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    private function syncStructuredRows(WorkerProfile $profile, string $relation, array $rows): void
+    {
+        $profile->{$relation}()->delete();
+
+        $payload = [];
+        foreach (array_values($rows) as $index => $row) {
+            $payload[] = array_merge($row, ['sort_order' => $index]);
+        }
+
+        if ($payload !== []) {
+            $profile->{$relation}()->createMany($payload);
+        }
+    }
+
+    private function skillsToRows(array $skills): array
+    {
+        return array_map(
+            fn (string $skill): array => ['name' => $skill, 'level' => null],
+            array_values($skills)
+        );
     }
 
     private function firstOrCreateProfile(): WorkerProfile

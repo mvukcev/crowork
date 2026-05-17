@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\WorkerProfile;
 use App\Services\AccountDeletionService;
+use App\Services\ConsentVersionService;
+use App\Services\CookieConsentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,11 +32,31 @@ class WorkerPrivacyController extends Controller
             ->latest('id')
             ->first();
 
+        $consentService = app(CookieConsentService::class);
+        $trackingConsent = $consentService->resolveState($request, $user);
+        $consentVersionService = app(ConsentVersionService::class);
+        $legalStatus = $consentVersionService->complianceStatus($user);
+        $currentLegalVersions = $consentVersionService->currentVersionsAndHashes();
+        $legalConsentHistory = $user->consentHistories()
+            ->whereIn('consent_type', [
+                ConsentVersionService::TYPE_TERMS,
+                ConsentVersionService::TYPE_TERMS_LEGACY,
+                ConsentVersionService::TYPE_PRIVACY,
+            ])
+            ->latest('accepted_at')
+            ->latest('id')
+            ->limit(10)
+            ->get();
+
         return view('worker.privacy', [
             'user' => $user,
             'profile' => $profile,
             'visibilityOptions' => WorkerProfile::visibilityOptions(),
             'latestDeletionRequest' => $latestDeletionRequest,
+            'trackingConsent' => $trackingConsent,
+            'legalStatus' => $legalStatus,
+            'currentLegalVersions' => $currentLegalVersions,
+            'legalConsentHistory' => $legalConsentHistory,
         ]);
     }
 
@@ -87,6 +109,34 @@ class WorkerPrivacyController extends Controller
 
         return redirect()->route('access.show')
             ->with('status', 'account-deletion-requested');
+    }
+
+    public function updateTrackingConsent(Request $request, CookieConsentService $consentService): RedirectResponse
+    {
+        $this->ensureWorker($request);
+
+        $analytics = $request->boolean('consent_analytics');
+        $marketing = $request->boolean('consent_marketing');
+        $choice = $consentService->resolveChoice($analytics, $marketing);
+
+        $consentService->persistConsent(
+            $request,
+            $analytics,
+            $marketing,
+            $choice,
+            CookieConsentService::SOURCE_WORKER_PRIVACY,
+            $request->user(),
+        );
+
+        $response = redirect()
+            ->route('worker.privacy.show')
+            ->with('success', 'Tracking preferences updated.');
+
+        foreach ($consentService->buildConsentCookies($analytics, $marketing, $choice) as $cookie) {
+            $response->headers->setCookie($cookie);
+        }
+
+        return $response;
     }
 
     private function ensureWorker(Request $request): void

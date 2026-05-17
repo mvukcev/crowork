@@ -72,6 +72,10 @@ class JobApplicationResource extends Resource
                             ->label('Contact Data')
                             ->disabled()
                             ->formatStateUsing(function (JobApplication $record): string {
+                                if ($record->anonymized_at !== null) {
+                                    return 'Hidden by retention policy';
+                                }
+
                                 $employer = auth()->user()->employer;
                                 $visibilityService = app(ApplicationVisibilityService::class);
 
@@ -255,6 +259,10 @@ class JobApplicationResource extends Resource
 
     private static function applicantDisplayName(JobApplication $record): string
     {
+        if ($record->anonymized_at !== null) {
+            return 'Anonymized Applicant';
+        }
+
         $employer = auth()->user()->employer;
         $visibilityService = app(ApplicationVisibilityService::class);
         $visibility = $visibilityService->getEffectiveVisibility($employer);
@@ -272,6 +280,10 @@ class JobApplicationResource extends Resource
 
     private static function formatSnapshotForDisplay(JobApplication $record): string
     {
+        if ($record->anonymized_at !== null) {
+            return "This application was anonymized by GDPR retention policy.\n\nOnly non-personal aggregate metadata is retained.";
+        }
+
         $masked = self::maskedSnapshot($record);
         $lines = [];
 
@@ -287,13 +299,40 @@ class JobApplicationResource extends Resource
         $lines[] = 'Languages: ' . (isset($masked['languages']) && is_array($masked['languages']) ? implode(', ', $masked['languages']) : 'Not provided');
         $lines[] = '';
         $lines[] = 'Education:';
-        $lines[] = (string) ($masked['education_summary'] ?? 'Not provided');
+        if (isset($masked['structured_educations']) && is_array($masked['structured_educations']) && $masked['structured_educations'] !== []) {
+            foreach ($masked['structured_educations'] as $education) {
+                $lines[] = '- ' . trim(implode(' - ', array_filter([
+                    $education['institution'] ?? null,
+                    $education['degree'] ?? null,
+                ])));
+            }
+        } else {
+            $lines[] = (string) ($masked['education_summary'] ?? 'Not provided');
+        }
         $lines[] = '';
         $lines[] = 'Work Experience:';
-        $lines[] = (string) ($masked['work_experience'] ?? 'Not provided');
+        if (isset($masked['structured_experiences']) && is_array($masked['structured_experiences']) && $masked['structured_experiences'] !== []) {
+            foreach ($masked['structured_experiences'] as $experience) {
+                $lines[] = '- ' . trim(implode(' @ ', array_filter([
+                    $experience['job_title'] ?? null,
+                    $experience['company_name'] ?? null,
+                ])));
+            }
+        } else {
+            $lines[] = (string) ($masked['work_experience'] ?? 'Not provided');
+        }
         $lines[] = '';
-        $lines[] = 'Recommendations / Summary:';
-        $lines[] = (string) ($masked['recommendations'] ?? 'Not provided');
+        $lines[] = 'References / Summary:';
+        if (isset($masked['structured_references']) && is_array($masked['structured_references']) && $masked['structured_references'] !== []) {
+            foreach ($masked['structured_references'] as $reference) {
+                $lines[] = '- ' . trim(implode(' - ', array_filter([
+                    $reference['full_name'] ?? null,
+                    $reference['company'] ?? null,
+                ])));
+            }
+        } else {
+            $lines[] = (string) ($masked['recommendations'] ?? 'Not provided');
+        }
 
         return implode("\n", $lines);
     }

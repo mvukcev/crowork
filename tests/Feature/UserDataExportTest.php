@@ -95,6 +95,7 @@ class UserDataExportTest extends TestCase
 
         $this->assertArrayHasKey('user', $json);
         $this->assertArrayHasKey('worker_profile', $json);
+        $this->assertArrayHasKey('worker_profile_structured', $json);
         $this->assertArrayHasKey('applications', $json);
         $this->assertArrayHasKey('messages', $json);
         $this->assertArrayHasKey('notifications', $json);

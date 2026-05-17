@@ -78,11 +78,11 @@ return [
 
         'dynamodb' => [
             'driver' => 'dynamodb',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+            'key' => setting('aws_access_key_id', env('AWS_ACCESS_KEY_ID')),
+            'secret' => setting('aws_secret_access_key', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => setting('aws_default_region', env('AWS_DEFAULT_REGION', 'us-east-1')),
             'table' => env('DYNAMODB_CACHE_TABLE', 'cache'),
-            'endpoint' => env('DYNAMODB_ENDPOINT'),
+            'endpoint' => setting('aws_endpoint', env('DYNAMODB_ENDPOINT')),
         ],
 
         'octane' => [

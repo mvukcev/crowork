@@ -123,6 +123,46 @@ return [
         'no_applications_title' => 'Još nema prijava',
         'no_applications_body' => 'Prijave će se pojaviti ovdje nakon što se radnici prijave.',
     ],
+    'gdpr' => [
+        'dashboard_notice_title' => 'GDPR pravna osnova za podatke kandidata',
+        'dashboard_notice_body' => 'Podaci kandidata dostupni su samo dok su potrebni za zapošljavanje i ograničene obveze čuvanja podataka. Nakon isteka roka, osobni podaci se automatski anonimiziraju.',
+        'pipeline_notice_title' => 'Pristup podacima kandidata prati rokove čuvanja',
+        'pipeline_notice_body' => 'Ažurirajte statuse prijava na vrijeme. Odbijene prijave zadržavaju osobne podatke samo do konfiguriranog roka, nakon čega se primjenjuje anonimizacija.',
+        'candidate_panel_title' => 'Pristup podacima i pravna osnova',
+        'lawful_basis_line' => 'Pravna osnova: :basis',
+        'available_until' => 'Podaci dostupni do: :date',
+        'privacy_policy' => 'Pravila privatnosti',
+        'terms_of_service' => 'Uvjeti korištenja',
+        'data_access' => 'Pristup podacima',
+        'email_footer' => 'GDPR napomena: Osobni podaci kandidata dijele se samo za zapošljavanje i automatski se ograničavaju ili anonimiziraju prema pravilima čuvanja.',
+        'states' => [
+            'active_process' => [
+                'label' => 'Aktivan proces zapošljavanja',
+                'description' => 'Osobni podaci su trenutno dostupni za procjenu kandidata u ovom procesu zapošljavanja.',
+                'lawful_basis' => 'Legitimni interes za zapošljavanje i odabir kandidata',
+            ],
+            'rejected_retention' => [
+                'label' => 'Odbijena prijava, unutar roka čuvanja',
+                'description' => 'Kandidat je odbijen. Osobni podaci su još dostupni tijekom konfiguriranog zakonskog roka čuvanja.',
+                'lawful_basis' => 'Zakonska usklađenost i legitimni interes za rješavanje sporova pri zapošljavanju',
+            ],
+            'pending_deletion' => [
+                'label' => 'Kandidat je zatražio brisanje računa',
+                'description' => 'Pristup osobnim podacima je privremen i uklonit će se na zakazani datum anonimizacije.',
+                'lawful_basis' => 'Zakonska usklađenost tijekom perioda odgode brisanja',
+            ],
+            'awaiting_anonymization' => [
+                'label' => 'Čeka anonimizaciju',
+                'description' => 'Rok čuvanja je istekao i anonimizacija čeka sljedeći ciklus automatizacije.',
+                'lawful_basis' => 'Ograničena obrada do automatske anonimizacije',
+            ],
+            'anonymized' => [
+                'label' => 'Podaci anonimizirani',
+                'description' => 'Osobni identifikatori kandidata uklonjeni su prema pravilima privatnosti i čuvanja podataka.',
+                'lawful_basis' => 'Nema aktivne obrade osobnih podataka',
+            ],
+        ],
+    ],
     'job_form' => [
         'minimum_salary' => 'Minimalna plaća',
         'maximum_salary' => 'Maksimalna plaća',

@@ -25,6 +25,9 @@
         <meta name="twitter:title" content="{{ $guestTitle }}">
         <meta name="twitter:description" content="{{ $guestDescription }}">
         <meta name="twitter:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
+        @if(filled(setting('google_search_console_verification')))
+            <meta name="google-site-verification" content="{{ setting('google_search_console_verification') }}">
+        @endif
         <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
         <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
@@ -48,7 +51,9 @@
     @php
         $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
         $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
-        $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+        $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled()
+            && (bool) config('meta.browser_enabled', true)
+            && filled(config('meta.pixel_id'));
         $trackDebug = app()->environment('local') || config('app.debug');
     @endphp
     <body
@@ -144,7 +149,27 @@
                     </p>
                     <div class="cw-cookie-actions">
                         <button type="button" class="cw-button-secondary" data-cw-cookie-choice="required">{{ __('footer.cookie.required_only') }}</button>
+                        <button type="button" class="cw-button-secondary" data-cw-cookie-choice="customize">{{ __('footer.cookie.customize') }}</button>
                         <button type="button" class="cw-button-primary" data-cw-cookie-choice="all">{{ __('footer.cookie.allow_all') }}</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cw-cookie-modal" data-cw-cookie-modal hidden>
+                <div class="cw-cookie-modal-card">
+                    <h3 class="text-lg font-semibold text-slate-900">{{ __('footer.cookie.preferences_title') }}</h3>
+                    <p class="text-sm text-slate-600">{{ __('footer.cookie.preferences_description') }}</p>
+                    <label class="cw-cookie-toggle-row">
+                        <input type="checkbox" data-cw-cookie-analytics>
+                        <span>{{ __('footer.cookie.analytics_label') }}</span>
+                    </label>
+                    <label class="cw-cookie-toggle-row">
+                        <input type="checkbox" data-cw-cookie-marketing>
+                        <span>{{ __('footer.cookie.marketing_label') }}</span>
+                    </label>
+                    <div class="cw-cookie-actions">
+                        <button type="button" class="cw-button-secondary" data-cw-cookie-choice="required">{{ __('footer.cookie.required_only') }}</button>
+                        <button type="button" class="cw-button-primary" data-cw-cookie-save>{{ __('footer.cookie.save_preferences') }}</button>
                     </div>
                 </div>
             </section>

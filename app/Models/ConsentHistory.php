@@ -14,6 +14,7 @@ class ConsentHistory extends Model
         'user_id',
         'consent_type',
         'consent_version',
+        'consent_version_hash',
         'source',
         'given',
         'accepted_at',

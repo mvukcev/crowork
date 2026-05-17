@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GdprExportLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,19 @@ class UserDataExportController extends Controller
     public function export(Request $request)
     {
         $user = $request->user();
+        $profile = $user->workerProfile;
+
+        $exportLog = GdprExportLog::query()->create([
+            'user_id' => $user->id,
+            'requested_by_user_id' => $user->id,
+            'requested_by_admin_id' => $user->isAdmin() ? $user->id : null,
+            'export_type' => 'user_full_export',
+            'status' => GdprExportLog::STATUS_PENDING,
+            'ip_address' => $request->ip(),
+            'user_agent' => (string) $request->userAgent(),
+        ]);
+
+        try {
 
         $applications = $user->jobApplications()
             ->with('job:id,title')
@@ -36,7 +50,15 @@ class UserDataExportController extends Controller
         $data = [
             'exported_at' => now()->toIso8601String(),
             'user' => $user->toArray(),
-            'worker_profile' => optional($user->workerProfile)->toArray(),
+            'worker_profile' => optional($profile)->toArray(),
+            'worker_profile_structured' => [
+                'experiences' => $profile ? $profile->experiences()->get()->toArray() : [],
+                'educations' => $profile ? $profile->educations()->get()->toArray() : [],
+                'certifications' => $profile ? $profile->certificationsList()->get()->toArray() : [],
+                'references' => $profile ? $profile->referencesList()->get()->toArray() : [],
+                'skills' => $profile ? $profile->skillsList()->get()->toArray() : [],
+                'languages' => $profile ? $profile->languagesList()->get()->toArray() : [],
+            ],
             'employer_profile' => optional($user->employer)->toArray(),
             'applications' => $applications->map(function ($application) {
                 return [
@@ -47,6 +69,9 @@ class UserDataExportController extends Controller
                     'message' => $application->message,
                     'profile_snapshot' => $application->profile_snapshot,
                     'job_snapshot' => $application->job_snapshot,
+                    'anonymized_at' => optional($application->anonymized_at)?->toIso8601String(),
+                    'retention_reason' => $application->retention_reason,
+                    'retention_processed_at' => optional($application->retention_processed_at)?->toIso8601String(),
                     'uploaded_file_metadata' => [
                         'cv_path' => data_get($application->profile_snapshot, 'cv_path'),
                         'photo_path' => data_get($application->profile_snapshot, 'photo_path'),
@@ -69,9 +94,25 @@ class UserDataExportController extends Controller
             ],
         ];
 
-        $fileName = 'user_data_' . $user->id . '_' . now()->format('Ymd_His') . '.json';
-        Storage::disk('local')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            $fileName = 'exports/gdpr/user_data_' . $user->id . '_' . now()->format('Ymd_His') . '.json';
+            Storage::disk('local')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
-        return response()->download(storage_path('app/' . $fileName))->deleteFileAfterSend(true);
+            $exportLog->update([
+                'status' => GdprExportLog::STATUS_COMPLETED,
+                'file_path' => $fileName,
+                'generated_at' => now(),
+                'downloaded_at' => now(),
+                'expires_at' => now()->addDays(7),
+            ]);
+
+            return response()->download(storage_path('app/' . $fileName))->deleteFileAfterSend(true);
+        } catch (\Throwable $exception) {
+            $exportLog->update([
+                'status' => GdprExportLog::STATUS_FAILED,
+                'failure_reason' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
+        }
     }
 }

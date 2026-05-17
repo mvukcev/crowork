@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\SendMetaCapiEvent;
+use App\Jobs\SendMetaEventJob;
 use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\WorkerProfile;
 use App\Notifications\JobApplicationSubmitted;
 use App\Notifications\NewJobApplicationReceived;
+use App\Services\ConsentConfigService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class JobApplicationController extends Controller
 {
@@ -119,7 +121,29 @@ class JobApplicationController extends Controller
         $application->loadMissing('job.employer.user', 'worker');
         $application->worker?->notify(new JobApplicationSubmitted($application));
         $application->job?->employer?->user?->notify(new NewJobApplicationReceived($application));
-        SendMetaCapiEvent::dispatch('application_submitted', $application->id);
+
+        $metaEventId = null;
+        if (ConsentConfigService::hasMarketingConsent($request, $request->user())) {
+            $metaEventId = (string) Str::uuid();
+            SendMetaEventJob::dispatch(
+                'job_application_submitted',
+                [
+                    'application_id' => $application->id,
+                    'event_source_url' => $request->fullUrl(),
+                    'client_user_agent' => $request->userAgent(),
+                    'client_ip_address' => $request->ip(),
+                ],
+                $metaEventId,
+            );
+        }
+
+        $this->queueTrackEvent('job_apply_complete', [
+            'source' => 'job_apply_form',
+            'event_id' => $metaEventId,
+            'job_slug' => $job->slug,
+            'job_id' => $job->id,
+            'application_id' => $application->id,
+        ]);
 
         // Redirect to job detail with success message
         return redirect()
@@ -160,5 +184,20 @@ class JobApplicationController extends Controller
             'posted_at' => $job->published_at?->toDateString(),
             'expires_at' => $job->expires_at?->toDateString(),
         ];
+    }
+
+    private function queueTrackEvent(string $event, array $payload = []): void
+    {
+        $queue = session('cw_track_queue', []);
+        if (! is_array($queue)) {
+            $queue = [];
+        }
+
+        $queue[] = [
+            'event' => $event,
+            'payload' => $payload,
+        ];
+
+        session(['cw_track_queue' => $queue]);
     }
 }

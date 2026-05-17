@@ -32,14 +32,9 @@
                     <div class="cw-progress-track mb-3">
                         <div class="cw-progress-fill bg-emerald-500" style="--cw-progress: {{ $completeness }}%;"></div>
                     </div>
+                    <p class="text-sm font-medium text-slate-700 mb-1">{{ $completenessStateLabel ?? '' }}</p>
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                        <p class="text-sm text-slate-600">
-                            @if($completeness < 80)
-                                {{ __('worker.dashboard.profile_hint_incomplete') }}
-                            @else
-                                {{ __('worker.dashboard.profile_hint_complete') }}
-                            @endif
-                        </p>
+                        <p class="text-sm text-slate-600">{{ $completenessHelperText ?? __('worker.dashboard.profile_hint_incomplete') }}</p>
                         <a href="{{ route('worker.profile.edit') }}" class="cw-button-secondary">
                             {{ $completeness < 80 ? __('worker.dashboard.finish_profile_now') : __('worker.dashboard.review_profile') }}
                         </a>
@@ -78,9 +73,9 @@
 
                     @if(count($missingChecklist) > 0)
                         <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-4 mb-2">{{ __('worker.dashboard.missing_profile_fields') }}</p>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach($missingChecklist as $item)
-                                <span class="cw-chip">{{ $item }}</span>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach(array_slice($missingChecklist, 0, 10) as $item)
+                                <span class="cw-chip max-w-full break-words">{{ $item }}</span>
                             @endforeach
                         </div>
                     @endif

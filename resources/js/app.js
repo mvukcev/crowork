@@ -158,6 +158,33 @@ const readConsentState = () => {
 	};
 };
 
+const persistConsentPreference = async ({ analytics, marketing, choice, source = 'cookie_banner' }) => {
+	const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+	if (!csrfToken) {
+		return;
+	}
+
+	try {
+		await fetch('/consent/preferences', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json',
+				'X-CSRF-TOKEN': csrfToken,
+				'X-Requested-With': 'XMLHttpRequest',
+			},
+			body: JSON.stringify({
+				analytics,
+				marketing,
+				choice,
+				source,
+			}),
+		});
+	} catch (_) {
+		// Keep UX responsive even if consent sync endpoint is temporarily unavailable.
+	}
+};
+
 const resolvePageType = () => {
 	const path = window.location.pathname;
 	if (path === '/') return 'homepage';
@@ -223,8 +250,10 @@ const ANALYTICS_EVENT_SCOPE = {
 	post_job_click: 'marketing',
 	job_apply_click: 'marketing',
 	job_apply_submit: 'marketing',
+	job_apply_complete: 'marketing',
 	education_apply_click: 'marketing',
 	education_apply_submit: 'marketing',
+	education_apply_complete: 'marketing',
 	register_complete: 'marketing',
 	employer_register_start: 'marketing',
 	employer_register_complete: 'marketing',
@@ -243,9 +272,10 @@ const META_EVENT_MAP = {
 	post_job_click: { type: 'track', name: 'Lead' },
 	employer_register_start: { type: 'track', name: 'Lead' },
 	register_complete: { type: 'track', name: 'CompleteRegistration' },
-	employer_register_complete: { type: 'track', name: 'CompleteRegistration' },
-	job_apply_submit: { type: 'trackCustom', name: 'JobApplySubmit' },
-	education_apply_submit: { type: 'trackCustom', name: 'EducationApplySubmit' },
+	job_apply_submit: { type: 'trackCustom', name: 'JobApplyIntent' },
+	education_apply_submit: { type: 'trackCustom', name: 'EducationApplyIntent' },
+	job_apply_complete: { type: 'track', name: 'SubmitApplication' },
+	education_apply_complete: { type: 'track', name: 'SubmitApplication' },
 	password_reset_request: { type: 'trackCustom', name: 'PasswordResetRequest' },
 };
 
@@ -301,6 +331,31 @@ const shouldDeduplicate = (eventName, payload) => {
 	return false;
 };
 
+const croworkMetaTrack = (eventName, payload = {}, explicitEventId = null) => {
+	const consentState = readConsentState();
+	if (!consentState.marketingAllowed || typeof window.fbq !== 'function') {
+		return false;
+	}
+
+	const mapped = META_EVENT_MAP[eventName];
+	if (!mapped) {
+		return false;
+	}
+
+	const eventId = explicitEventId || payload.event_id || null;
+	const options = eventId ? { eventID: eventId } : {};
+
+	if (mapped.type === 'track') {
+		window.fbq('track', mapped.name, payload, options);
+		return true;
+	}
+
+	window.fbq('trackCustom', mapped.name, payload, options);
+	return true;
+};
+
+window.croworkMetaTrack = croworkMetaTrack;
+
 const cwTrack = (eventName, payload = {}) => {
 	if (!eventName || typeof eventName !== 'string') {
 		return;
@@ -353,16 +408,8 @@ const cwTrack = (eventName, payload = {}) => {
 		window.gtag('event', normalizedEventName, finalPayload);
 	}
 
-	if (shouldSendMarketing && typeof window.fbq === 'function') {
-		const mapped = META_EVENT_MAP[normalizedEventName];
-		if (mapped) {
-			const options = { eventID: eventId };
-			if (mapped.type === 'track') {
-				window.fbq('track', mapped.name, finalPayload, options);
-			} else {
-				window.fbq('trackCustom', mapped.name, finalPayload, options);
-			}
-		}
+	if (shouldSendMarketing) {
+		croworkMetaTrack(normalizedEventName, finalPayload, eventId);
 	}
 
 	if (typeof window.plausible === 'function' && shouldSendAnalytics) {
@@ -1021,25 +1068,63 @@ const initCroworkUi = () => {
 
 	const banner = document.querySelector('[data-cw-cookie-banner]');
 	if (banner) {
+		const modal = document.querySelector('[data-cw-cookie-modal]');
+		const analyticsInput = modal?.querySelector('[data-cw-cookie-analytics]');
+		const marketingInput = modal?.querySelector('[data-cw-cookie-marketing]');
+		const savePreferencesButton = modal?.querySelector('[data-cw-cookie-save]');
 		const consentRequired = document.body?.dataset?.cwConsentRequired === '1';
 		if (!consentRequired) {
 			banner.setAttribute('hidden', 'hidden');
+			modal?.setAttribute('hidden', 'hidden');
 		} else {
-			const setConsent = (choice) => {
-				const analytics = choice === 'all';
-				const marketing = choice === 'all';
+			const setConsent = (choice, analytics, marketing) => {
+				const normalizedChoice = choice === 'all' || choice === 'required' || choice === 'custom' ? choice : 'required';
 
 				document.cookie = `consent_analytics=${analytics ? '1' : '0'}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
 				document.cookie = `consent_marketing=${marketing ? '1' : '0'}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
+				document.cookie = `cw_cookie_choice=${encodeURIComponent(normalizedChoice)}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
 
 				try {
+					localStorage.setItem('cw_cookie_choice', normalizedChoice);
 					localStorage.setItem('crowork_consent', JSON.stringify({
 						analytics,
 						marketing,
+						choice: normalizedChoice,
 						timestamp: new Date().toISOString(),
 					}));
 				} catch (_) {
 					// Ignore storage failures in restricted/private contexts.
+				}
+
+				persistConsentPreference({
+					analytics,
+					marketing,
+					choice: normalizedChoice,
+					source: 'cookie_banner',
+				});
+			};
+
+			const openModal = () => {
+				if (!modal) {
+					return;
+				}
+
+				const state = readConsentState();
+				if (analyticsInput instanceof HTMLInputElement) {
+					analyticsInput.checked = state.analyticsAllowed;
+				}
+				if (marketingInput instanceof HTMLInputElement) {
+					marketingInput.checked = state.marketingAllowed;
+				}
+
+				banner.setAttribute('hidden', 'hidden');
+				modal.removeAttribute('hidden');
+			};
+
+			const closeModal = () => {
+				modal?.setAttribute('hidden', 'hidden');
+				if (!(savedChoice === 'required' || savedChoice === 'all' || savedChoice === 'custom')) {
+					banner.removeAttribute('hidden');
 				}
 			};
 
@@ -1050,7 +1135,7 @@ const initCroworkUi = () => {
 				savedChoice = null;
 			}
 
-			if (savedChoice === 'required' || savedChoice === 'all') {
+			if (savedChoice === 'required' || savedChoice === 'all' || savedChoice === 'custom') {
 				banner.setAttribute('hidden', 'hidden');
 			} else {
 				banner.removeAttribute('hidden');
@@ -1059,24 +1144,50 @@ const initCroworkUi = () => {
 				choiceButtons.forEach((button) => {
 					button.addEventListener('click', () => {
 						const choice = button.getAttribute('data-cw-cookie-choice');
+						if (choice === 'customize') {
+							openModal();
+							return;
+						}
+
 						if (choice !== 'required' && choice !== 'all') {
 							return;
 						}
 
-						try {
-							localStorage.setItem('cw_cookie_choice', choice);
-						} catch (_) {
-							// Ignore storage failures in restricted/private contexts.
-						}
-
-						setConsent(choice);
+						const allowOptional = choice === 'all';
+						setConsent(choice, allowOptional, allowOptional);
+						savedChoice = choice;
 						cwTrack(choice === 'all' ? 'cookie_consent_accept_all' : 'cookie_consent_required_only', {
 							choice,
 						});
 
 						banner.setAttribute('hidden', 'hidden');
+						closeModal();
 						window.setTimeout(() => window.location.reload(), 120);
 					});
+				});
+
+				modal?.addEventListener('click', (event) => {
+					if (event.target === modal) {
+						closeModal();
+					}
+				});
+
+				savePreferencesButton?.addEventListener('click', () => {
+					const analytics = analyticsInput instanceof HTMLInputElement ? analyticsInput.checked : false;
+					const marketing = marketingInput instanceof HTMLInputElement ? marketingInput.checked : false;
+					const choice = analytics && marketing ? 'all' : (!analytics && !marketing ? 'required' : 'custom');
+
+					setConsent(choice, analytics, marketing);
+					savedChoice = choice;
+					cwTrack('cookie_consent_customize', {
+						choice,
+						analytics,
+						marketing,
+					});
+
+					banner.setAttribute('hidden', 'hidden');
+					closeModal();
+					window.setTimeout(() => window.location.reload(), 120);
 				});
 			}
 		}

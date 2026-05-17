@@ -27,6 +27,9 @@ class JobApplication extends Model
         'score',
         'interview_at',
         'status_updated_at',
+        'anonymized_at',
+        'retention_reason',
+        'retention_processed_at',
     ];
 
     protected $casts = [
@@ -34,6 +37,8 @@ class JobApplication extends Model
         'job_snapshot' => 'array',
         'interview_at' => 'datetime',
         'status_updated_at' => 'datetime',
+        'anonymized_at' => 'datetime',
+        'retention_processed_at' => 'datetime',
         'candidate_tags' => 'array',
     ];
 

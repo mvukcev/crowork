@@ -224,7 +224,7 @@ class WorkerResource extends Resource
                             ->state(fn (User $record): string => self::languageSummary($record)),
                         TextEntry::make('worker_profile_skills')
                             ->label('Skills')
-                            ->state(fn (User $record): string => self::listSummary($record->workerProfile?->skills ?? [])),
+                            ->state(fn (User $record): string => self::listSummary($record->workerProfile?->skillsArray() ?? [])),
                         TextEntry::make('worker_profile_desired_roles')
                             ->label('Desired roles')
                             ->state(fn (User $record): string => self::listSummary($record->workerProfile?->desired_roles ?? [])),
@@ -304,7 +304,7 @@ class WorkerResource extends Resource
 
     private static function languageSummary(User $record): string
     {
-        $languages = $record->workerProfile?->languages ?? [];
+        $languages = $record->workerProfile?->languagesArray() ?? [];
 
         if (! is_array($languages) || $languages === []) {
             return '-';

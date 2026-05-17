@@ -11,6 +11,7 @@ use App\Filament\Employer\Widgets\EmployerJobsByStatusChart;
 use App\Filament\Employer\Widgets\EmployerOverviewStats;
 use App\Filament\Employer\Widgets\ExpiringJobsTable;
 use App\Http\Middleware\EmployerAccessMiddleware;
+use App\Http\Middleware\EnsureLatestLegalConsentAccepted;
 use App\Http\Middleware\PreventImpersonatedWrites;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -95,6 +96,7 @@ class EmployerPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 EmployerAccessMiddleware::class,
+                EnsureLatestLegalConsentAccepted::class,
             ]);
     }
 }

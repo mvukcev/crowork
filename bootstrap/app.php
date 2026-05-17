@@ -21,7 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'employer.approved' => \App\Http\Middleware\EnsureEmployerIsApproved::class,
             'admin.access' => \App\Http\Middleware\AdminAccessMiddleware::class,
+            'admin.strict' => \App\Http\Middleware\EnsureStrictAdminRole::class,
             'impersonation.readonly' => \App\Http\Middleware\PreventImpersonatedWrites::class,
+            'legal.consent' => \App\Http\Middleware\EnsureLatestLegalConsentAccepted::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

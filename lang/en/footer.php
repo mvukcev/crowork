@@ -13,5 +13,11 @@ return [
         'link_label' => 'Cookie Statement',
         'required_only' => 'Required only',
         'allow_all' => 'Allow all',
+        'customize' => 'Customize',
+        'preferences_title' => 'Cookie preferences',
+        'preferences_description' => 'Choose which optional cookies CroWork can use. Required cookies remain enabled.',
+        'analytics_label' => 'Analytics cookies',
+        'marketing_label' => 'Marketing cookies',
+        'save_preferences' => 'Save preferences',
     ],
 ];

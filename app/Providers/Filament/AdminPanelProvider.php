@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\AdminAccessMiddleware;
+use App\Http\Middleware\EnsureLatestLegalConsentAccepted;
 use App\Http\Middleware\EnsureAdminPanelSessionIsPrivileged;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -77,6 +78,7 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 AdminAccessMiddleware::class,
+                EnsureLatestLegalConsentAccepted::class,
             ]);
     }
 }

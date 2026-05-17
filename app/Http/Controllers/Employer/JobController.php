@@ -6,11 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Employer;
 use App\Models\Job;
 use App\Services\ApprovalService;
+use App\Services\EmployerCandidateDataAccessService;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class JobController extends Controller
 {
+    public function __construct(
+        private readonly EmployerCandidateDataAccessService $candidateDataAccessService,
+    ) {
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -126,10 +132,17 @@ class JobController extends Controller
         $this->authorizeEmployerJob($job);
 
         $job->load(['applications.worker']);
+        $applications = $job->applications()->with('worker')->latest()->get();
+
+        $applications->transform(function ($application) {
+            $application->candidate_data_access = $this->candidateDataAccessService->forApplication($application);
+
+            return $application;
+        });
 
         return view('employer.jobs.show', [
             'job' => $job,
-            'applications' => $job->applications()->latest()->get(),
+            'applications' => $applications,
         ]);
     }
 

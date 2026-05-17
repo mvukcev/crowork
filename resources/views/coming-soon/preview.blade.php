@@ -22,12 +22,6 @@
             <span class="cw-orb cw-orb-cyan" style="width: 260px; height: 260px; bottom: -90px; left: 16%;"></span>
         </div>
 
-        <header class="pt-8 px-4 sm:px-6 md:pt-10">
-            <div class="cw-container flex justify-end">
-                <a href="{{ route('login') }}" class="cw-button-secondary">Admin / Mod Sign in</a>
-            </div>
-        </header>
-
         <main class="flex-1 flex items-center justify-center px-4 py-12 sm:px-6 sm:py-16 md:py-20">
             <div class="w-full max-w-2xl cw-preview-card cw-soft-reveal">
                 <div class="cw-preview-header">

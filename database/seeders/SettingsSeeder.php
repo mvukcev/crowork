@@ -69,6 +69,7 @@ class SettingsSeeder extends Seeder
             'analytics_enabled' => false,
             'google_tag_manager_id' => null,
             'google_tag_id' => null,
+            'google_search_console_verification' => null,
             'analytics_debug_mode' => false,
 
             // Meta Pixel & CAPI
@@ -79,11 +80,38 @@ class SettingsSeeder extends Seeder
             'meta_dataset_id' => null,
             'meta_api_version' => 'v18.0',
             'meta_debug_mode' => false,
+            'meta_browser_enabled' => true,
+            'meta_capi_enabled' => true,
+            'meta_timeout_seconds' => 10,
+            'meta_queue' => 'default',
+            'meta_log_channel' => 'meta',
+            'meta_send_from_local' => false,
+
+            // AWS
+            'aws_access_key_id' => null,
+            'aws_secret_access_key' => null,
+            'aws_default_region' => 'us-east-1',
+            'aws_bucket' => null,
+            'aws_url' => null,
+            'aws_endpoint' => null,
+            'aws_use_path_style_endpoint' => false,
 
             // Consent & Privacy
             'cookie_banner_enabled' => true,
             'consent_required' => true,
             'cookie_statement_url' => null,
+            'terms_version' => '2026-05-terms-v1',
+            'terms_hash' => null,
+            'privacy_policy_version' => '2026-05-privacy-v1',
+            'privacy_policy_hash' => null,
+
+            // Privacy Retention
+            'enable_retention_automation' => false,
+            'dry_run_mode' => true,
+            'rejected_applications_retention_months' => 6,
+            'inactive_worker_retention_months' => 24,
+            'inactive_employer_retention_months' => 36,
+            'notification_retention_months' => 12,
 
             // Security & Audit
             'audit_log_enabled' => true,

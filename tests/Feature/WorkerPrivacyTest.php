@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Jobs\AnonymizeUserDataJob;
 use App\Models\User;
 use App\Models\WorkerProfile;
+use App\Services\CookieConsentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
@@ -84,5 +85,52 @@ class WorkerPrivacyTest extends TestCase
         ]);
 
         Queue::assertPushed(AnonymizeUserDataJob::class);
+    }
+
+    public function test_worker_can_update_tracking_preferences_and_persist_history(): void
+    {
+        $worker = User::factory()->create(['role' => User::ROLE_WORKER]);
+
+        $response = $this
+            ->actingAs($worker)
+            ->patch(route('worker.privacy.consent'), [
+                'consent_analytics' => '1',
+                // marketing intentionally omitted to verify withdrawal path.
+            ]);
+
+        $response->assertRedirect(route('worker.privacy.show'));
+        $response->assertCookie('consent_analytics', '1');
+        $response->assertCookie('consent_marketing', '0');
+
+        $this->assertDatabaseHas('consent_histories', [
+            'user_id' => $worker->id,
+            'consent_type' => CookieConsentService::CONSENT_TYPE_ANALYTICS,
+            'source' => CookieConsentService::SOURCE_WORKER_PRIVACY,
+            'given' => 1,
+        ]);
+
+        $this->assertDatabaseHas('consent_histories', [
+            'user_id' => $worker->id,
+            'consent_type' => CookieConsentService::CONSENT_TYPE_MARKETING,
+            'source' => CookieConsentService::SOURCE_WORKER_PRIVACY . ':custom',
+            'given' => 0,
+        ]);
+    }
+
+    public function test_non_worker_cannot_update_tracking_preferences(): void
+    {
+        $employer = User::factory()->create(['role' => User::ROLE_EMPLOYER]);
+
+        $this->actingAs($employer)
+            ->patch(route('worker.privacy.consent'), [
+                'consent_analytics' => '1',
+                'consent_marketing' => '1',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('consent_histories', [
+            'user_id' => $employer->id,
+            'consent_type' => CookieConsentService::CONSENT_TYPE_ANALYTICS,
+        ]);
     }
 }

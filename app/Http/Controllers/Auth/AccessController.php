@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendMetaEventJob;
 use App\Mail\VerificationCodeMail;
 use App\Models\Setting;
 use App\Models\Employer;
@@ -10,8 +11,8 @@ use App\Models\User;
 use App\Models\WorkerProfile;
 use App\Notifications\AdminNewEmployerPending;
 use App\Services\ApprovalService;
+use App\Services\ConsentConfigService;
 use App\Services\ConsentHistoryService;
-use App\Services\MetaConversionsAPIService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
@@ -363,14 +365,21 @@ class AccessController extends Controller
 
         app(ConsentHistoryService::class)->recordRegistrationConsents($user, $request);
 
-            try {
-                app(MetaConversionsAPIService::class)->trackCompleteRegistration($user, $data['account_type']);
-            } catch (\Throwable $exception) {
-                Log::warning('Meta CAPI registration tracking failed', [
+        $metaEventId = null;
+        if (ConsentConfigService::hasMarketingConsent($request, $user)) {
+            $metaEventId = (string) Str::uuid();
+            SendMetaEventJob::dispatch(
+                'complete_registration',
+                [
                     'user_id' => $user->id,
-                    'error' => $exception->getMessage(),
-                ]);
-            }
+                    'account_type' => $data['account_type'],
+                    'event_source_url' => $request->fullUrl(),
+                    'client_user_agent' => $request->userAgent(),
+                    'client_ip_address' => $request->ip(),
+                ],
+                $metaEventId,
+            );
+        }
 
         $this->clearAccessSessionState();
 
@@ -389,6 +398,7 @@ class AccessController extends Controller
             $this->queueTrackEvent('register_complete', [
                 'source' => 'access_register',
                 'account_type' => User::ROLE_WORKER,
+                'event_id' => $metaEventId,
             ]);
 
             return redirect()->route('worker.profile.edit');
@@ -417,9 +427,11 @@ class AccessController extends Controller
         $this->queueTrackEvent('register_complete', [
             'source' => 'access_register',
             'account_type' => User::ROLE_EMPLOYER,
+            'event_id' => $metaEventId,
         ]);
         $this->queueTrackEvent('employer_register_complete', [
             'source' => 'access_register',
+            'event_id' => $metaEventId,
         ]);
 
         // If employer requires approval, show the pending approval page

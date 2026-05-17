@@ -30,8 +30,20 @@ class ApplicationController extends Controller
             ]
         );
 
-        $completeness = $profile->completenessPercent();
-        $missingChecklist = $profile->missingFieldChecklist();
+        $profile->load([
+            'experiences',
+            'educations',
+            'certificationsList',
+            'referencesList',
+            'skillsList',
+            'languagesList',
+        ]);
+
+        $completenessData = $profile->completenessData();
+        $completeness = $completenessData['percentage'];
+        $missingChecklist = $completenessData['missing'];
+        $completenessStateLabel = $completenessData['state_label'];
+        $completenessHelperText = $completenessData['helper_text'];
 
         $jobApplicationsQuery = JobApplication::query()->where('worker_id', $user->id);
         $educationApplicationsQuery = EducationApplication::query()->where('worker_id', $user->id);
@@ -166,6 +178,8 @@ class ApplicationController extends Controller
             'profile',
             'completeness',
             'missingChecklist',
+            'completenessStateLabel',
+            'completenessHelperText',
             'activeApplicationsCount',
             'latestJobApplications',
             'latestEducationApplications',

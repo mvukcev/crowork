@@ -18,14 +18,22 @@
                         <article class="cw-surface p-5">
                             <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-900">{{ $application->worker->name ?? __('employer.job_applications.unknown_worker') }}</p>
-                                    <p class="text-sm text-slate-600">{{ $application->worker->email ?? __('employer.job_applications.no_email') }}</p>
+                                    @php($retainedAnonymized = (bool) data_get($application->profile_snapshot, 'retained_anonymized', false))
+                                    <p class="text-sm font-semibold text-slate-900">{{ $retainedAnonymized ? 'Anonymized candidate' : ($application->worker->name ?? __('employer.job_applications.unknown_worker')) }}</p>
+                                    <p class="text-sm text-slate-600">{{ $retainedAnonymized ? 'Hidden by retention policy' : ($application->worker->email ?? __('employer.job_applications.no_email')) }}</p>
+                                    @php($access = $application->candidate_data_access ?? null)
+                                    @if(is_array($access))
+                                        <p class="text-xs text-slate-500 mt-1">{{ $access['label'] ?? '' }}</p>
+                                        @if(!empty($access['data_available_until_human']))
+                                            <p class="text-xs text-slate-500">{{ __('employer.gdpr.available_until', ['date' => $access['data_available_until_human']]) }}</p>
+                                        @endif
+                                    @endif
                                 </div>
                                 <x-badge tone="info">{{ ucfirst($application->status) }}</x-badge>
                             </div>
                             <p class="text-xs text-slate-500 mb-2">{{ __('employer.job_applications.applied_when', ['time' => $application->created_at->diffForHumans()]) }}</p>
 
-                            @if($application->cover_letter || $application->message)
+                            @if(!data_get($application->profile_snapshot, 'retained_anonymized', false) && ($application->cover_letter || $application->message))
                                 <div class="mb-3">
                                     <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{{ __('employer.job_applications.motivation') }}</p>
                                     <p class="text-sm text-slate-700">{{ $application->cover_letter ?: $application->message }}</p>

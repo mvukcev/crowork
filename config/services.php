@@ -19,9 +19,9 @@ return [
     ],
 
     'ses' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'key' => setting('aws_access_key_id', env('AWS_ACCESS_KEY_ID')),
+        'secret' => setting('aws_secret_access_key', env('AWS_SECRET_ACCESS_KEY')),
+        'region' => setting('aws_default_region', env('AWS_DEFAULT_REGION', 'us-east-1')),
     ],
 
     'slack' => [
@@ -37,6 +37,12 @@ return [
         'dsn' => env('SENTRY_LARAVEL_DSN'),
         'traces_sample_rate' => env('SENTRY_TRACES_SAMPLE_RATE'),
         'environment' => env('SENTRY_ENVIRONMENT', env('APP_ENV')),
+    ],
+
+    'meta' => [
+        'enabled' => setting('meta_tracking_enabled', env('META_ENABLED', false)),
+        'pixel_id' => setting('meta_pixel_id', env('META_PIXEL_ID')),
+        'dataset_id' => setting('meta_dataset_id', env('META_DATASET_ID')),
     ],
 
 ];

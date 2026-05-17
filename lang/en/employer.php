@@ -123,6 +123,46 @@ return [
         'no_applications_title' => 'No applications yet',
         'no_applications_body' => 'Applications will appear here once workers apply.',
     ],
+    'gdpr' => [
+        'dashboard_notice_title' => 'GDPR lawful basis for candidate data',
+        'dashboard_notice_body' => 'Candidate data is available only while required for recruitment and limited retention duties. When retention windows expire, personal fields are anonymized automatically.',
+        'pipeline_notice_title' => 'Candidate data access follows retention windows',
+        'pipeline_notice_body' => 'Use status updates promptly. Rejected applications keep personal data only until the configured retention deadline, then anonymization is applied.',
+        'candidate_panel_title' => 'Data access and lawful basis',
+        'lawful_basis_line' => 'Lawful basis: :basis',
+        'available_until' => 'Data available until: :date',
+        'privacy_policy' => 'Privacy policy',
+        'terms_of_service' => 'Terms of service',
+        'data_access' => 'Data access',
+        'email_footer' => 'GDPR notice: Candidate personal data is shared for recruitment only and is automatically restricted or anonymized by retention policy.',
+        'states' => [
+            'active_process' => [
+                'label' => 'Active recruitment process',
+                'description' => 'Personal data is currently available for candidate evaluation in this hiring process.',
+                'lawful_basis' => 'Legitimate interest in recruitment and selection',
+            ],
+            'rejected_retention' => [
+                'label' => 'Rejected, within retention window',
+                'description' => 'The candidate was rejected. Personal data is still available during the configured legal retention period.',
+                'lawful_basis' => 'Legal compliance and legitimate interest for handling hiring disputes',
+            ],
+            'pending_deletion' => [
+                'label' => 'Candidate requested account deletion',
+                'description' => 'Personal data access is temporary and will be removed on the scheduled anonymization date.',
+                'lawful_basis' => 'Legal compliance during deletion grace period',
+            ],
+            'awaiting_anonymization' => [
+                'label' => 'Awaiting anonymization',
+                'description' => 'The retention window has ended and anonymization is pending in the automation cycle.',
+                'lawful_basis' => 'Restricted processing pending automated anonymization',
+            ],
+            'anonymized' => [
+                'label' => 'Data anonymized',
+                'description' => 'Personal candidate identifiers were removed by privacy retention policy.',
+                'lawful_basis' => 'No active personal data processing',
+            ],
+        ],
+    ],
     'job_form' => [
         'minimum_salary' => 'Minimum salary',
         'maximum_salary' => 'Maximum salary',

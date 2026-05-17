@@ -61,12 +61,233 @@ This sprint implements the P0 baseline for launch readiness:
 - Employer masking hardening for pending/deleted users.
 - Feature/unit tests for export, deletion request flow, anonymization, consent logging, notification preferences, profile visibility, and auth boundary checks.
 
-## P1 (Recommended next)
+## P1 (Implemented in this sprint)
 
-- Consent withdrawal and version re-accept flow for policy updates.
-- DSAR request ticketing workflow with SLA/status history.
-- Admin privacy console UX improvements (filters, audit timeline, actor attribution).
-- Cookie consent persistence -> server-side consent history reconciliation.
+- Automated retention runner (`privacy:retention-run`) with dry-run-first safety defaults.
+- Admin-managed retention settings for rejected applications, inactive worker screening, inactive employer screening, and notification/log retention windows.
+- Rejected application anonymization that keeps aggregate metadata while removing direct personal data.
+- Inactive worker handling via existing delayed anonymization flow (`AccountDeletionService`) instead of unsafe hard deletion.
+- Inactive employer processing intentionally constrained to reporting/manual legal review (no automatic deletion/anonymization).
+- Notification/log retention for old records in `notifications`, `notification_digests`, and `email_send_log`.
+- Monthly scheduler wiring in `routes/console.php` gated by `enable_retention_automation`.
+
+## P1 Operational safeguards
+
+- `enable_retention_automation=false` and `dry_run_mode=true` defaults prevent accidental data mutation.
+- CLI `--dry-run` always wins.
+- CLI `--force` only enables active mode when automation is enabled.
+- Section selector (`--only=`) supports scoped runs: `rejected-applications`, `inactive-workers`, `inactive-employers`, `notifications`.
+- Structured summary output includes scanned/eligible/processed/skipped/errors per section.
+- Logs contain counters and IDs only, without raw profile/application content.
+
+## P1 Consent Versioning and Re-acceptance
+
+### Existing consent storage baseline
+
+- `consent_histories` already stores `consent_type`, `consent_version`, `source`, `given`, `accepted_at`, `ip_address`, and `user_agent`.
+- Registration already logs Terms/Privacy consent events through `ConsentHistoryService`.
+- Worker Privacy & Data center already exposes privacy controls and consent-adjacent features.
+
+### Gaps before P1 consent versioning
+
+- No enforced check that authenticated users accepted the latest Terms and Privacy versions.
+- No version-hash field to bind acceptance evidence to a specific policy revision snapshot.
+- No forced re-acceptance route/middleware flow when legal version changes.
+- No admin-controlled current Terms/Privacy version and hash settings to trigger re-acceptance safely.
+
+### Affected routes and middleware
+
+- Protected areas (`/dashboard`, worker routes, employer routes, authenticated notifications/profile routes, and custom admin web routes) are guarded by `EnsureLatestLegalConsentAccepted` middleware.
+- Exemptions prevent lockout and redirect loops for:
+  - logout
+  - legal re-acceptance GET/POST
+  - Terms/Privacy/Cookies pages
+  - Worker Privacy page and account deletion request flow
+  - data export route
+
+### Re-acceptance flow
+
+- If latest legal acceptance is missing, user is redirected to `/legal/reaccept`.
+- Intended URL is preserved via `url.intended` for safe post-accept return.
+- Re-accept submit records new Terms + Privacy consent entries with:
+  - current version
+  - current version hash
+  - accepted timestamp
+  - source (`reacceptance`)
+  - IP and user agent
+
+### Admin configuration approach
+
+- Current legal policy versions/hashes are managed in admin settings (`settings` table):
+  - `terms_version`
+  - `terms_hash`
+  - `privacy_policy_version`
+  - `privacy_policy_hash`
+- Hash can be explicitly configured, or derived server-side from version + canonical legal URL for stable default behavior.
+
+## P1 Employer Lawful-Basis UX
+
+### Objective
+
+- Make employer-facing candidate data usage transparent and tied to real retention state.
+- Prevent ambiguous data exposure by showing whether candidate personal data is active, time-limited, pending deletion, or already anonymized.
+
+### Implemented behavior
+
+- Added centralized access-state computation in `EmployerCandidateDataAccessService`.
+- State model per application:
+  - active recruitment process
+  - rejected within retention window
+  - pending deletion (scheduled anonymization date shown)
+  - awaiting anonymization (retention window elapsed)
+  - anonymized
+- Rejected `data_available_until` is calculated from:
+  - `status_updated_at` fallback `created_at`
+  - plus configured `rejected_applications_retention_months`
+
+### Employer surfaces updated
+
+- Dashboard:
+  - GDPR lawful-basis notice card with links to Terms and Privacy pages.
+  - recent candidate cards include compact access-state label.
+- Pipeline list:
+  - GDPR notice block and per-row `Data access` state, including `available until` when applicable.
+- Candidate detail:
+  - dedicated lawful-basis panel with state label, explanation, legal basis, and availability deadline.
+- Job applicants list (`employer.jobs.show`):
+  - existing anonymized handling preserved.
+  - state and availability display aligned with the same access-state service.
+
+### Admin support visibility
+
+- Admin `JobApplicationResource` now shows GDPR access state and data-available-until values in table and detail form fields.
+
+### Email touchpoint update
+
+- Employer new-application email now includes a GDPR footer clarifying candidate personal data usage and retention-bound anonymization.
+
+## Admin GDPR Console
+
+### Audit of existing admin privacy tooling (before this phase)
+
+- Existing admin GDPR functionality:
+  - `AdminPrivacyRequestController` and `admin/privacy_requests` view for account deletion requests only.
+  - Admin could mark deletion requests as completed/cancelled.
+  - Completed action triggered `AnonymizeUserDataJob::dispatchSync`.
+  - Consent history existed but no dedicated admin console workflows.
+  - User export endpoint existed (`/user/export`) but had no export history log.
+  - Retention automation existed (`privacy:retention-run`) with no legal-hold enforcement.
+- Missing controls before this phase:
+  - no centralized GDPR admin dashboard
+  - no DSAR lifecycle model for non-deletion request types
+  - no export audit trail
+  - no anonymization operations log
+  - no legal hold mechanism to block anonymization/deletion
+  - no internal breach incident tracker
+
+### New console routes and pages
+
+- Dashboard: `/admin/gdpr`
+- DSAR:
+  - `/admin/gdpr/requests`
+  - `/admin/gdpr/requests/{gdprDataRequest}`
+- Export history: `/admin/gdpr/exports`
+- Anonymization logs: `/admin/gdpr/anonymization-logs`
+- Legal holds: `/admin/gdpr/legal-holds`
+- Breach incidents:
+  - `/admin/gdpr/breach-incidents`
+  - `/admin/gdpr/breach-incidents/{gdprBreachIncident}`
+
+### Affected models/tables/services/jobs/controllers/views
+
+- New tables/models:
+  - `gdpr_data_requests` / `GdprDataRequest`
+  - `gdpr_export_logs` / `GdprExportLog`
+  - `gdpr_anonymization_logs` / `GdprAnonymizationLog`
+  - `legal_holds` / `LegalHold`
+  - `gdpr_breach_incidents` / `GdprBreachIncident`
+- New services/middleware/controllers:
+  - `LegalHoldService`
+  - `EnsureStrictAdminRole` (`admin.strict` middleware alias)
+  - `AdminGdprController`
+- Existing integrations extended:
+  - `UserDataExportController` now writes `gdpr_export_logs`
+  - `AnonymizeUserDataJob` now writes `gdpr_anonymization_logs` and blocks on legal hold
+  - `PrivacyRetentionService` now skips legal-hold targets and writes anonymization logs for retention application anonymization
+- New views:
+  - `resources/views/admin/gdpr/*`
+
+### DSAR lifecycle (implemented)
+
+- Types:
+  - `access_export`, `deletion`, `rectification`, `objection_restriction`, `portability`, `consent_inquiry`, `other`
+- Statuses:
+  - `open`, `in_review`, `waiting_for_user`, `fulfilled`, `rejected`, `closed`
+- Core fields:
+  - requester user/email, type, status, priority, due date, assigned admin, internal notes, resolution summary, fulfillment/close timestamps
+- Admin operations:
+  - create, list/filter, detail view, status/assignment updates, note append, fulfill/close transitions
+
+### Export log behavior (implemented)
+
+- Every user data export writes one `gdpr_export_logs` record.
+- Logged metadata includes actor, target user, IP/user-agent, status, generated/downloaded timestamps, expiry timestamp.
+- No raw export payload is persisted in database.
+- File path is metadata only; payload remains in private local storage and is deleted after send.
+
+### Anonymization log behavior (implemented)
+
+- `AnonymizeUserDataJob` writes started/completed/failed/blocked log entries.
+- Retention anonymization of rejected applications writes logs including legal-hold blocked events.
+- Logs intentionally contain operation summaries and reasons, not raw sensitive personal payloads.
+
+### Legal hold behavior (implemented)
+
+- Legal hold entries support user scope and generic target scope (`target_type` + `target_id`).
+- Active legal holds block:
+  - account anonymization in `AnonymizeUserDataJob`
+  - rejected-application retention anonymization in `PrivacyRetentionService`
+- Hold placement/release is admin-only and includes who placed/released and timestamps.
+
+### Breach incident tracking (implemented, lightweight)
+
+- Internal tracker supports severity/status workflow and owner assignment.
+- Tracks detection/reporting timestamps, category list, affected count, and required-notification flags.
+- No automated external authority/user notification is triggered by this module.
+
+### Security risks and mitigations
+
+- Risk: unauthorized access to GDPR operations.
+  - Mitigation: routes are guarded by `auth`, `legal.consent`, and strict admin-only middleware (`admin.strict`).
+- Risk: accidental destructive action.
+  - Mitigation: state-changing actions use POST/PATCH forms and explicit UI confirmations on legal-hold release / DSAR and incident updates.
+- Risk: overexposure of personal data in audit pages.
+  - Mitigation: console focuses on operational metadata and status; does not expose raw export payloads.
+- Risk: anonymization while legal review is active.
+  - Mitigation: legal hold enforcement before destructive anonymization paths.
+
+### Recommended permissions model
+
+- Current implementation: strict admin role required.
+- Recommended next step (if permission matrix is introduced):
+  - `manage_gdpr_console`
+  - `manage_legal_holds`
+  - `manage_breach_incidents`
+  - `view_export_history`
+
+### Audit trail requirements (covered by implementation)
+
+- DSAR records include lifecycle transitions and internal notes.
+- Export logs include who requested, timing, and status/failure reason.
+- Anonymization logs include target/action/reason/status/timestamps.
+- Legal holds include placement/release actor and timestamps.
+- Breach incidents include owner, status/severity transitions, and internal notes.
+
+### Remaining legal/manual procedures
+
+- Legal/content teams still own formal DSAR response wording and legal review.
+- Breach authority/user communications remain manual and policy-driven.
+- Periodic review of legal holds and stale incidents should be part of operational runbooks.
 
 ## P2 (Recommended hardening)
 

@@ -4,9 +4,11 @@ namespace App\Jobs;
 
 use App\Models\AccountDeletionRequest;
 use App\Models\ApplicationComment;
+use App\Models\GdprAnonymizationLog;
 use App\Models\JobApplication;
 use App\Models\User;
 use App\Models\WorkerProfile;
+use App\Services\LegalHoldService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -48,10 +50,44 @@ class AnonymizeUserDataJob implements ShouldQueue
             return;
         }
 
-        DB::transaction(function () use ($user, $deletionRequest): void {
+        $log = GdprAnonymizationLog::query()->create([
+            'user_id' => $user->id,
+            'target_type' => User::class,
+            'target_id' => (string) $user->id,
+            'action' => 'user_account_anonymization',
+            'reason' => $deletionRequest->reason ?: 'account_deletion_request',
+            'triggered_by' => 'account_deletion_job',
+            'status' => GdprAnonymizationLog::STATUS_STARTED,
+            'started_at' => now(),
+        ]);
+
+        if (app(LegalHoldService::class)->hasActiveHoldForUser($user->id)) {
+            $log->update([
+                'status' => GdprAnonymizationLog::STATUS_BLOCKED,
+                'completed_at' => now(),
+                'failure_reason' => 'Blocked by active legal hold',
+            ]);
+
+            return;
+        }
+
+        try {
+            DB::transaction(function () use ($user, $deletionRequest): void {
             WorkerProfile::query()
                 ->where('user_id', $user->id)
                 ->update($this->profileAnonymizationPayload());
+
+            $profileId = WorkerProfile::query()
+                ->where('user_id', $user->id)
+                ->value('id');
+
+            if ($profileId) {
+                foreach (['worker_experiences', 'worker_educations', 'worker_certifications', 'worker_references', 'worker_skills', 'worker_languages'] as $table) {
+                    if (Schema::hasTable($table)) {
+                        DB::table($table)->where('worker_profile_id', $profileId)->delete();
+                    }
+                }
+            }
 
             JobApplication::query()
                 ->where('worker_id', $user->id)
@@ -81,7 +117,26 @@ class AnonymizeUserDataJob implements ShouldQueue
                 'status' => AccountDeletionRequest::STATUS_COMPLETED,
                 'completed_at' => now(),
             ]);
-        });
+            });
+
+            $log->update([
+                'status' => GdprAnonymizationLog::STATUS_COMPLETED,
+                'completed_at' => now(),
+                'summary_json' => [
+                    'deletion_request_id' => $deletionRequest->id,
+                    'job_applications_scrubbed' => JobApplication::query()->where('worker_id', $user->id)->count(),
+                    'comments_scrubbed' => ApplicationComment::query()->where('user_id', $user->id)->count(),
+                ],
+            ]);
+        } catch (\Throwable $exception) {
+            $log->update([
+                'status' => GdprAnonymizationLog::STATUS_FAILED,
+                'completed_at' => now(),
+                'failure_reason' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
+        }
     }
 
     private function profileAnonymizationPayload(): array

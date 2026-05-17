@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Services\ConsentVersionService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -34,17 +35,22 @@ class AccessConsentLoggingTest extends TestCase
         $response->assertRedirect(route('worker.profile.edit'));
 
         $user = User::query()->where('email', $email)->firstOrFail();
+        $consentVersionService = app(ConsentVersionService::class);
 
         $this->assertDatabaseCount('consent_histories', 2);
         $this->assertDatabaseHas('consent_histories', [
             'user_id' => $user->id,
-            'consent_type' => 'terms_of_service',
+            'consent_type' => 'terms',
+            'consent_version' => $consentVersionService->currentTermsVersion(),
+            'consent_version_hash' => $consentVersionService->currentTermsHash(),
             'source' => 'registration',
             'given' => 1,
         ]);
         $this->assertDatabaseHas('consent_histories', [
             'user_id' => $user->id,
             'consent_type' => 'privacy_policy',
+            'consent_version' => $consentVersionService->currentPrivacyVersion(),
+            'consent_version_hash' => $consentVersionService->currentPrivacyHash(),
             'source' => 'registration',
             'given' => 1,
         ]);

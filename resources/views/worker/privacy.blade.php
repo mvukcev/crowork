@@ -24,6 +24,85 @@
             </div>
 
             <div class="cw-surface p-6 space-y-4">
+                <h2 class="text-xl font-semibold text-slate-900">Legal consent status</h2>
+                <p class="text-sm text-slate-600">Current required policy versions and your acceptance status.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <p class="font-semibold text-slate-900">Terms of Service</p>
+                        <p class="text-slate-600">Version: {{ $currentLegalVersions['terms_version'] }}</p>
+                        <p class="mt-1 {{ ($legalStatus['terms'] ?? false) ? 'text-emerald-700' : 'text-amber-700' }}">
+                            {{ ($legalStatus['terms'] ?? false) ? 'Current' : 'Outdated' }}
+                        </p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <p class="font-semibold text-slate-900">Privacy Policy</p>
+                        <p class="text-slate-600">Version: {{ $currentLegalVersions['privacy_policy_version'] }}</p>
+                        <p class="mt-1 {{ ($legalStatus['privacy_policy'] ?? false) ? 'text-emerald-700' : 'text-amber-700' }}">
+                            {{ ($legalStatus['privacy_policy'] ?? false) ? 'Current' : 'Outdated' }}
+                        </p>
+                    </div>
+                </div>
+
+                @if(!($legalStatus['terms'] ?? true) || !($legalStatus['privacy_policy'] ?? true))
+                    <a href="{{ route('legal.reaccept.show') }}" class="cw-button-primary inline-flex">Re-accept updated policies</a>
+                @endif
+
+                @if($legalConsentHistory->count() > 0)
+                    <div class="rounded-lg border border-slate-200 p-3">
+                        <p class="text-sm font-semibold text-slate-900 mb-2">Recent legal consent history</p>
+                        <ul class="space-y-1 text-xs text-slate-600">
+                            @foreach($legalConsentHistory as $entry)
+                                <li>
+                                    {{ $entry->consent_type }} · v{{ $entry->consent_version ?? '-' }} ·
+                                    {{ $entry->given ? 'accepted' : 'withdrawn' }} ·
+                                    {{ $entry->accepted_at?->format('Y-m-d H:i') ?? '-' }}
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            </div>
+
+            <div class="cw-surface p-6 space-y-4">
+                <h2 class="text-xl font-semibold text-slate-900">Cookie and tracking preferences</h2>
+                <p class="text-sm text-slate-600">Control optional analytics and marketing cookies. Required cookies stay enabled to keep account, security, and session features working.</p>
+
+                <form method="POST" action="{{ route('worker.privacy.consent') }}" class="space-y-3">
+                    @csrf
+                    @method('PATCH')
+
+                    <label class="flex items-start gap-2 text-sm text-slate-700">
+                        <input
+                            type="checkbox"
+                            name="consent_analytics"
+                            value="1"
+                            class="mt-1 rounded border-slate-300"
+                            @checked(($trackingConsent['analytics'] ?? false) === true)
+                        >
+                        <span>Allow analytics cookies (traffic and feature usage insights).</span>
+                    </label>
+
+                    <label class="flex items-start gap-2 text-sm text-slate-700">
+                        <input
+                            type="checkbox"
+                            name="consent_marketing"
+                            value="1"
+                            class="mt-1 rounded border-slate-300"
+                            @checked(($trackingConsent['marketing'] ?? false) === true)
+                        >
+                        <span>Allow marketing cookies (Meta Pixel and related conversion tracking).</span>
+                    </label>
+
+                    <p class="text-xs text-slate-500">
+                        You can review policy details in the <a href="{{ route('cookies') }}" class="underline text-slate-700">Cookie Statement</a>.
+                    </p>
+
+                    <button type="submit" class="cw-button-primary">Save tracking preferences</button>
+                </form>
+            </div>
+
+            <div class="cw-surface p-6 space-y-4">
                 <h2 class="text-xl font-semibold text-slate-900">Profile visibility</h2>
                 <p class="text-sm text-slate-600">Choose how much information employers can see from your worker profile snapshot.</p>
 

@@ -23,7 +23,9 @@
     @php
         $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
         $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
-        $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+        $marketingEnabled = (bool) config('meta.enabled', false)
+            && (bool) config('meta.browser_enabled', true)
+            && filled(config('meta.pixel_id'));
     @endphp
     <body
         class="h-full cw-page"
@@ -317,21 +319,21 @@
                                 <label class="cw-label" for="password_confirmation">{{ __('auth.confirm_password') }}</label>
                                 <input id="password_confirmation" class="cw-field w-full" type="password" name="password_confirmation" required autocomplete="new-password">
                             </div>
-                            <div class="space-y-2">
-                                <label class="flex items-start gap-2 text-sm text-slate-700">
-                                    <input type="checkbox" name="accept_terms" value="1" @checked(old('accept_terms')) required class="mt-1 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                            <div class="space-y-2 cw-consent-checklist">
+                                <label for="accept_terms" class="flex items-start gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                    <input id="accept_terms" type="checkbox" name="accept_terms" value="1" @checked(old('accept_terms')) required class="mt-1 cw-consent-checkbox">
                                     <span>
                                         {{ __('auth.accept_terms_prefix') }}
-                                        <a href="{{ route('terms') }}" class="underline text-slate-900" target="_blank" rel="noopener">{{ __('footer.terms') }}</a>
+                                        <a href="{{ route('terms') }}" class="underline text-slate-900" target="_blank" rel="noopener" onclick="event.stopPropagation()">{{ __('footer.terms') }}</a>
                                     </span>
                                 </label>
                                 @error('accept_terms')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
 
-                                <label class="flex items-start gap-2 text-sm text-slate-700">
-                                    <input type="checkbox" name="accept_privacy" value="1" @checked(old('accept_privacy')) required class="mt-1 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                                <label for="accept_privacy" class="flex items-start gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                    <input id="accept_privacy" type="checkbox" name="accept_privacy" value="1" @checked(old('accept_privacy')) required class="mt-1 cw-consent-checkbox">
                                     <span>
                                         {{ __('auth.accept_privacy_prefix') }}
-                                        <a href="{{ route('privacy') }}" class="underline text-slate-900" target="_blank" rel="noopener">{{ __('footer.privacy') }}</a>
+                                        <a href="{{ route('privacy') }}" class="underline text-slate-900" target="_blank" rel="noopener" onclick="event.stopPropagation()">{{ __('footer.privacy') }}</a>
                                     </span>
                                 </label>
                                 @error('accept_privacy')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
@@ -366,7 +368,27 @@
                     </p>
                     <div class="cw-cookie-actions">
                         <button type="button" class="cw-button-secondary" data-cw-cookie-choice="required">{{ __('footer.cookie.required_only') }}</button>
+                        <button type="button" class="cw-button-secondary" data-cw-cookie-choice="customize">{{ __('footer.cookie.customize') }}</button>
                         <button type="button" class="cw-button-primary" data-cw-cookie-choice="all">{{ __('footer.cookie.allow_all') }}</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cw-cookie-modal" data-cw-cookie-modal hidden>
+                <div class="cw-cookie-modal-card">
+                    <h3 class="text-lg font-semibold text-slate-900">{{ __('footer.cookie.preferences_title') }}</h3>
+                    <p class="text-sm text-slate-600">{{ __('footer.cookie.preferences_description') }}</p>
+                    <label class="cw-cookie-toggle-row">
+                        <input type="checkbox" data-cw-cookie-analytics>
+                        <span>{{ __('footer.cookie.analytics_label') }}</span>
+                    </label>
+                    <label class="cw-cookie-toggle-row">
+                        <input type="checkbox" data-cw-cookie-marketing>
+                        <span>{{ __('footer.cookie.marketing_label') }}</span>
+                    </label>
+                    <div class="cw-cookie-actions">
+                        <button type="button" class="cw-button-secondary" data-cw-cookie-choice="required">{{ __('footer.cookie.required_only') }}</button>
+                        <button type="button" class="cw-button-primary" data-cw-cookie-save>{{ __('footer.cookie.save_preferences') }}</button>
                     </div>
                 </div>
             </section>

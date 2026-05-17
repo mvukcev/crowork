@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\WorkerProfileCompletenessService;
+use App\Support\StructuredCvLegacyFormatter;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 
 class WorkerProfile extends Model
@@ -58,93 +61,20 @@ class WorkerProfile extends Model
 
     public function completenessPercent(): int
     {
-        $fields = $this->completenessFields();
-
-        $total = count($fields);
-        $completed = 0;
-
-        foreach ($fields as $field => $type) {
-            $value = $this->{$field};
-
-            if ($type === 'array') {
-                if (is_array($value) && count(array_filter($value)) > 0) {
-                    $completed++;
-                }
-                continue;
-            }
-
-            if ($type === 'bool') {
-                if (!is_null($value)) {
-                    $completed++;
-                }
-                continue;
-            }
-
-            if (!is_null($value) && trim((string) $value) !== '') {
-                $completed++;
-            }
-        }
-
-        return (int) round(($completed / max(1, $total)) * 100);
+        return $this->completenessData()['percentage'];
     }
 
     public function missingFieldChecklist(): array
     {
-        $labels = [
-            'first_name' => 'Ime',
-            'last_name' => 'Prezime',
-            'nationality_country_code' => 'Nacionalnost',
-            'current_country' => 'Trenutna država',
-            'current_city' => 'Trenutni grad',
-            'desired_city' => 'Željeni grad u Hrvatskoj',
-            'availability_date' => 'Datum dostupnosti',
-            'languages' => 'Jezici sa razinama',
-            'skills' => 'Vještine',
-            'education_summary' => 'Sažetak obrazovanja',
-            'work_experience' => 'Radno iskustvo',
-            'desired_roles' => 'Željene uloge/kategorije',
-            'professional_summary' => 'Stručna sažetak',
-        ];
-
-        $missing = [];
-
-        foreach ($this->completenessFields() as $field => $type) {
-            $value = $this->{$field};
-            $isMissing = false;
-
-            if ($type === 'array') {
-                $isMissing = !is_array($value) || count(array_filter($value)) === 0;
-            } elseif ($type === 'bool') {
-                $isMissing = is_null($value);
-            } else {
-                $isMissing = is_null($value) || trim((string) $value) === '';
-            }
-
-            if ($isMissing) {
-                $missing[] = $labels[$field] ?? $field;
-            }
-        }
-
-        return $missing;
+        return $this->completenessData()['missing'];
     }
 
-    private function completenessFields(): array
+    /**
+     * @return array{percentage:int,score:int,max_score:int,state_key:string,state_label:string,helper_text:string,missing:array<int,string>,breakdown:array<int,array<string,mixed>>}
+     */
+    public function completenessData(): array
     {
-        return [
-            'first_name' => 'text',
-            'last_name' => 'text',
-            'nationality_country_code' => 'text',
-            'current_country' => 'text',
-            'current_city' => 'text',
-            'desired_city' => 'text',
-            'availability_date' => 'text',
-            'languages' => 'array',
-            'skills' => 'array',
-            'education_summary' => 'text',
-            'work_experience' => 'text',
-            'desired_roles' => 'array',
-            'professional_summary' => 'text',
-        ];
+        return app(WorkerProfileCompletenessService::class)->calculate($this);
     }
 
     public function user()
@@ -152,8 +82,45 @@ class WorkerProfile extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function experiences(): HasMany
+    {
+        return $this->hasMany(WorkerExperience::class)->orderBy('sort_order');
+    }
+
+    public function educations(): HasMany
+    {
+        return $this->hasMany(WorkerEducation::class)->orderBy('sort_order');
+    }
+
+    public function certificationsList(): HasMany
+    {
+        return $this->hasMany(WorkerCertification::class)->orderBy('sort_order');
+    }
+
+    public function referencesList(): HasMany
+    {
+        return $this->hasMany(WorkerReference::class)->orderBy('sort_order');
+    }
+
+    public function skillsList(): HasMany
+    {
+        return $this->hasMany(WorkerSkill::class)->orderBy('sort_order');
+    }
+
+    public function languagesList(): HasMany
+    {
+        return $this->hasMany(WorkerLanguage::class)->orderBy('sort_order');
+    }
+
     public function toSnapshot(): array
     {
+        $skills = $this->skillsArray();
+        $languages = $this->languagesArray();
+        $experiences = $this->experienceSnapshot();
+        $educations = $this->educationSnapshot();
+        $certifications = $this->certificationSnapshot();
+        $references = $this->referenceSnapshot();
+
         return [
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
@@ -163,21 +130,135 @@ class WorkerProfile extends Model
             'desired_city' => $this->desired_city,
             'availability_date' => $this->availability_date?->toDateString(),
             'birth_year' => $this->birth_year,
-            'languages' => $this->languages,
+            'languages' => $languages,
             'professional_summary' => $this->professional_summary,
-            'education_summary' => $this->education_summary,
-            'work_experience' => $this->work_experience,
-            'certifications' => $this->certifications,
+            'education_summary' => $this->education_summary ?: StructuredCvLegacyFormatter::educationSummary($educations),
+            'work_experience' => $this->work_experience ?: StructuredCvLegacyFormatter::experienceSummary($experiences),
+            'certifications' => $this->certifications ?: StructuredCvLegacyFormatter::certificationSummary($certifications),
             'desired_roles' => $this->desired_roles,
             'salary_expectation' => $this->salary_expectation,
             'accommodation_needed' => $this->accommodation_needed,
             'visa_work_permit_status' => $this->visa_work_permit_status,
-            'skills' => $this->skills,
-            'recommendations' => $this->recommendations,
+            'skills' => $skills,
+            'recommendations' => $this->recommendations ?: StructuredCvLegacyFormatter::referenceSummary($references),
+            'structured_experiences' => $experiences,
+            'structured_educations' => $educations,
+            'structured_certifications' => $certifications,
+            'structured_references' => $references,
+            'snapshot_version' => 2,
             'profile_visibility' => $this->profile_visibility,
             'photo_path' => $this->photo_path,
             'photo_url' => $this->photoUrl(),
         ];
+    }
+
+    public function skillsArray(): array
+    {
+        $items = $this->relationLoaded('skillsList')
+            ? $this->skillsList->pluck('name')->filter()->values()->all()
+            : $this->skillsList()->pluck('name')->filter()->values()->all();
+
+        if ($items !== []) {
+            return $items;
+        }
+
+        return is_array($this->skills) ? array_values(array_filter($this->skills)) : [];
+    }
+
+    public function languagesArray(): array
+    {
+        $languages = $this->relationLoaded('languagesList')
+            ? $this->languagesList
+            : $this->languagesList()->get();
+
+        $items = $languages
+            ->map(fn (WorkerLanguage $language): array => [
+                'language' => (string) $language->language,
+                'level' => (string) ($language->level ?? ''),
+            ])
+            ->toArray();
+
+        if ($items !== []) {
+            return $items;
+        }
+
+        return is_array($this->languages) ? $this->languages : [];
+    }
+
+    public function experienceSnapshot(): array
+    {
+        $experiences = $this->relationLoaded('experiences')
+            ? $this->experiences
+            : $this->experiences()->get();
+
+        return $experiences
+            ->map(fn (WorkerExperience $experience): array => [
+                'job_title' => $experience->job_title,
+                'company_name' => $experience->company_name,
+                'country' => $experience->country,
+                'city' => $experience->city,
+                'start_date' => $experience->start_date?->toDateString(),
+                'end_date' => $experience->end_date?->toDateString(),
+                'is_current' => (bool) $experience->is_current,
+                'description' => $experience->description,
+            ])
+            ->toArray();
+    }
+
+    public function educationSnapshot(): array
+    {
+        $educations = $this->relationLoaded('educations')
+            ? $this->educations
+            : $this->educations()->get();
+
+        return $educations
+            ->map(fn (WorkerEducation $education): array => [
+                'institution' => $education->institution,
+                'degree' => $education->degree,
+                'field_of_study' => $education->field_of_study,
+                'country' => $education->country,
+                'city' => $education->city,
+                'start_date' => $education->start_date?->toDateString(),
+                'end_date' => $education->end_date?->toDateString(),
+                'description' => $education->description,
+            ])
+            ->toArray();
+    }
+
+    public function certificationSnapshot(): array
+    {
+        $certifications = $this->relationLoaded('certificationsList')
+            ? $this->certificationsList
+            : $this->certificationsList()->get();
+
+        return $certifications
+            ->map(fn (WorkerCertification $certification): array => [
+                'name' => $certification->name,
+                'issuer' => $certification->issuer,
+                'issued_on' => $certification->issued_on?->toDateString(),
+                'expires_on' => $certification->expires_on?->toDateString(),
+                'credential_id' => $certification->credential_id,
+                'credential_url' => $certification->credential_url,
+            ])
+            ->toArray();
+    }
+
+    public function referenceSnapshot(): array
+    {
+        $references = $this->relationLoaded('referencesList')
+            ? $this->referencesList
+            : $this->referencesList()->get();
+
+        return $references
+            ->map(fn (WorkerReference $reference): array => [
+                'full_name' => $reference->full_name,
+                'position' => $reference->position,
+                'company' => $reference->company,
+                'contact_email' => $reference->contact_email,
+                'contact_phone' => $reference->contact_phone,
+                'notes' => $reference->notes,
+            ])
+            ->toArray();
     }
 
     public function photoUrl(): ?string

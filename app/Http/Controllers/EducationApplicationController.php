@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendMetaEventJob;
 use App\Models\Education;
 use App\Models\EducationApplication;
 use App\Models\WorkerProfile;
 use App\Notifications\EducationApplicationSubmitted;
-use App\Services\MetaConversionsAPIService;
+use App\Services\ConsentConfigService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class EducationApplicationController extends Controller
 {
@@ -79,14 +80,28 @@ class EducationApplicationController extends Controller
         $application->loadMissing('worker');
         $application->worker?->notify(new EducationApplicationSubmitted($application));
 
-        try {
-            app(MetaConversionsAPIService::class)->trackEducationApplicationSubmitted($application);
-        } catch (\Throwable $exception) {
-            Log::warning('Meta CAPI education application tracking failed', [
-                'application_id' => $application->id,
-                'error' => $exception->getMessage(),
-            ]);
+        $metaEventId = null;
+        if (ConsentConfigService::hasMarketingConsent($request, $request->user())) {
+            $metaEventId = (string) Str::uuid();
+            SendMetaEventJob::dispatch(
+                'education_application_submitted',
+                [
+                    'application_id' => $application->id,
+                    'event_source_url' => $request->fullUrl(),
+                    'client_user_agent' => $request->userAgent(),
+                    'client_ip_address' => $request->ip(),
+                ],
+                $metaEventId,
+            );
         }
+
+        $this->queueTrackEvent('education_apply_complete', [
+            'source' => 'education_apply_form',
+            'event_id' => $metaEventId,
+            'education_slug' => $education->slug,
+            'education_id' => $education->id,
+            'application_id' => $application->id,
+        ]);
 
         return redirect()
             ->route('educations.show', $education)
@@ -113,5 +128,20 @@ class EducationApplicationController extends Controller
             && !empty($profile->last_name)
             && !empty($profile->nationality_country_code)
             && !empty($profile->birth_year);
+    }
+
+    private function queueTrackEvent(string $event, array $payload = []): void
+    {
+        $queue = session('cw_track_queue', []);
+        if (! is_array($queue)) {
+            $queue = [];
+        }
+
+        $queue[] = [
+            'event' => $event,
+            'payload' => $payload,
+        ];
+
+        session(['cw_track_queue' => $queue]);
     }
 }

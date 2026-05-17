@@ -4,6 +4,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CookieConsentController;
+use App\Http\Controllers\LegalConsentController;
 use App\Http\Controllers\EducationsController;
 use App\Http\Controllers\EducationApplicationController;
 use App\Http\Controllers\PagesController;
@@ -22,9 +24,8 @@ use App\Http\Controllers\FrontendPreferenceController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Models\Job;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
+use App\Http\Controllers\AdminGdprController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
 // SEO routes
@@ -36,123 +37,11 @@ Route::get('/coming-soon-preview', [ComingSoonPreviewController::class, 'show'])
 Route::post('/coming-soon-preview', [ComingSoonPreviewController::class, 'login'])->name('coming-soon-preview.login');
 Route::post('/coming-soon-preview/logout', [ComingSoonPreviewController::class, 'logout'])->name('coming-soon-preview.logout');
 
-// Deployment helpers are intentionally disabled by default and should only be enabled
-// for tightly controlled production deployment windows.
-$guardDeploymentHelper = function (Request $request, string $enabledEnvKey, string $tokenEnvKey): void {
-    if (
-        app()->environment() !== 'production' ||
-        !filter_var(env($enabledEnvKey, false), FILTER_VALIDATE_BOOL) ||
-        empty(env($tokenEnvKey))
-    ) {
-        abort(404);
-    }
-
-    $providedToken = (string) $request->query('token', '');
-    $expectedToken = (string) env($tokenEnvKey);
-
-    if ($providedToken === '' || !hash_equals($expectedToken, $providedToken)) {
-        abort(404);
-    }
-};
-
-// Shared-hosting production update helper (disabled by default via env).
-Route::get('/_update-crowork', function (Request $request) use ($guardDeploymentHelper) {
-    $guardDeploymentHelper($request, 'UPDATE_HELPER_ENABLED', 'UPDATE_TOKEN');
-
-    // Safe production update steps only; no destructive commands.
-    $steps = [
-        ['command' => 'migrate', 'parameters' => ['--force' => true]],
-        ['command' => 'optimize:clear', 'parameters' => []],
-        ['command' => 'optimize', 'parameters' => []],
-    ];
-
-    if ((string) $request->query('seed') === '1') {
-        $steps[] = ['command' => 'db:seed', 'parameters' => ['--force' => true]];
-    }
-
-    $results = [];
-    $failed = false;
-
-    foreach ($steps as $step) {
-        $exitCode = Artisan::call($step['command'], $step['parameters']);
-        $results[] = [
-            'command' => $step['command'],
-            'exit_code' => $exitCode,
-        ];
-
-        if ($exitCode !== 0) {
-            $failed = true;
-        }
-    }
-
-    return response()->json([
-        'ok' => ! $failed,
-        'helper' => 'update',
-        'seed_requested' => (string) $request->query('seed') === '1',
-        'results' => $results,
-    ]);
-});
-
-// Shared-hosting first-install helper (disabled by default via env).
-Route::get('/_install-crowork', function (Request $request) use ($guardDeploymentHelper) {
-    $guardDeploymentHelper($request, 'INSTALL_HELPER_ENABLED', 'INSTALL_TOKEN');
-
-    $markerPath = storage_path('app/crowork_installed');
-    $force = (string) $request->query('force') === '1';
-
-    // Prevent accidental repeated installs unless force=1 is provided.
-    if (File::exists($markerPath) && ! $force) {
-        abort(404);
-    }
-
-    // Safe install steps only; no destructive migration commands and no env mutation.
-    $steps = [
-        ['command' => 'migrate', 'parameters' => ['--force' => true]],
-    ];
-
-    if ((string) $request->query('seed') === '1') {
-        $steps[] = ['command' => 'db:seed', 'parameters' => ['--force' => true]];
-    }
-
-    $steps[] = ['command' => 'storage:link', 'parameters' => []];
-    $steps[] = ['command' => 'optimize:clear', 'parameters' => []];
-    $steps[] = ['command' => 'optimize', 'parameters' => []];
-
-    $results = [];
-    $failed = false;
-
-    foreach ($steps as $step) {
-        $exitCode = Artisan::call($step['command'], $step['parameters']);
-        $results[] = [
-            'command' => $step['command'],
-            'exit_code' => $exitCode,
-        ];
-
-        if ($exitCode !== 0) {
-            $failed = true;
-        }
-    }
-
-    if (! $failed) {
-        File::ensureDirectoryExists(dirname($markerPath));
-        File::put($markerPath, now()->toIso8601String().PHP_EOL);
-    }
-
-    return response()->json([
-        'ok' => ! $failed,
-        'helper' => 'install',
-        'seed_requested' => (string) $request->query('seed') === '1',
-        'forced' => $force,
-        'marker_exists' => File::exists($markerPath),
-        'marker_path' => $markerPath,
-        'results' => $results,
-    ]);
-});
-
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/preferences/locale', [FrontendPreferenceController::class, 'locale'])->name('preferences.locale');
 Route::post('/preferences/theme', [FrontendPreferenceController::class, 'theme'])->name('preferences.theme');
+Route::post('/consent/preferences', [CookieConsentController::class, 'update'])->name('consent.preferences.update');
 
 Route::middleware('guest')->group(function () {
     Route::get('/access', [AccessController::class, 'show'])->name('access.show');
@@ -203,8 +92,13 @@ Route::get('/terms-of-service', [PagesController::class, 'terms'])->name('terms-
 Route::get('/cookies', [PagesController::class, 'cookies'])->name('cookies');
 Route::get('/cookie-policy', [PagesController::class, 'cookies'])->name('cookie-policy');
 
+Route::middleware('auth')->prefix('legal')->name('legal.')->group(function () {
+    Route::get('/reaccept', [LegalConsentController::class, 'show'])->name('reaccept.show');
+    Route::post('/reaccept', [LegalConsentController::class, 'store'])->name('reaccept.store');
+});
+
 // Job application routes (authenticated workers only)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'legal.consent'])->group(function () {
     Route::get('/jobs/{job}/apply', [JobApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job}/apply', [JobApplicationController::class, 'store'])->name('jobs.apply.store');
     Route::get('/educations/{education:slug}/apply', [EducationApplicationController::class, 'create'])->name('educations.apply');
@@ -222,9 +116,9 @@ Route::get('/dashboard', function () {
     }
 
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'legal.consent'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'legal.consent'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -257,7 +151,7 @@ Route::get('/employer', function () {
 })->name('employer.entry');
 
 // Worker Profile routes (CV management)
-Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () {
+Route::middleware(['auth', 'legal.consent'])->prefix('worker')->name('worker.')->group(function () {
     Route::get('/dashboard', [WorkerApplicationController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [WorkerProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/profile/preview', [WorkerProfileController::class, 'preview'])->name('profile.preview');
@@ -271,13 +165,14 @@ Route::middleware('auth')->prefix('worker')->name('worker.')->group(function () 
     Route::patch('/settings/password', [WorkerSettingsController::class, 'updatePassword'])->name('settings.password');
     Route::get('/privacy', [WorkerPrivacyController::class, 'show'])->name('privacy.show');
     Route::patch('/privacy/visibility', [WorkerPrivacyController::class, 'updateVisibility'])->name('privacy.visibility');
+    Route::patch('/privacy/consent', [WorkerPrivacyController::class, 'updateTrackingConsent'])->name('privacy.consent');
     Route::post('/privacy/request-deletion', [WorkerPrivacyController::class, 'requestDeletion'])->name('privacy.request-deletion');
     Route::get('/applications', [WorkerApplicationController::class, 'jobApplications'])->name('applications.index');
     Route::get('/education-applications', [WorkerApplicationController::class, 'educationApplications'])->name('education-applications.index');
 });
 
 // Employer ATS Dashboard & Applications (must be verified and approved)
-Route::middleware(['auth', 'employer.approved', 'impersonation.readonly'])->prefix('employer')->name('employer.')->group(function () {
+Route::middleware(['auth', 'legal.consent', 'employer.approved', 'impersonation.readonly'])->prefix('employer')->name('employer.')->group(function () {
     Route::get('/dashboard', [EmployerApplicationController::class, 'dashboard'])->name('dashboard');
     Route::get('/applications/pipeline', [EmployerApplicationController::class, 'pipeline'])->name('applications.pipeline');
     Route::get('/applications/{application}', [EmployerApplicationController::class, 'candidate'])->name('applications.candidate');
@@ -296,19 +191,19 @@ Route::middleware('guest')->prefix('employer')->name('employer.')->group(functio
 });
 
 // Employer pending approval view (authenticated employers)
-Route::middleware('auth')->prefix('employer')->name('employer.')->group(function () {
+Route::middleware(['auth', 'legal.consent'])->prefix('employer')->name('employer.')->group(function () {
     Route::get('pending-approval', function () {
         return view('employer.pending-approval');
     })->name('pending-approval');
 });
 
 // Admin impersonation routes
-Route::middleware(['auth', 'admin.access'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'legal.consent', 'admin.access'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('impersonate/{userId}', [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
 });
 
 // Impersonation end (accessible when impersonating)
-Route::middleware('auth')->post('impersonation/end', [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonation.end');
+Route::middleware(['auth', 'legal.consent'])->post('impersonation/end', [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonation.end');
 
 // Content pages (public)
 Route::get('privacy', [\App\Http\Controllers\ContentPageController::class, 'show'])->defaults('slug', 'privacy')->name('privacy');
@@ -324,9 +219,9 @@ Route::get('/export-candidates', function () {
     return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\CandidateExport, 'candidates.xlsx');
 })->name('export.candidates');
 
-Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::class, 'export'])->middleware('auth')->name('user.export');
+Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::class, 'export'])->middleware(['auth', 'legal.consent'])->name('user.export');
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'legal.consent', 'admin'])->prefix('admin')->group(function () {
     Route::get('/privacy-requests', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
     Route::put('/privacy-requests/{deletionRequest}', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'update'])->name('admin.privacy_requests.update');
 
@@ -342,4 +237,25 @@ if (app()->environment('local')) {
         return redirect('/');
     })->name('test.logout');
 }
+});
+
+Route::middleware(['auth', 'legal.consent', 'admin.strict'])->prefix('admin/gdpr')->name('admin.gdpr.')->group(function () {
+    Route::get('/', [AdminGdprController::class, 'index'])->name('index');
+
+    Route::get('/requests', [AdminGdprController::class, 'dsarIndex'])->name('dsar.index');
+    Route::post('/requests', [AdminGdprController::class, 'dsarStore'])->name('dsar.store');
+    Route::get('/requests/{gdprDataRequest}', [AdminGdprController::class, 'dsarShow'])->name('dsar.show');
+    Route::patch('/requests/{gdprDataRequest}', [AdminGdprController::class, 'dsarUpdate'])->name('dsar.update');
+
+    Route::get('/exports', [AdminGdprController::class, 'exportsIndex'])->name('exports.index');
+    Route::get('/anonymization-logs', [AdminGdprController::class, 'anonymizationIndex'])->name('anonymization.index');
+
+    Route::get('/legal-holds', [AdminGdprController::class, 'legalHoldsIndex'])->name('legal-holds.index');
+    Route::post('/legal-holds', [AdminGdprController::class, 'legalHoldsStore'])->name('legal-holds.store');
+    Route::patch('/legal-holds/{legalHold}/release', [AdminGdprController::class, 'legalHoldsRelease'])->name('legal-holds.release');
+
+    Route::get('/breach-incidents', [AdminGdprController::class, 'breachIncidentsIndex'])->name('breaches.index');
+    Route::post('/breach-incidents', [AdminGdprController::class, 'breachIncidentsStore'])->name('breaches.store');
+    Route::get('/breach-incidents/{gdprBreachIncident}', [AdminGdprController::class, 'breachIncidentsShow'])->name('breaches.show');
+    Route::patch('/breach-incidents/{gdprBreachIncident}', [AdminGdprController::class, 'breachIncidentsUpdate'])->name('breaches.update');
 });

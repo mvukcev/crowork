@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\JobApplicationResource\Pages;
 use App\Models\JobApplication;
+use App\Services\EmployerCandidateDataAccessService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -38,6 +39,32 @@ class JobApplicationResource extends Resource
                     ->disabled()
                     ->dehydrated(false)
                     ->searchable(),
+                Forms\Components\TextInput::make('anonymized_at')
+                    ->label('Anonymized At')
+                    ->disabled()
+                    ->formatStateUsing(fn (JobApplication $record): string => $record->anonymized_at?->toDateTimeString() ?? '-'),
+                Forms\Components\TextInput::make('retention_reason')
+                    ->label('Retention Reason')
+                    ->disabled()
+                    ->dehydrated(false),
+                Forms\Components\TextInput::make('gdpr_data_access_state')
+                    ->label('GDPR Data Access State')
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->formatStateUsing(function (JobApplication $record): string {
+                        $state = app(EmployerCandidateDataAccessService::class)->forApplication($record);
+
+                        return (string) ($state['label'] ?? '-');
+                    }),
+                Forms\Components\TextInput::make('gdpr_data_available_until')
+                    ->label('GDPR Data Available Until')
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->formatStateUsing(function (JobApplication $record): string {
+                        $state = app(EmployerCandidateDataAccessService::class)->forApplication($record);
+
+                        return (string) ($state['data_available_until_human'] ?? '-');
+                    }),
                 Forms\Components\Textarea::make('message')
                     ->disabled()
                     ->dehydrated(false)
@@ -74,6 +101,8 @@ class JobApplicationResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('worker.name')
+                    ->label('Worker')
+                    ->getStateUsing(fn (JobApplication $record) => $record->anonymized_at ? 'Anonymized Applicant' : ($record->worker?->name ?? '-'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('profile_snapshot.first_name')
@@ -93,6 +122,26 @@ class JobApplicationResource extends Resource
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('anonymized_at')
+                    ->label('Anonymized')
+                    ->dateTime()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('gdpr_state')
+                    ->label('GDPR Access')
+                    ->getStateUsing(function (JobApplication $record): string {
+                        $state = app(EmployerCandidateDataAccessService::class)->forApplication($record);
+
+                        return (string) ($state['label'] ?? '-');
+                    })
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('gdpr_available_until')
+                    ->label('Data Available Until')
+                    ->getStateUsing(function (JobApplication $record): string {
+                        $state = app(EmployerCandidateDataAccessService::class)->forApplication($record);
+
+                        return (string) ($state['data_available_until_human'] ?? '-');
+                    })
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')

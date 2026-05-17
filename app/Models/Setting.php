@@ -264,6 +264,12 @@ class Setting extends Model
             'type' => 'text',
             'default' => null,
         ],
+        'google_search_console_verification' => [
+            'label' => 'Google Search Console Verification Token',
+            'group' => 'Analytics',
+            'type' => 'text',
+            'default' => null,
+        ],
         'analytics_debug_mode' => [
             'label' => 'Analytics Debug Mode',
             'group' => 'Analytics',
@@ -315,6 +321,87 @@ class Setting extends Model
             'type' => 'boolean',
             'default' => false,
         ],
+        'meta_browser_enabled' => [
+            'label' => 'Meta Browser Pixel Enabled',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'meta_capi_enabled' => [
+            'label' => 'Meta Conversions API Enabled',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'meta_timeout_seconds' => [
+            'label' => 'Meta API Timeout (Seconds)',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'integer',
+            'default' => 10,
+        ],
+        'meta_queue' => [
+            'label' => 'Meta Queue Name',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'text',
+            'default' => 'default',
+        ],
+        'meta_log_channel' => [
+            'label' => 'Meta Log Channel',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'text',
+            'default' => 'meta',
+        ],
+        'meta_send_from_local' => [
+            'label' => 'Allow Meta CAPI from Local Environment',
+            'group' => 'Meta Pixel & CAPI',
+            'type' => 'boolean',
+            'default' => false,
+        ],
+
+        // AWS
+        'aws_access_key_id' => [
+            'label' => 'AWS Access Key ID',
+            'group' => 'AWS',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'aws_secret_access_key' => [
+            'label' => 'AWS Secret Access Key',
+            'group' => 'AWS',
+            'type' => 'password',
+            'default' => null,
+            'secret' => true,
+        ],
+        'aws_default_region' => [
+            'label' => 'AWS Default Region',
+            'group' => 'AWS',
+            'type' => 'text',
+            'default' => 'us-east-1',
+        ],
+        'aws_bucket' => [
+            'label' => 'AWS Bucket',
+            'group' => 'AWS',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'aws_url' => [
+            'label' => 'AWS URL',
+            'group' => 'AWS',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'aws_endpoint' => [
+            'label' => 'AWS Endpoint',
+            'group' => 'AWS',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'aws_use_path_style_endpoint' => [
+            'label' => 'AWS Use Path Style Endpoint',
+            'group' => 'AWS',
+            'type' => 'boolean',
+            'default' => false,
+        ],
 
         // Consent & Privacy
         'cookie_banner_enabled' => [
@@ -334,6 +421,68 @@ class Setting extends Model
             'group' => 'Consent & Privacy',
             'type' => 'text',
             'default' => null,
+        ],
+        'terms_version' => [
+            'label' => 'Current Terms Version',
+            'group' => 'Consent & Privacy',
+            'type' => 'text',
+            'default' => '2026-05-terms-v1',
+        ],
+        'terms_hash' => [
+            'label' => 'Current Terms Version Hash',
+            'group' => 'Consent & Privacy',
+            'type' => 'text',
+            'default' => null,
+        ],
+        'privacy_policy_version' => [
+            'label' => 'Current Privacy Policy Version',
+            'group' => 'Consent & Privacy',
+            'type' => 'text',
+            'default' => '2026-05-privacy-v1',
+        ],
+        'privacy_policy_hash' => [
+            'label' => 'Current Privacy Policy Version Hash',
+            'group' => 'Consent & Privacy',
+            'type' => 'text',
+            'default' => null,
+        ],
+
+        // Privacy Retention
+        'enable_retention_automation' => [
+            'label' => 'Enable Retention Automation',
+            'group' => 'Privacy Retention',
+            'type' => 'boolean',
+            'default' => false,
+        ],
+        'dry_run_mode' => [
+            'label' => 'Retention Dry-Run Mode',
+            'group' => 'Privacy Retention',
+            'type' => 'boolean',
+            'default' => true,
+        ],
+        'rejected_applications_retention_months' => [
+            'label' => 'Rejected Applications Retention (Months)',
+            'group' => 'Privacy Retention',
+            'type' => 'integer',
+            'default' => 6,
+        ],
+        'inactive_worker_retention_months' => [
+            'label' => 'Inactive Worker Retention (Months)',
+            'group' => 'Privacy Retention',
+            'type' => 'integer',
+            'default' => 24,
+        ],
+        'inactive_employer_retention_months' => [
+            'label' => 'Inactive Employer Retention (Months)',
+            'group' => 'Privacy Retention',
+            'type' => 'integer',
+            'default' => 36,
+        ],
+        'notification_retention_months' => [
+            'label' => 'Notification Retention (Months)',
+            'group' => 'Privacy Retention',
+            'type' => 'integer',
+            'default' => 12,
         ],
 
         // Security & Audit

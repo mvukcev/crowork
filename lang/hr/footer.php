@@ -13,5 +13,11 @@ return [
         'link_label' => 'Izjava o kolačićima',
         'required_only' => 'Samo obavezni',
         'allow_all' => 'Prihvati sve',
+        'customize' => 'Prilagodi',
+        'preferences_title' => 'Postavke kolačića',
+        'preferences_description' => 'Odaberite koje opcionalne kolačiće CroWork može koristiti. Obavezni kolačići ostaju uključeni.',
+        'analytics_label' => 'Analitički kolačići',
+        'marketing_label' => 'Marketinški kolačići',
+        'save_preferences' => 'Spremi postavke',
     ],
 ];

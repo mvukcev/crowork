@@ -46,7 +46,7 @@ class NewJobApplicationReceived extends Notification implements ShouldQueue
         $worker = $this->application->worker;
         $locale = $notifiable->communication_language ?? app()->getLocale();
 
-        return app(EmailTemplateService::class)->toMailMessage(
+        $message = app(EmailTemplateService::class)->toMailMessage(
             'employer_new_application',
             $locale,
             [
@@ -59,6 +59,8 @@ class NewJobApplicationReceived extends Notification implements ShouldQueue
             'Review applications',
             url('/employer/job-applications')
         );
+
+        return $message->line(trans('employer.gdpr.email_footer', [], $locale));
     }
 
     /**

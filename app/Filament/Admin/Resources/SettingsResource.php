@@ -57,7 +57,7 @@ class SettingsResource extends Resource
                             ->label('Value')
                             ->statePath('value')
                             ->default(false)
-                            ->helperText(fn (?Setting $record) => self::comingSoonControlHelperText($record))
+                            ->helperText(fn (?Setting $record) => self::comingSoonControlHelperText($record) ?? self::getHelperText($record))
                             ->disabled(fn (?Setting $record) => self::comingSoonEnvLock($record))
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'boolean')
                             ->dehydrateStateUsing(fn ($state) => (bool) $state),
@@ -65,6 +65,7 @@ class SettingsResource extends Resource
                             ->label('Value')
                             ->statePath('value')
                             ->options(fn (?Setting $record) => self::settingOptions($record))
+                            ->helperText(fn (?Setting $record) => self::getHelperText($record))
                             ->native(false)
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'select'),
                         Forms\Components\TextInput::make('value_integer')
@@ -72,6 +73,7 @@ class SettingsResource extends Resource
                             ->statePath('value')
                             ->numeric()
                             ->minValue(1)
+                            ->helperText(fn (?Setting $record) => self::getHelperText($record))
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'integer')
                             ->dehydrateStateUsing(fn ($state) => is_numeric($state) ? (int) $state : null),
                         Forms\Components\TextInput::make('value_email')
@@ -79,6 +81,7 @@ class SettingsResource extends Resource
                             ->statePath('value')
                             ->email()
                             ->maxLength(255)
+                            ->helperText(fn (?Setting $record) => self::getHelperText($record))
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'email'),
                         Forms\Components\TextInput::make('value_password')
                             ->label('Value')
@@ -91,7 +94,7 @@ class SettingsResource extends Resource
                             ->label('Value')
                             ->statePath('value')
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'array')
-                            ->helperText('Enter comma-separated values.'),
+                            ->helperText(fn (?Setting $record) => self::getHelperText($record) ?: 'Enter comma-separated values.'),
                         Forms\Components\Textarea::make('value_text')
                             ->label('Value')
                             ->statePath('value')
@@ -215,10 +218,34 @@ class SettingsResource extends Resource
             'mail_password' => 'Leave blank to keep existing value. Never displayed once saved.',
             'google_tag_manager_id' => 'Format: GTM-XXXXXXX',
             'google_tag_id' => 'Format: G-XXXXXXXXXX',
+            'google_search_console_verification' => 'Token only (without full meta tag). Used for Google Search Console verification.',
             'meta_pixel_id' => 'Your Meta Pixel ID',
             'meta_conversions_api_access_token' => 'Never exposed to browser. Leave blank to keep existing value.',
             'meta_test_event_code' => 'Optional test event code for debugging',
+            'meta_browser_enabled' => 'Enable browser-side Meta Pixel script injection.',
+            'meta_capi_enabled' => 'Enable server-side Meta Conversions API events.',
+            'meta_timeout_seconds' => 'HTTP timeout in seconds for Meta CAPI requests.',
+            'meta_queue' => 'Queue name used for Meta event jobs.',
+            'meta_log_channel' => 'Log channel used by Meta event services/jobs.',
+            'meta_send_from_local' => 'Allow sending Meta CAPI events from local environment.',
+            'aws_access_key_id' => 'Optional override for AWS integrations from admin settings.',
+            'aws_secret_access_key' => 'Stored server-side only. Leave blank to keep existing value.',
+            'aws_default_region' => 'Example: us-east-1, eu-central-1',
+            'aws_bucket' => 'S3 bucket name used by filesystem integrations.',
+            'aws_url' => 'Optional custom AWS/S3 URL.',
+            'aws_endpoint' => 'Optional custom endpoint (S3 compatible providers).',
+            'aws_use_path_style_endpoint' => 'Enable for providers requiring path-style requests.',
             'cookie_statement_url' => 'URL to your cookie policy page',
+            'terms_version' => 'Changing this version forces users to re-accept Terms before protected routes.',
+            'terms_hash' => 'Optional explicit hash. If blank, hash is derived from version + terms URL.',
+            'privacy_policy_version' => 'Changing this version forces users to re-accept Privacy Policy before protected routes.',
+            'privacy_policy_hash' => 'Optional explicit hash. If blank, hash is derived from version + privacy URL.',
+            'enable_retention_automation' => 'Required for scheduler execution. Until enabled, the monthly scheduler only reports dry-run output.',
+            'dry_run_mode' => 'Recommended for initial rollout. When enabled, retention command reports impact without mutating data.',
+            'rejected_applications_retention_months' => 'Rejected applications older than this threshold are anonymized, not deleted.',
+            'inactive_worker_retention_months' => 'Inactive workers older than this threshold are queued into the existing delayed deletion flow.',
+            'inactive_employer_retention_months' => 'Currently dry-run only. Employers are reported for manual legal review.',
+            'notification_retention_months' => 'Notifications and delivery logs older than this threshold are purged.',
         ];
 
         return $helpers[$key] ?? '';

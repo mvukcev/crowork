@@ -1,8 +1,12 @@
 @php
     $profile = $worker->workerProfile;
-    $languages = is_array($profile?->languages ?? null) ? $profile->languages : [];
-    $skills = is_array($profile?->skills ?? null) ? $profile->skills : [];
+    $languages = $profile?->languagesArray() ?? [];
+    $skills = $profile?->skillsArray() ?? [];
     $desiredRoles = is_array($profile?->desired_roles ?? null) ? $profile->desired_roles : [];
+    $experiences = $profile?->experienceSnapshot() ?? [];
+    $educations = $profile?->educationSnapshot() ?? [];
+    $certifications = $profile?->certificationSnapshot() ?? [];
+    $references = $profile?->referenceSnapshot() ?? [];
 @endphp
 
 <div class="space-y-5">
@@ -40,17 +44,25 @@
                 </div>
             @endif
 
-            @if($profile->education_summary)
+            @if($educations !== [])
                 <div>
-                    <h4 class="text-sm font-semibold text-slate-900 mb-1">Education summary</h4>
-                    <p class="text-sm text-slate-700 whitespace-pre-line">{{ $profile->education_summary }}</p>
+                    <h4 class="text-sm font-semibold text-slate-900 mb-1">Education</h4>
+                    <ul class="space-y-1 text-sm text-slate-700">
+                        @foreach($educations as $education)
+                            <li>{{ $education['institution'] ?? 'N/A' }}{{ !empty($education['degree']) ? ' - ' . $education['degree'] : '' }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
-            @if($profile->work_experience)
+            @if($experiences !== [])
                 <div>
                     <h4 class="text-sm font-semibold text-slate-900 mb-1">Work experience</h4>
-                    <p class="text-sm text-slate-700 whitespace-pre-line">{{ $profile->work_experience }}</p>
+                    <ul class="space-y-1 text-sm text-slate-700">
+                        @foreach($experiences as $experience)
+                            <li>{{ $experience['job_title'] ?? 'N/A' }}{{ !empty($experience['company_name']) ? ' @ ' . $experience['company_name'] : '' }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
@@ -93,10 +105,25 @@
                 </div>
             @endif
 
-            @if($profile->recommendations)
+            @if($certifications !== [])
                 <div>
-                    <h4 class="text-sm font-semibold text-slate-900 mb-1">Recommendations</h4>
-                    <p class="text-sm text-slate-700 whitespace-pre-line">{{ $profile->recommendations }}</p>
+                    <h4 class="text-sm font-semibold text-slate-900 mb-1">Certifications</h4>
+                    <ul class="space-y-1 text-sm text-slate-700">
+                        @foreach($certifications as $certification)
+                            <li>{{ $certification['name'] ?? 'N/A' }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            @if($references !== [])
+                <div>
+                    <h4 class="text-sm font-semibold text-slate-900 mb-1">References</h4>
+                    <ul class="space-y-1 text-sm text-slate-700">
+                        @foreach($references as $reference)
+                            <li>{{ $reference['full_name'] ?? 'N/A' }}{{ !empty($reference['company']) ? ' - ' . $reference['company'] : '' }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
         </div>

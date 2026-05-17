@@ -83,17 +83,73 @@
                     </div>
                 @endif
 
-                @if($maskedProfile['education_summary'] ?? null)
+                @php
+                    $structuredEducations = is_array($maskedProfile['structured_educations'] ?? null) ? $maskedProfile['structured_educations'] : [];
+                    $structuredExperiences = is_array($maskedProfile['structured_experiences'] ?? null) ? $maskedProfile['structured_experiences'] : [];
+                    $structuredCertifications = is_array($maskedProfile['structured_certifications'] ?? null) ? $maskedProfile['structured_certifications'] : [];
+                    $structuredReferences = is_array($maskedProfile['structured_references'] ?? null) ? $maskedProfile['structured_references'] : [];
+                @endphp
+
+                @if($structuredEducations !== [])
+                    <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
+                        <h2 class="cw-heading-2 mb-4">Education</h2>
+                        <div class="space-y-3 text-sm text-neutral-700">
+                            @foreach($structuredEducations as $education)
+                                <div class="rounded border border-neutral-200 p-3">
+                                    <p class="font-semibold text-neutral-900">{{ $education['institution'] ?? 'N/A' }}</p>
+                                    <p>{{ trim(($education['degree'] ?? '') . ' ' . ($education['field_of_study'] ?? '')) }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @elseif($maskedProfile['education_summary'] ?? null)
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
                         <h2 class="cw-heading-2 mb-4">Education</h2>
                         <p class="text-neutral-700">{{ $maskedProfile['education_summary'] }}</p>
                     </div>
                 @endif
 
-                @if($maskedProfile['work_experience'] ?? null)
+                @if($structuredExperiences !== [])
+                    <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
+                        <h2 class="cw-heading-2 mb-4">Work Experience</h2>
+                        <div class="space-y-3 text-sm text-neutral-700">
+                            @foreach($structuredExperiences as $experience)
+                                <div class="rounded border border-neutral-200 p-3">
+                                    <p class="font-semibold text-neutral-900">{{ $experience['job_title'] ?? 'N/A' }}</p>
+                                    <p>{{ $experience['company_name'] ?? '' }}</p>
+                                    @if($experience['description'] ?? null)
+                                        <p class="mt-2">{{ $experience['description'] }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @elseif($maskedProfile['work_experience'] ?? null)
                     <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
                         <h2 class="cw-heading-2 mb-4">Work Experience</h2>
                         <p class="text-neutral-700">{{ $maskedProfile['work_experience'] }}</p>
+                    </div>
+                @endif
+
+                @if($structuredCertifications !== [])
+                    <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
+                        <h2 class="cw-heading-2 mb-4">Certifications</h2>
+                        <ul class="list-disc list-inside text-sm text-neutral-700 space-y-1">
+                            @foreach($structuredCertifications as $certification)
+                                <li>{{ $certification['name'] ?? 'N/A' }}{{ !empty($certification['issuer']) ? ' - ' . $certification['issuer'] : '' }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if($structuredReferences !== [])
+                    <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
+                        <h2 class="cw-heading-2 mb-4">References</h2>
+                        <ul class="text-sm text-neutral-700 space-y-1">
+                            @foreach($structuredReferences as $reference)
+                                <li>{{ $reference['full_name'] ?? 'N/A' }}{{ !empty($reference['company']) ? ' - ' . $reference['company'] : '' }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                 @endif
 
@@ -133,6 +189,20 @@
 
             <!-- Sidebar (Right) -->
             <div class="col-span-1">
+                <div class="cw-surface border border-sky-200 bg-sky-50 rounded-lg p-6 mb-6">
+                    <h3 class="cw-heading-3 mb-3">{{ __('employer.gdpr.candidate_panel_title') }}</h3>
+                    <p class="text-sm font-semibold text-sky-900">{{ $candidateDataAccess['label'] ?? '' }}</p>
+                    <p class="text-sm text-sky-800 mt-1">{{ $candidateDataAccess['description'] ?? '' }}</p>
+                    <p class="text-xs text-sky-700 mt-3">{{ __('employer.gdpr.lawful_basis_line', ['basis' => $candidateDataAccess['lawful_basis'] ?? '']) }}</p>
+                    @if(!empty($candidateDataAccess['data_available_until_human']))
+                        <p class="text-xs text-sky-700 mt-1">{{ __('employer.gdpr.available_until', ['date' => $candidateDataAccess['data_available_until_human']]) }}</p>
+                    @endif
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <a href="{{ route('privacy') }}" class="cw-button-secondary">{{ __('employer.gdpr.privacy_policy') }}</a>
+                        <a href="{{ route('terms') }}" class="cw-button-secondary">{{ __('employer.gdpr.terms_of_service') }}</a>
+                    </div>
+                </div>
+
                 <!-- Status and Actions -->
                 <div class="cw-surface border border-neutral-200 rounded-lg p-6 mb-6">
                     <h3 class="cw-heading-3 mb-4">Application Status</h3>

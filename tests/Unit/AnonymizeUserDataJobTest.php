@@ -36,6 +36,34 @@ class AnonymizeUserDataJobTest extends TestCase
             'skills' => ['PHP'],
         ]);
 
+        $profile = WorkerProfile::query()->where('user_id', $worker->id)->firstOrFail();
+        $profile->experiences()->create([
+            'job_title' => 'Chef',
+            'company_name' => 'Hidden Company',
+            'sort_order' => 0,
+        ]);
+        $profile->educations()->create([
+            'institution' => 'Hidden School',
+            'sort_order' => 0,
+        ]);
+        $profile->certificationsList()->create([
+            'name' => 'Hidden Certificate',
+            'sort_order' => 0,
+        ]);
+        $profile->referencesList()->create([
+            'full_name' => 'Hidden Reference',
+            'sort_order' => 0,
+        ]);
+        $profile->skillsList()->create([
+            'name' => 'Hidden Skill',
+            'sort_order' => 0,
+        ]);
+        $profile->languagesList()->create([
+            'language' => 'English',
+            'level' => 'B2',
+            'sort_order' => 0,
+        ]);
+
         $employerUser = User::factory()->create(['role' => User::ROLE_EMPLOYER]);
         $employer = Employer::query()->create([
             'user_id' => $employerUser->id,
@@ -98,6 +126,25 @@ class AnonymizeUserDataJobTest extends TestCase
         $this->assertDatabaseHas('application_comments', [
             'job_application_id' => $application->id,
             'comment' => '[removed by privacy request]',
+        ]);
+
+        $this->assertDatabaseMissing('worker_experiences', [
+            'worker_profile_id' => $profile->id,
+        ]);
+        $this->assertDatabaseMissing('worker_educations', [
+            'worker_profile_id' => $profile->id,
+        ]);
+        $this->assertDatabaseMissing('worker_certifications', [
+            'worker_profile_id' => $profile->id,
+        ]);
+        $this->assertDatabaseMissing('worker_references', [
+            'worker_profile_id' => $profile->id,
+        ]);
+        $this->assertDatabaseMissing('worker_skills', [
+            'worker_profile_id' => $profile->id,
+        ]);
+        $this->assertDatabaseMissing('worker_languages', [
+            'worker_profile_id' => $profile->id,
         ]);
     }
 }
