@@ -7,6 +7,10 @@ return [
     'search_placeholder' => 'Pretraži vodiče, teme o preseljenju, onboarding pomoć...',
     'filter_all' => 'Sve',
     'categories' => [
+        'guide' => 'Vodiči',
+        'article' => 'Članci',
+        'interview' => 'Intervjui',
+        'news' => 'Novosti',
         'work_permits' => 'Radne dozvole',
         'documents' => 'Dokumenti',
         'housing' => 'Smještaj',
@@ -18,6 +22,7 @@ return [
     ],
     'featured_title' => 'Izdvojeni vodiči',
     'featured_subtitle' => 'Praktični i pregledni vodiči za svaku fazu preseljenja i uključivanja na radnom mjestu.',
+    'read_time_default' => '5 min čitanja',
     'read_times' => [
         'work-permits' => '5 min čitanja',
         'documents-needed' => '4 min čitanja',

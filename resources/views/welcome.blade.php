@@ -17,7 +17,7 @@
     </head>
     <body class="font-sans antialiased dark:bg-black dark:text-white/50">
         <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
-            <img id="background" class="absolute -left-20 top-0 max-w-[877px]" src="https://laravel.com/assets/img/welcome/background.svg" />
+            <img id="background" class="absolute -left-20 top-0 max-w-[877px]" src="{{ asset('assets/placeholders/shared/welcome-background-1600x900.jpg') }}" />
             <div class="relative min-h-screen flex flex-col items-center justify-center selection:bg-[#FF2D20] selection:text-white">
                 <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
                     <header class="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
@@ -63,7 +63,7 @@
                             >
                                 <div id="screenshot-container" class="relative flex w-full flex-1 items-stretch">
                                     <img
-                                        src="https://laravel.com/assets/img/welcome/docs-light.svg"
+                                        src="{{ asset('assets/placeholders/shared/welcome-docs-light-1200x800.jpg') }}"
                                         alt="Laravel documentation screenshot"
                                         class="aspect-video h-full w-full flex-1 rounded-[10px] object-top object-cover drop-shadow-[0px_4px_34px_rgba(0,0,0,0.06)] dark:hidden"
                                         onerror="
@@ -74,7 +74,7 @@
                                         "
                                     />
                                     <img
-                                        src="https://laravel.com/assets/img/welcome/docs-dark.svg"
+                                        src="{{ asset('assets/placeholders/shared/welcome-docs-dark-1200x800.jpg') }}"
                                         alt="Laravel documentation screenshot"
                                         class="hidden aspect-video h-full w-full flex-1 rounded-[10px] object-top object-cover drop-shadow-[0px_4px_34px_rgba(0,0,0,0.25)] dark:block"
                                     />

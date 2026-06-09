@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureLatestLegalConsentAccepted;
 use App\Models\User;
 use App\Models\WorkerProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,6 +11,13 @@ use Tests\TestCase;
 class StructuredCvArchitectureTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(EnsureLatestLegalConsentAccepted::class);
+    }
 
     public function test_worker_profile_update_persists_structured_cv_rows(): void
     {

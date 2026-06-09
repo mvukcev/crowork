@@ -18,7 +18,7 @@ class SettingsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static ?string $navigationGroup = 'System';
+    protected static ?string $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Settings';
 
@@ -112,7 +112,10 @@ class SettingsResource extends Resource
                 Tables\Columns\TextColumn::make('key')
                     ->label('Setting Key')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color('gray')
+                    ->copyable(),
                 Tables\Columns\TextColumn::make('setting_label')
                     ->label('Label')
                     ->getStateUsing(fn (Setting $record) => Setting::definition($record->key)['label'] ?? $record->key)
@@ -120,7 +123,7 @@ class SettingsResource extends Resource
                 Tables\Columns\TextColumn::make('setting_group')
                     ->label('Group')
                     ->getStateUsing(fn (Setting $record) => Setting::definition($record->key)['group'] ?? 'System')
-                    ->sortable(),
+                    ->badge(),
                 Tables\Columns\TextColumn::make('value')
                     ->label('Value')
                     ->getStateUsing(function (Setting $record) {
@@ -135,6 +138,23 @@ class SettingsResource extends Resource
                         }
 
                         return (string) $value;
+                    })
+                    ->badge(fn (Setting $record): bool => is_bool(Setting::unwrapValue($record->value)))
+                    ->color(function (Setting $record): string {
+                        $value = Setting::unwrapValue($record->value);
+
+                        if (is_bool($value)) {
+                            return $value ? 'success' : 'gray';
+                        }
+
+                        return 'primary';
+                    })
+                    ->limit(90)
+                    ->tooltip(function (Setting $record): ?string {
+                        $value = Setting::unwrapValue($record->value);
+                        $text = is_array($value) ? implode(', ', $value) : (is_bool($value) ? ($value ? 'Enabled' : 'Disabled') : (string) $value);
+
+                        return mb_strlen($text) > 90 ? $text : null;
                     })
                     ->wrap(),
                 Tables\Columns\TextColumn::make('updated_at')

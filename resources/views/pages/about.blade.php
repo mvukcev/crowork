@@ -40,12 +40,11 @@
     <section class="cw-section relative overflow-hidden">
         <div class="cw-container">
             <div class="about-hero-frame relative overflow-hidden rounded-3xl border border-white/50 shadow-[0_20px_70px_rgba(15,23,42,0.12)]">
-                <img src="{{ asset('assets/about/hero/about-hero-1600x900.jpg') }}" alt="CroWork about hero" class="about-hero-image absolute inset-0 h-full w-full object-cover" />
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(59,130,246,0.32),transparent_52%),radial-gradient(circle_at_75%_70%,rgba(124,58,237,0.30),transparent_48%),linear-gradient(180deg,rgba(2,6,23,0.56),rgba(2,6,23,0.78))]"></div>
 
                 <div class="relative z-10 px-6 py-12 md:px-10 md:py-16 lg:px-14 lg:py-20">
                     <p class="cw-kicker text-white/80 mb-3">{{ __('about.hero.eyebrow') }}</p>
-                    <h1 class="cw-display text-3xl md:text-5xl max-w-4xl" style="color:#ffffff;">{!! __('about.hero.headline_html', [
+                    <h1 class="cw-display text-3xl md:text-5xl max-w-4xl text-white">{!! __('about.hero.headline_html', [
                         'highlight_1' => '<span class="about-h1-highlight">' . __('about.hero.headline_highlight_1') . '</span>',
                         'highlight_2' => '<span class="about-h1-highlight">' . __('about.hero.headline_highlight_2') . '</span>',
                     ]) !!}</h1>
@@ -85,7 +84,7 @@
                     </div>
                 </article>
                 <aside class="about-visual-frame relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                    <img src="{{ asset('assets/about/philosophy/about-philosophy-1200x900.jpg') }}" alt="CroWork philosophy" class="about-visual-image w-full h-full object-cover" />
+                    <img src="{{ marketing_image_url('about.fragmented_work') }}" alt="{{ marketing_image_alt('about.fragmented_work') }}" class="about-visual-image w-full h-full object-cover" />
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/20 to-transparent"></div>
                 </aside>
             </div>
@@ -114,7 +113,7 @@
                 <article class="about-audience-card rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
                     <div class="about-audience-row">
                         <div class="about-audience-main">
-                            <h3 class="text-2xl font-semibold text-violet-700">{{ __('about.audience.workers_title') }}</h3>
+                            <h3 class="text-2xl font-semibold text-brand-violet">{{ __('about.audience.workers_title') }}</h3>
                             <div class="mt-5 space-y-2">
                                 @foreach(__('about.audience.workers_points') as $point)
                                     <p class="text-slate-700">{{ $point }}</p>
@@ -122,7 +121,7 @@
                             </div>
                         </div>
                         <div class="about-audience-media">
-                            <img src="{{ asset('assets/about/workers/about-workers-1200x900.jpg') }}" alt="Workers" class="h-full w-full object-cover" />
+                            <img src="{{ marketing_image_url('about.workers_card') }}" alt="{{ marketing_image_alt('about.workers_card') }}" class="h-full w-full object-cover" />
                         </div>
                     </div>
                 </article>
@@ -138,7 +137,7 @@
                             </div>
                         </div>
                         <div class="about-audience-media">
-                            <img src="{{ asset('assets/about/employers/about-employers-1200x900.jpg') }}" alt="Employers" class="h-full w-full object-cover" />
+                            <img src="{{ marketing_image_url('about.employers_card') }}" alt="{{ marketing_image_alt('about.employers_card') }}" class="h-full w-full object-cover" />
                         </div>
                     </div>
                 </article>
@@ -154,7 +153,7 @@
                 <div class="mt-7 grid grid-cols-1 md:grid-cols-2 gap-4">
                     @foreach(__('about.approach.principles') as $index => $principle)
                         <article class="rounded-2xl border border-slate-200 bg-white p-4">
-                            <p class="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">{{ str_pad((string)($index + 1), 2, '0', STR_PAD_LEFT) }}</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.08em] text-brand-violet">{{ str_pad((string)($index + 1), 2, '0', STR_PAD_LEFT) }}</p>
                             <h3 class="mt-1 text-lg font-semibold text-slate-900">{{ $principle['title'] }}</h3>
                             <p class="mt-2 text-slate-600">{{ $principle['text'] }}</p>
                         </article>
@@ -168,10 +167,10 @@
         <div class="cw-container">
             <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6 items-stretch">
                 <article class="about-visual-frame relative overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
-                    <img src="{{ asset('assets/about/future/about-future-1600x900.jpg') }}" alt="Future of work in Croatia" class="about-visual-image h-full w-full object-cover" />
+                    <img src="{{ marketing_image_url('about.croatia_modern_work') }}" alt="{{ marketing_image_alt('about.croatia_modern_work') }}" class="about-visual-image h-full w-full object-cover" />
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/25 to-transparent"></div>
                     <div class="absolute bottom-0 p-6 md:p-8">
-                        <h2 class="cw-display text-3xl md:text-4xl" style="color:#ffffff;">{{ __('about.future.headline') }}</h2>
+                        <h2 class="cw-display text-3xl md:text-4xl text-white">{{ __('about.future.headline') }}</h2>
                         <p class="mt-3 text-white/90 max-w-2xl">{{ __('about.future.body') }}</p>
                     </div>
                 </article>
@@ -213,10 +212,9 @@
 
     <section class="cw-section pt-0">
         <div class="cw-container">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <img src="{{ asset('assets/about/platform/platform-dashboard-1400x900.jpg') }}" alt="Platform dashboard" class="about-bottom-image w-full rounded-2xl object-cover" />
-                <img src="{{ asset('assets/about/platform/platform-jobs-1400x900.jpg') }}" alt="Platform jobs" class="about-bottom-image w-full rounded-2xl object-cover" />
-                <img src="{{ asset('assets/about/platform/platform-onboarding-1400x900.jpg') }}" alt="Platform onboarding" class="about-bottom-image w-full rounded-2xl object-cover" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <img src="{{ marketing_image_url('about.bottom_01') }}" alt="{{ marketing_image_alt('about.bottom_01') }}" class="about-bottom-image w-full rounded-2xl object-cover" />
+                <img src="{{ marketing_image_url('about.bottom_02') }}" alt="{{ marketing_image_alt('about.bottom_02') }}" class="about-bottom-image w-full rounded-2xl object-cover" />
             </div>
         </div>
     </section>
@@ -240,7 +238,7 @@
             }
 
             .about-h1-highlight {
-                color: #6d28d9;
+                color: #fe5000;
             }
 
             .about-bottom-image {

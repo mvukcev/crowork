@@ -3,7 +3,10 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "build:clean": "rm -f public/hot storage/framework/vite.hot && rm -rf public/build && vite build",
+        "assets:rebuild": "bash scripts/rebuild-assets.sh",
+        "deploy:production": "bash deploy-production.sh"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.2",

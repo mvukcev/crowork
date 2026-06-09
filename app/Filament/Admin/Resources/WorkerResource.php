@@ -167,6 +167,39 @@ class WorkerResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('verifyEmail')
+                    ->label('Verify email')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(fn (User $record) => $record->update(['email_verified_at' => now()]))
+                    ->visible(fn (User $record): bool => $record->email_verified_at === null),
+                Tables\Actions\Action::make('markEmailUnverified')
+                    ->label('Mark unverified')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(fn (User $record) => $record->update(['email_verified_at' => null]))
+                    ->visible(fn (User $record): bool => $record->email_verified_at !== null),
+                Tables\Actions\Action::make('resetPassword')
+                    ->label('Reset password')
+                    ->icon('heroicon-o-key')
+                    ->color('gray')
+                    ->form([
+                        Forms\Components\TextInput::make('password')
+                            ->label('New password')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->minLength(8)
+                            ->same('password_confirmation'),
+                        Forms\Components\TextInput::make('password_confirmation')
+                            ->label('Confirm new password')
+                            ->password()
+                            ->revealable()
+                            ->required(),
+                    ])
+                    ->action(fn (array $data, User $record) => $record->update(['password' => $data['password']])),
                 Tables\Actions\Action::make('previewCv')
                     ->label('Preview CV')
                     ->icon('heroicon-o-eye')

@@ -15,6 +15,12 @@ class ApplicationController extends Controller
     {
         $this->ensureWorker($request);
 
+        $activeTab = (string) $request->query('tab', 'cv');
+        $allowedTabs = ['cv', 'applications', 'settings'];
+        if (! in_array($activeTab, $allowedTabs, true)) {
+            $activeTab = 'cv';
+        }
+
         $user = $request->user();
         $profile = WorkerProfile::firstOrCreate(
             ['user_id' => $user->id],
@@ -189,6 +195,7 @@ class ApplicationController extends Controller
             'recommendedNextActions',
             'applicationTimeline',
             'recommendedJobs',
+            'activeTab',
         ));
     }
 

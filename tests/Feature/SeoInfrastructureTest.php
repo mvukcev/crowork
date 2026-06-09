@@ -70,16 +70,13 @@ class SeoInfrastructureTest extends TestCase
     public function test_legal_aliases_use_primary_canonical_urls(): void
     {
         $this->get('/privacy-policy')
-            ->assertOk()
-            ->assertSee('<link rel="canonical" href="'.route('privacy').'">', false);
+            ->assertRedirect(route('privacy'));
 
         $this->get('/terms-of-service')
-            ->assertOk()
-            ->assertSee('<link rel="canonical" href="'.route('terms').'">', false);
+            ->assertRedirect(route('terms'));
 
         $this->get('/cookie-policy')
-            ->assertOk()
-            ->assertSee('<link rel="canonical" href="'.route('cookies').'">', false);
+            ->assertRedirect(route('cookies'));
     }
 
     /**

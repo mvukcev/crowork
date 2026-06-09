@@ -10,10 +10,8 @@ use App\Models\Employer;
 use App\Models\User;
 use App\Models\WorkerProfile;
 use App\Notifications\AdminNewEmployerPending;
-use App\Services\ApprovalService;
 use App\Services\ConsentConfigService;
 use App\Services\ConsentHistoryService;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -91,44 +89,53 @@ class AccessController extends Controller
         $email      = strtolower($data['email']);
         $intentType = $data['intent_type'] ?? User::ROLE_WORKER;
 
-        // If user restarts with another email, invalidate stale code state from previous flow.
-        $previousEmail = session('access_email');
-        $verifiedEmail = session('cw_verified_email');
-
-        if ($previousEmail && strtolower((string) $previousEmail) !== $email) {
-            $this->invalidateVerificationStateForEmail((string) $previousEmail);
-        }
-
-        if ($verifiedEmail && strtolower((string) $verifiedEmail) !== $email) {
-            $this->invalidateVerificationStateForEmail((string) $verifiedEmail);
-            session()->forget('cw_verified_email');
-        }
-
-        session(['access_email' => $email, 'access_intent_type' => $intentType]);
-
-        if (User::where('email', $email)->exists()) {
-            session(['access_stage' => 'login']);
-            return redirect()->route('access.show');
-        }
-
-        if (! $this->isRegistrationEnabled($intentType)) {
-            session(['access_stage' => 'email']);
-
-            return redirect()->route('access.show')
-                ->withErrors(['email' => __('auth.status_registration_disabled_new')]);
-        }
-
-        // New email → send code (respect cooldown in case of double-submit)
         try {
+            // If user restarts with another email, invalidate stale code state from previous flow.
+            $previousEmail = session('access_email');
+            $verifiedEmail = session('cw_verified_email');
+
+            if ($previousEmail && strtolower((string) $previousEmail) !== $email) {
+                $this->invalidateVerificationStateForEmail((string) $previousEmail);
+            }
+
+            if ($verifiedEmail && strtolower((string) $verifiedEmail) !== $email) {
+                $this->invalidateVerificationStateForEmail((string) $verifiedEmail);
+                session()->forget('cw_verified_email');
+            }
+
+            session(['access_email' => $email, 'access_intent_type' => $intentType]);
+
+            if (User::where('email', $email)->exists()) {
+                session(['access_stage' => 'login']);
+                return redirect()->route('access.show');
+            }
+
+            if (! $this->isRegistrationEnabled($intentType)) {
+                session(['access_stage' => 'email']);
+
+                return redirect()->route('access.show')
+                    ->withErrors(['email' => __('auth.status_registration_disabled_new')]);
+            }
+
+            // New email -> send code (respect cooldown in case of double-submit)
             if (! Cache::has($this->resendCooldownKey($email))) {
                 $code = $this->sendVerificationCode($email);
                 if ($this->isDevMode()) {
                     session(['cw_dev_code' => $code]);
                 }
             }
+
+            session(['access_stage' => 'verify_code']);
+            $this->queueTrackEvent('verification_code_sent', [
+                'source' => 'access_email',
+                'intent_type' => $intentType,
+            ]);
+
+            return redirect()->route('access.show');
         } catch (\Throwable $exception) {
-            Log::error('Access verification code dispatch failed', [
+            Log::error('Access email step failed', [
                 'email' => $email,
+                'intent_type' => $intentType,
                 'error' => $exception->getMessage(),
             ]);
 
@@ -137,13 +144,6 @@ class AccessController extends Controller
             return redirect()->route('access.show')
                 ->withErrors(['email' => __('auth.status_verification_start_failed')]);
         }
-
-        session(['access_stage' => 'verify_code']);
-        $this->queueTrackEvent('verification_code_sent', [
-            'source' => 'access_email',
-            'intent_type' => $intentType,
-        ]);
-        return redirect()->route('access.show');
     }
 
     // -------------------------------------------------------------------------
@@ -344,6 +344,7 @@ class AccessController extends Controller
             'email'        => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'name'         => ['required', 'string', 'max:255'],
             'account_type' => ['required', Rule::in([User::ROLE_WORKER, User::ROLE_EMPLOYER])],
+            'employer_oib' => ['nullable', 'string', 'max:32', 'required_if:account_type,' . User::ROLE_EMPLOYER],
             'password'     => ['required', 'confirmed', Rules\Password::defaults()],
             'accept_terms' => ['accepted'],
             'accept_privacy' => ['accepted'],
@@ -361,6 +362,8 @@ class AccessController extends Controller
             'email'    => strtolower($data['email']),
             'password' => Hash::make($data['password']),
             'role'     => $data['account_type'],
+            // Email was verified in the access flow via one-time code.
+            'email_verified_at' => now(),
         ]);
 
         app(ConsentHistoryService::class)->recordRegistrationConsents($user, $request);
@@ -393,7 +396,6 @@ class AccessController extends Controller
                 'skills'                   => [],
             ]);
 
-            event(new Registered($user));
             Auth::login($user);
             $this->queueTrackEvent('register_complete', [
                 'source' => 'access_register',
@@ -404,24 +406,21 @@ class AccessController extends Controller
             return redirect()->route('worker.profile.edit');
         }
 
-        $approvalService = app(ApprovalService::class);
-
         Employer::create([
             'user_id'      => $user->id,
             'company_name' => $user->name,
-            'approved_at'  => $approvalService->requiresEmployerApproval() ? null : now(),
+            'oib'          => isset($data['employer_oib']) ? preg_replace('/\s+/', '', (string) $data['employer_oib']) : null,
+            // First-time employer registration is automatically enabled after verified signup.
+            'approved_at'  => now(),
         ]);
 
         $user->loadMissing('employer');
 
-        if ($approvalService->requiresEmployerApproval() && $user->employer?->approved_at === null) {
-            User::query()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_MOD])
-                ->get()
-                ->each(fn (User $admin) => $admin->notify(new AdminNewEmployerPending($user->employer)));
-        }
+        User::query()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_MOD])
+            ->get()
+            ->each(fn (User $admin) => $admin->notify(new AdminNewEmployerPending($user->employer)));
 
-        event(new Registered($user));
         $this->clearAccessSessionState();
         Auth::login($user);
         $this->queueTrackEvent('register_complete', [
@@ -433,11 +432,6 @@ class AccessController extends Controller
             'source' => 'access_register',
             'event_id' => $metaEventId,
         ]);
-
-        // If employer requires approval, show the pending approval page
-        if ($approvalService->requiresEmployerApproval() && ! $user->employer->approved_at) {
-            return redirect()->route('employer.pending-approval');
-        }
 
         return redirect()->route('employer.dashboard');
     }

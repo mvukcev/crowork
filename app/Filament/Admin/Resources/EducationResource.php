@@ -16,7 +16,7 @@ class EducationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static ?string $navigationGroup = 'Education Management';
+    protected static ?string $navigationGroup = 'Educations Management';
 
     public static function form(Form $form): Form
     {

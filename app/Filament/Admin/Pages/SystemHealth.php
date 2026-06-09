@@ -18,7 +18,7 @@ class SystemHealth extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-heart';
 
-    protected static ?string $navigationGroup = 'System';
+    protected static ?string $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'System Health';
 
@@ -57,6 +57,18 @@ class SystemHealth extends Page
             $this->checkStorageLink(),
             $this->checkDiskFreeSpace(),
         ];
+
+        $priority = ['fail' => 0, 'warn' => 1, 'ok' => 2];
+        usort($this->checks, function (array $a, array $b) use ($priority): int {
+            $left = $priority[$a['status']] ?? 99;
+            $right = $priority[$b['status']] ?? 99;
+
+            if ($left !== $right) {
+                return $left <=> $right;
+            }
+
+            return strcmp($a['label'], $b['label']);
+        });
     }
 
     public static function canAccess(): bool

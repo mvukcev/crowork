@@ -25,9 +25,14 @@ class ApplicationController extends Controller
     /**
      * Show employer dashboard overview
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $employer = auth()->user()->employer;
+        $activeTab = (string) $request->query('tab', 'overview');
+        $allowedTabs = ['overview', 'applications', 'analytics', 'jobs', 'company'];
+        if (! in_array($activeTab, $allowedTabs, true)) {
+            $activeTab = 'overview';
+        }
         
         // Get jobs with application counts
         $jobs = $employer->jobs()
@@ -127,6 +132,10 @@ class ApplicationController extends Controller
             return $application;
         });
 
+        $anonymizedCandidatesCount = $recentCandidates
+            ->filter(fn (JobApplication $application) => ($application->candidate_data_access['state'] ?? null) === EmployerCandidateDataAccessService::STATE_ANONYMIZED)
+            ->count();
+
         $jobPerformance = $employer->jobs()
             ->where('status', 'published')
             ->withCount([
@@ -170,7 +179,9 @@ class ApplicationController extends Controller
             'jobPerformance' => $jobPerformance,
             'expiringJobs' => $expiringJobs,
             'pendingApprovalJobs' => $pendingApprovalJobs,
+            'anonymizedCandidatesCount' => $anonymizedCandidatesCount,
             'jobs' => $jobs,
+            'activeTab' => $activeTab,
         ]);
     }
 

@@ -33,6 +33,9 @@
 
             <article class="cw-surface p-6 space-y-5">
                 @php
+                    $currentCountryLabel = \App\Support\CvProfileOptions::displayCountryName($profile->current_country, app()->getLocale());
+                    $nationalityLabel = \App\Support\CvProfileOptions::displayCountryName($profile->nationality_country_code, app()->getLocale());
+                    $visaStatusLabel = \App\Support\CvProfileOptions::displayVisaStatusLabel($profile->visa_work_permit_status);
                     $skills = $profile->skillsArray();
                     $languages = $profile->languagesArray();
                     $experiences = $profile->experienceSnapshot();
@@ -46,18 +49,18 @@
                         <p class="text-sm text-slate-600">{{ $profile->professional_summary ?: __('worker_profile.preview.no_summary') }}</p>
                     </div>
                     @if($profile->photo_path)
-                        <img src="{{ $profile->photoUrl() }}" alt="{{ __('worker_profile.preview.worker_photo_alt') }}" class="h-20 w-20 rounded-full object-cover border border-slate-200">
+                        <img src="{{ $profile->photoUrl() }}" alt="{{ __('worker_profile.preview.worker_photo_alt') }}" class="h-20 w-20 rounded-full object-cover border border-slate-200" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/worker/worker-avatar-400x400.jpg') }}';">
                     @endif
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <p><strong>{{ __('worker_profile.preview.current_location') }}</strong> {{ trim(($profile->current_city ?? '') . ', ' . ($profile->current_country ?? ''), ', ') ?: __('worker_profile.preview.na') }}</p>
+                    <p><strong>{{ __('worker_profile.preview.current_location') }}</strong> {{ trim(($profile->current_city ?? '') . ', ' . ($currentCountryLabel ?? ''), ', ') ?: __('worker_profile.preview.na') }}</p>
                     <p><strong>{{ __('worker_profile.preview.desired_location') }}</strong> {{ $profile->desired_city ?: __('worker_profile.preview.na') }}</p>
-                    <p><strong>{{ __('worker_profile.preview.nationality') }}</strong> {{ $profile->nationality_country_code ?: __('worker_profile.preview.na') }}</p>
+                    <p><strong>{{ __('worker_profile.preview.nationality') }}</strong> {{ $nationalityLabel ?: __('worker_profile.preview.na') }}</p>
                     <p><strong>{{ __('worker_profile.preview.availability') }}</strong> {{ $profile->availability_date?->format('d.m.Y.') ?: __('worker_profile.preview.na') }}</p>
                     <p><strong>{{ __('worker_profile.preview.salary') }}</strong> {{ $profile->salary_expectation ? number_format($profile->salary_expectation) . ' EUR' : __('worker_profile.preview.na') }}</p>
                     <p><strong>{{ __('worker_profile.preview.accommodation') }}</strong> {{ is_null($profile->accommodation_needed) ? __('worker_profile.preview.na') : ($profile->accommodation_needed ? __('worker_profile.preview.yes') : __('worker_profile.preview.no')) }}</p>
-                    <p><strong>{{ __('worker_profile.preview.visa') }}</strong> {{ $profile->visa_work_permit_status ?: __('worker_profile.preview.na') }}</p>
+                    <p><strong>{{ __('worker_profile.preview.visa') }}</strong> {{ $visaStatusLabel ?: __('worker_profile.preview.na') }}</p>
                     <p><strong>{{ __('worker_profile.preview.visibility') }}</strong> {{ \App\Models\WorkerProfile::visibilityOptions()[$profile->profile_visibility ?? \App\Models\WorkerProfile::VISIBILITY_EMPLOYERS] ?? __('worker_profile.preview.employers') }}</p>
                 </div>
 

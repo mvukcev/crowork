@@ -59,7 +59,7 @@
         $ogTitle = $ogTitle ?? $seoTitle;
         $ogDescription = $ogDescription ?? $seoDescription;
         $ogType = $ogType ?? 'website';
-        $ogImage = $ogImage ?? asset('assets/branding/CW-Logo-Dark.png');
+        $ogImage = $ogImage ?? marketing_image_url('social.og_default') ?? cw_asset('assets/branding/CW-Logo-Dark.png');
         $robots = $robots ?? 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
         $localeMap = [
             'en' => 'en_US',
@@ -76,9 +76,9 @@
         <link rel="alternate" hreflang="{{ $locale }}" href="{{ $href }}">
     @endforeach
     <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}">
-    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ cw_asset('assets/branding/CW-Favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
     <meta property="og:title" content="{{ $ogTitle }}">
     <meta property="og:site_name" content="CroWork">
     <meta property="og:locale" content="{{ $ogLocale }}">
@@ -240,13 +240,13 @@ x-data>
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-5 border-b border-slate-200">
                 <a href="{{ route('home') }}" class="flex items-center gap-2.5">
                     <img
-                        src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                        src="{{ cw_asset('assets/branding/CW-Logo-Dark.svg') }}"
                         alt="CroWork"
                         class="h-7 w-auto cw-logo-on-light"
                         onerror="this.style.display='none';"
                     >
                     <img
-                        src="{{ asset('assets/branding/CW-Logo-Light.svg') }}"
+                        src="{{ cw_asset('assets/branding/CW-Logo-Light.svg') }}"
                         alt="CroWork"
                         class="h-7 w-auto cw-logo-on-dark"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"

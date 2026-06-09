@@ -7,13 +7,13 @@
         $heroHeadline = __('resources.headline');
         if (app()->getLocale() === 'hr') {
             $heroHeadline = str_replace(['rad', 'preseljenje'], [
-                '<span style="color:#7c3aed;font-weight:600;">rad</span>',
-                '<span style="color:#7c3aed;font-weight:600;">preseljenje</span>',
+                '<span class="resources-highlight">rad</span>',
+                '<span class="resources-highlight">preseljenje</span>',
             ], $heroHeadline);
         } else {
             $heroHeadline = str_replace(['working', 'relocating'], [
-                '<span style="color:#7c3aed;font-weight:600;">working</span>',
-                '<span style="color:#7c3aed;font-weight:600;">relocating</span>',
+                '<span class="resources-highlight">working</span>',
+                '<span class="resources-highlight">relocating</span>',
             ], $heroHeadline);
         }
 
@@ -27,6 +27,15 @@
         ];
 
         $faqItems = __('resources.faq.items');
+
+        $guideImageMap = [
+            'work-permits' => 'resources.guide_01',
+            'documents-needed' => 'resources.guide_02',
+            'accommodation' => 'resources.guide_03',
+            'working-in-croatia' => 'resources.guide_04',
+            'employer-obligations' => 'resources.guide_05',
+            'faq-foreign-workers' => 'resources.guide_06',
+        ];
 
         $resourcesCollectionSchema = [
             '@context' => 'https://schema.org',
@@ -76,11 +85,10 @@
     <section class="cw-section relative overflow-hidden">
         <div class="cw-container">
             <div class="resources-hero-frame relative overflow-hidden rounded-3xl border border-white/60 shadow-[0_20px_70px_rgba(15,23,42,0.08)]">
-                <img src="{{ asset('assets/resources/hero/resources-hero-1600x900.jpg') }}" alt="{{ __('resources.headline') }}" class="absolute inset-0 h-full w-full object-cover" decoding="async" width="1600" height="900" />
-                <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(124,58,237,0.30),transparent_55%),radial-gradient(circle_at_80%_70%,rgba(59,130,246,0.24),transparent_48%),linear-gradient(180deg,rgba(15,23,42,0.56),rgba(15,23,42,0.72))]"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(139,132,215,0.30),transparent_55%),radial-gradient(circle_at_80%_70%,rgba(254,80,0,0.24),transparent_48%),linear-gradient(180deg,rgba(15,23,42,0.56),rgba(15,23,42,0.72))]"></div>
 
                 <div class="relative z-10 px-6 py-12 md:px-10 md:py-16 lg:px-14 lg:py-20">
-                    <p class="cw-kicker mb-3 text-violet-700">{{ __('resources.eyebrow') }}</p>
+                    <p class="cw-kicker mb-3 text-white">{{ __('resources.eyebrow') }}</p>
                     <h1 class="cw-display text-3xl md:text-5xl leading-[0.98] max-w-4xl" style="color: #fff;">{!! $heroHeadline !!}</h1>
                     <p class="mt-5 text-base md:text-lg max-w-3xl" style="color: rgba(255, 255, 255, 0.92);">{{ __('resources.supporting') }}</p>
                 </div>
@@ -101,9 +109,9 @@
                     <input id="resources-search" type="text" x-model="query" data-cw-resource-search class="resources-search-input cw-input w-full px-5 py-3 rounded-2xl bg-white/90 backdrop-blur shadow-[0_12px_40px_rgba(15,23,42,0.08)]" placeholder="{{ __('resources.search_placeholder') }}" />
                     <div class="mt-3 overflow-x-auto">
                         <div class="resources-pill-row flex items-center gap-2 min-w-max">
-                            <button type="button" @click="activeCat='all'" :class="activeCat==='all' ? 'bg-violet-600 text-white' : 'bg-violet-50 text-violet-700'" class="resources-pill rounded-full px-4 py-2 text-sm font-medium transition">{{ __('resources.filter_all') }}</button>
+                            <button type="button" @click="activeCat='all'" :class="activeCat==='all' ? 'bg-brand-violet text-white' : 'bg-brand-violet-soft text-brand-violet'" class="resources-pill rounded-full px-4 py-2 text-sm font-medium transition">{{ __('resources.filter_all') }}</button>
                             @foreach(__('resources.categories') as $key => $label)
-                                <button type="button" @click="activeCat='{{ $key }}'" :class="activeCat==='{{ $key }}' ? 'bg-violet-600 text-white' : 'bg-violet-50 text-violet-700'" class="resources-pill rounded-full px-4 py-2 text-sm font-medium transition">{{ $label }}</button>
+                                <button type="button" @click="activeCat='{{ $key }}'" :class="activeCat==='{{ $key }}' ? 'bg-brand-violet text-white' : 'bg-brand-violet-soft text-brand-violet'" class="resources-pill rounded-full px-4 py-2 text-sm font-medium transition">{{ $label }}</button>
                             @endforeach
                         </div>
                     </div>
@@ -113,8 +121,18 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 @foreach($resources as $resource)
                     @php
-                        $categoryKey = $slugCategoryMap[$resource['slug']] ?? 'onboarding';
-                        $readTime = __('resources.read_times.' . $resource['slug']);
+                        $categoryKey = $resource['category_key'] ?? ($slugCategoryMap[$resource['slug']] ?? 'onboarding');
+                        $readTime = $resource['read_time'] ?? __('resources.read_times.' . $resource['slug']);
+                        if ($readTime === 'resources.read_times.' . $resource['slug']) {
+                            $readTime = __('resources.read_time_default');
+                        }
+                        $guideImageKey = $guideImageMap[$resource['slug']] ?? 'resources.guide_06';
+                        $cardImage = ! empty($resource['featured_image_path'])
+                            ? \Illuminate\Support\Facades\Storage::disk('public')->url($resource['featured_image_path'])
+                            : marketing_image_url($guideImageKey);
+                        $cardImageAlt = ! empty($resource['featured_image_path'])
+                            ? $resource['title']
+                            : marketing_image_alt($guideImageKey);
                     @endphp
                     <article
                         x-show="($el.dataset.title.toLowerCase().includes(query.toLowerCase()) || $el.dataset.description.toLowerCase().includes(query.toLowerCase())) && (activeCat === 'all' || activeCat === '{{ $categoryKey }}')"
@@ -123,7 +141,7 @@
                         data-cw-resource-guide
                         class="resources-guide-card group relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_20px_45px_rgba(15,23,42,0.10)] hover:-translate-y-1 transition"
                     >
-                        <img src="{{ asset('assets/resources/guides/permit-guide-800x600.jpg') }}" alt="{{ $resource['title'] }}" class="h-44 w-full object-cover" loading="lazy" decoding="async" width="800" height="600" />
+                        <img src="{{ $cardImage }}" alt="{{ $cardImageAlt }}" class="h-44 w-full object-cover" loading="lazy" decoding="async" width="800" height="600" />
                         <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent"></div>
                         <div class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">{{ __('resources.categories.' . $categoryKey) }}</div>
                         <div class="p-5">
@@ -158,12 +176,12 @@
                     <div>
                         <h2 class="cw-display text-3xl md:text-5xl">{{ __('resources.relocation_journey.title') }}</h2>
                         <p class="mt-3 text-slate-600">{{ __('resources.relocation_journey.subtitle') }}</p>
-                        <img src="{{ asset('assets/resources/onboarding/onboarding-journey-1200x800.jpg') }}" alt="{{ __('resources.relocation_journey.title') }}" class="mt-6 rounded-2xl w-full object-cover shadow-sm" loading="lazy" decoding="async" width="1200" height="800" />
+                        <img src="{{ marketing_image_url('resources.relocation_path') }}" alt="{{ marketing_image_alt('resources.relocation_path') }}" class="mt-6 rounded-2xl w-full object-cover shadow-sm" loading="lazy" decoding="async" width="1200" height="800" />
                     </div>
                     <ol class="space-y-4">
                         @foreach(__('resources.relocation_journey.steps') as $index => $step)
                             <li class="flex items-center gap-3">
-                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-violet-200 text-sm font-semibold" style="background-color:#7c3aed;color:#ffffff;">{{ $index + 1 }}</span>
+                                <span class="resources-step-badge flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-sm font-semibold">{{ $index + 1 }}</span>
                                 <article class="flex-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                     <h3 class="text-base font-semibold text-slate-900">{{ $step['title'] }}</h3>
                                     <p class="mt-1 text-sm text-slate-600">{{ $step['desc'] }}</p>
@@ -180,10 +198,10 @@
         <div class="cw-container">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-stretch">
                 <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
-                    <img src="{{ asset('assets/resources/relocation/relocation-steps-1200x800.jpg') }}" alt="{{ __('resources.life_work.title') }}" class="h-full w-full object-cover" loading="lazy" decoding="async" width="1200" height="800" />
+                    <img src="{{ marketing_image_url('resources.life_work') }}" alt="{{ marketing_image_alt('resources.life_work') }}" class="h-full w-full object-cover" loading="lazy" decoding="async" width="1200" height="800" />
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-slate-900/20 to-transparent"></div>
                     <blockquote class="absolute bottom-0 p-6 md:p-8 text-white">
-                        <p class="text-sm uppercase tracking-[0.08em] text-violet-200">{{ __('resources.life_work.title') }}</p>
+                        <p class="text-sm uppercase tracking-[0.08em] text-brand-violet">{{ __('resources.life_work.title') }}</p>
                         <p class="mt-2 text-lg leading-relaxed">{{ __('resources.life_work.quote') }}</p>
                     </blockquote>
                 </div>
@@ -195,7 +213,7 @@
                     <div class="mt-6 space-y-3">
                         @foreach(__('resources.life_work.topics') as $topic)
                             <article class="rounded-2xl border border-slate-200 bg-white p-4">
-                                <h3 class="text-base font-semibold text-violet-700">{{ $topic['title'] }}</h3>
+                                <h3 class="text-base font-semibold text-brand-violet">{{ $topic['title'] }}</h3>
                                 <p class="mt-1 text-sm text-slate-600">{{ $topic['desc'] }}</p>
                             </article>
                         @endforeach
@@ -212,7 +230,7 @@
                 <p class="mt-3 text-slate-600 max-w-3xl">{{ __('resources.faq.subtitle') }}</p>
 
                 <div class="mt-6 grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
-                    <img src="{{ asset('assets/resources/faq/faq-accordion-800x600.jpg') }}" alt="{{ __('resources.faq.title') }}" class="rounded-2xl w-full object-cover" loading="lazy" decoding="async" width="800" height="600" />
+                    <img src="{{ marketing_image_url('resources.faq_help') }}" alt="{{ marketing_image_alt('resources.faq_help') }}" class="rounded-2xl w-full object-cover" loading="lazy" decoding="async" width="800" height="600" />
 
                     <div>
                         <input type="text" x-model="search" class="cw-input w-full" placeholder="{{ __('resources.search_placeholder') }}" />
@@ -231,7 +249,7 @@
                                         :id="`cw-resource-faq-trigger-${idx}`"
                                     >
                                         <span class="font-medium text-slate-900" x-text="item.q"></span>
-                                        <span class="text-violet-600" x-text="open === idx ? '−' : '+'"></span>
+                                        <span class="text-brand-violet" x-text="open === idx ? '−' : '+'"></span>
                                     </button>
                                     <div
                                         x-show="open === idx"
@@ -263,6 +281,17 @@
 
     @push('styles')
         <style>
+            .resources-highlight {
+                color: #fe5000;
+                font-weight: 600;
+            }
+
+            .resources-step-badge {
+                border-color: rgba(139, 132, 215, 0.36);
+                background-color: #8b84d7;
+                color: #ffffff;
+            }
+
             .resources-hero-frame,
             .resources-guide-card {
                 border-radius: 1.5rem !important;

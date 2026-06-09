@@ -4,12 +4,14 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\EmployerResource\Pages;
 use App\Models\Employer;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\Rule;
 
 class EmployerResource extends Resource
 {
@@ -26,9 +28,49 @@ class EmployerResource extends Resource
                 Forms\Components\Section::make(__('admin.account'))
                     ->schema([
                         Forms\Components\Select::make('user_id')
-                            ->relationship('user', 'name')
+                            ->relationship(
+                                name: 'user',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('role', User::ROLE_EMPLOYER)
+                            )
+                            ->getOptionLabelFromRecordUsing(fn (User $record): string => sprintf('%s (%s)', $record->name, $record->email))
                             ->searchable()
                             ->preload()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('User name')
+                                    ->required()
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('email')
+                                    ->email()
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->rule(Rule::unique('users', 'email')),
+                                Forms\Components\TextInput::make('password')
+                                    ->password()
+                                    ->revealable()
+                                    ->required()
+                                    ->minLength(8),
+                            ])
+                            ->createOptionUsing(function (array $data): int {
+                                $user = User::create([
+                                    'name' => $data['name'],
+                                    'email' => $data['email'],
+                                    'password' => $data['password'],
+                                    'role' => User::ROLE_EMPLOYER,
+                                    'email_verified_at' => now(),
+                                ]);
+
+                                return $user->id;
+                            })
+                            ->rule(
+                                fn (?Employer $record) => Rule::unique('employers', 'user_id')
+                                    ->ignore($record?->id)
+                            )
+                            ->validationMessages([
+                                'unique' => 'This user already has a company profile. Select a different user or edit the existing employer record.',
+                            ])
+                            ->helperText('Select an existing employer user, or create a new one directly from this field.')
                             ->required(),
                         Forms\Components\DateTimePicker::make('approved_at')
                             ->label(__('admin.approval_date')),
@@ -38,8 +80,18 @@ class EmployerResource extends Resource
                         Forms\Components\TextInput::make('company_name')
                             ->required()
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('oib')
+                            ->label('OIB')
+                            ->maxLength(32),
                         Forms\Components\TextInput::make('city')
                             ->maxLength(255),
+                        Forms\Components\FileUpload::make('logo_path')
+                            ->label('Company logo')
+                            ->image()
+                            ->disk('public')
+                            ->directory('company-logos')
+                            ->visibility('public')
+                            ->columnSpanFull(),
                     ]),
                 Forms\Components\Section::make(__('admin.approval_settings'))
                     ->description(__('admin.override_global_approval_requirements'))
@@ -65,9 +117,17 @@ class EmployerResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.email')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('user.email_verified_at')
+                    ->label('Email status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => $state ? 'Verified' : 'Unverified')
+                    ->color(fn ($state): string => $state ? 'success' : 'warning'),
                 Tables\Columns\TextColumn::make('company_name')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('oib')
+                    ->label('OIB')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('city')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('approved_at')
@@ -113,6 +173,40 @@ class EmployerResource extends Resource
                         return redirect('/admin/impersonate/' . $record->user_id);
                     })
                     ->visible(fn (Employer $record) => setting('admin_impersonation_enabled', true) && $record->approved_at !== null && ! session('impersonation_original_admin_id')),
+                Tables\Actions\Action::make('verifyEmail')
+                    ->label('Verify email')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(fn (Employer $record) => $record->user?->update(['email_verified_at' => now()]))
+                    ->visible(fn (Employer $record): bool => $record->user !== null && $record->user->email_verified_at === null),
+                Tables\Actions\Action::make('markEmailUnverified')
+                    ->label('Mark unverified')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(fn (Employer $record) => $record->user?->update(['email_verified_at' => null]))
+                    ->visible(fn (Employer $record): bool => $record->user !== null && $record->user->email_verified_at !== null),
+                Tables\Actions\Action::make('resetPassword')
+                    ->label('Reset password')
+                    ->icon('heroicon-o-key')
+                    ->color('gray')
+                    ->form([
+                        Forms\Components\TextInput::make('password')
+                            ->label('New password')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->minLength(8)
+                            ->same('password_confirmation'),
+                        Forms\Components\TextInput::make('password_confirmation')
+                            ->label('Confirm new password')
+                            ->password()
+                            ->revealable()
+                            ->required(),
+                    ])
+                    ->action(fn (array $data, Employer $record) => $record->user?->update(['password' => $data['password']]))
+                    ->visible(fn (Employer $record): bool => $record->user !== null),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

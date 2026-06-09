@@ -22,18 +22,18 @@
         </div>
     </div>
 
-    <div class="cw-shell-spacing py-8" x-data="{ tab: 'overview' }">
+    <div class="cw-shell-spacing py-8">
         <div class="mb-6">
-            <nav class="mb-2 flex flex-wrap gap-2" role="tablist" aria-label="ATS tabs">
-                <button type="button" role="tab" :aria-selected="tab === 'overview'" @click="tab = 'overview'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'overview' }">{{ __('employer.dashboard.tabs.quick_overview') }}</button>
-                <button type="button" role="tab" :aria-selected="tab === 'applications'" @click="tab = 'applications'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'applications' }">{{ __('employer.dashboard.tabs.all_applications') }}</button>
-                <button type="button" role="tab" :aria-selected="tab === 'analytics'" @click="tab = 'analytics'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'analytics' }">{{ __('employer.dashboard.tabs.job_analytics') }}</button>
-                <button type="button" role="tab" :aria-selected="tab === 'jobs'" @click="tab = 'jobs'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'jobs' }">{{ __('employer.dashboard.tabs.active_jobs') }}</button>
-                <button type="button" role="tab" :aria-selected="tab === 'company'" @click="tab = 'company'" class="cw-button-secondary" :class="{ 'border-slate-500': tab === 'company' }">{{ __('employer.dashboard.tabs.company_profile') }}</button>
+            <nav class="mb-2 cw-dashboard-tabbar" role="tablist" aria-label="{{ __('employer.dashboard.tabs.aria_label') }}">
+                <a href="{{ route('employer.dashboard', ['tab' => 'overview']) }}" role="tab" aria-selected="{{ $activeTab === 'overview' ? 'true' : 'false' }}" aria-current="{{ $activeTab === 'overview' ? 'page' : 'false' }}" class="cw-dashboard-tab">{{ __('employer.dashboard.tabs.quick_overview') }}</a>
+                <a href="{{ route('employer.dashboard', ['tab' => 'applications']) }}" role="tab" aria-selected="{{ $activeTab === 'applications' ? 'true' : 'false' }}" aria-current="{{ $activeTab === 'applications' ? 'page' : 'false' }}" class="cw-dashboard-tab">{{ __('employer.dashboard.tabs.all_applications') }}</a>
+                <a href="{{ route('employer.dashboard', ['tab' => 'analytics']) }}" role="tab" aria-selected="{{ $activeTab === 'analytics' ? 'true' : 'false' }}" aria-current="{{ $activeTab === 'analytics' ? 'page' : 'false' }}" class="cw-dashboard-tab">{{ __('employer.dashboard.tabs.job_analytics') }}</a>
+                <a href="{{ route('employer.dashboard', ['tab' => 'jobs']) }}" role="tab" aria-selected="{{ $activeTab === 'jobs' ? 'true' : 'false' }}" aria-current="{{ $activeTab === 'jobs' ? 'page' : 'false' }}" class="cw-dashboard-tab">{{ __('employer.dashboard.tabs.active_jobs') }}</a>
+                <a href="{{ route('employer.dashboard', ['tab' => 'company']) }}" role="tab" aria-selected="{{ $activeTab === 'company' ? 'true' : 'false' }}" aria-current="{{ $activeTab === 'company' ? 'page' : 'false' }}" class="cw-dashboard-tab">{{ __('employer.dashboard.tabs.company_profile') }}</a>
             </nav>
         </div>
 
-        <div x-show="tab === 'overview'" x-cloak>
+        @if($activeTab === 'overview')
         @if($activeJobs === 0 && $pendingJobs === 0 && $totalApplications === 0)
             <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
                 <p class="text-sm font-semibold text-blue-900">{{ __('employer.dashboard.first_time_setup_title') }}</p>
@@ -61,6 +61,15 @@
                         @endforeach
                     </div>
                 @endif
+            </div>
+        @endif
+
+        @if($anonymizedCandidatesCount > 0)
+            <div class="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                <p class="text-sm text-neutral-800">
+                    <span class="font-semibold">{{ __('employer.gdpr.states.anonymized.label') }}</span>
+                    <span class="text-neutral-600">{{ trans_choice('employer.dashboard.anonymized_candidates_count', $anonymizedCandidatesCount, ['count' => $anonymizedCandidatesCount]) }}</span>
+                </p>
             </div>
         @endif
 
@@ -145,9 +154,9 @@
                 </div>
             </div>
         </div>
-        </div>
+        @endif
 
-        <div x-show="tab === 'applications'" x-cloak>
+        @if($activeTab === 'applications')
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
             <article class="cw-card-shell p-5">
@@ -169,15 +178,21 @@
                             <a href="{{ route('employer.applications.candidate', $application) }}" class="block cw-card-shell-interactive p-3">
                                 <div class="flex items-center justify-between gap-2">
                                     <div>
-                                        @php($candidateName = $application->candidate_display_name ?? __('employer.dashboard.candidate_fallback'))
+                                        @php
+                                            $candidateName = $application->candidate_display_name ?? __('employer.dashboard.candidate_fallback');
+                                        @endphp
                                         <p class="text-sm font-semibold text-neutral-900">{{ $candidateName }}</p>
                                         <p class="text-xs text-neutral-500">{{ $application->job?->title ?? __('employer.dashboard.job_unavailable') }}</p>
                                     </div>
-                                    @php($statusKey = 'employer.dashboard.pipeline.' . $application->status)
-                                    @php($statusLabel = __($statusKey))
+                                    @php
+                                        $statusKey = 'employer.dashboard.pipeline.' . $application->status;
+                                        $statusLabel = __($statusKey);
+                                    @endphp
                                     <div class="flex flex-col items-end gap-1">
                                         <x-badge tone="info">{{ $statusLabel === $statusKey ? ucfirst((string) $application->status) : $statusLabel }}</x-badge>
-                                        @php($access = $application->candidate_data_access ?? null)
+                                        @php
+                                            $access = $application->candidate_data_access ?? null;
+                                        @endphp
                                         @if(is_array($access))
                                             <span class="text-[11px] text-neutral-600">{{ $access['label'] ?? '' }}</span>
                                         @endif
@@ -214,9 +229,10 @@
                 @endif
             </article>
         </div>
-        </div>
+        @endif
 
-        <div class="mb-8" x-show="tab === 'analytics'" x-cloak>
+        @if($activeTab === 'analytics')
+        <div class="mb-8">
             <h2 class="cw-heading-2 mb-4">{{ __('employer.dashboard.job_performance_cards') }}</h2>
             @if($jobPerformance->isEmpty())
                 <div class="cw-empty-state cw-surface border border-neutral-200 p-8">
@@ -242,9 +258,9 @@
                                     <p class="text-xs text-slate-500">{{ __('employer.dashboard.applications') }}</p>
                                     <p class="text-lg font-semibold text-slate-900">{{ $job->applications_count }}</p>
                                 </div>
-                                <div class="rounded-lg bg-violet-50 p-2">
-                                    <p class="text-xs text-violet-500">{{ __('employer.dashboard.interview') }}</p>
-                                    <p class="text-lg font-semibold text-violet-700">{{ $job->interview_applications_count }}</p>
+                                <div class="rounded-lg bg-brand-violet-soft p-2">
+                                    <p class="text-xs text-brand-violet">{{ __('employer.dashboard.interview') }}</p>
+                                    <p class="text-lg font-semibold text-brand-violet">{{ $job->interview_applications_count }}</p>
                                 </div>
                                 <div class="rounded-lg bg-emerald-50 p-2">
                                     <p class="text-xs text-emerald-500">{{ __('employer.dashboard.hired') }}</p>
@@ -256,8 +272,9 @@
                 </div>
             @endif
         </div>
+        @endif
 
-        <div x-show="tab === 'jobs'" x-cloak>
+        @if($activeTab === 'jobs')
             <div class="flex items-center justify-between mb-4">
                 <h2 class="cw-heading-2">{{ __('employer.dashboard.your_active_listings') }}</h2>
                 <a href="{{ route('employer.jobs.index') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -309,41 +326,102 @@
                     </div>
                 </div>
             @endif
-        </div>
-        </div>
+        @endif
 
         <!-- Company Profile Status -->
-        @if($employer)
-            <div x-show="tab === 'company'" x-cloak>
-            <div class="mt-12 pt-8 border-t border-neutral-200">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="cw-heading-3">{{ __('employer.company_profile') }}</h2>
-                    <a href="{{ route('employer.settings.profile') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                        {{ __('employer.dashboard.complete_profile_link') }}
-                    </a>
-                </div>
-                <div class="cw-card-shell p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-neutral-600">{{ __('employer.dashboard.profile_completeness') }}</p>
-                            <p class="cw-heading-2 mt-1">{{ $employer->getProfileReadinessAttribute() }}%</p>
+        @if($employer && $activeTab === 'company')
+            @php
+                $companyDisplayName = $employer->company_display_name ?: $employer->company_name;
+                $logoUrl = $employer->logo_path ? asset('storage/' . $employer->logo_path) : null;
+                $profileReadiness = $employer->getProfileReadinessAttribute();
+                $summaryRows = [
+                    __('employer.settings.city') => $employer->city,
+                    __('employer.settings.country') => $employer->country,
+                    __('employer.settings.industry') => $employer->industry,
+                    __('employer.settings.contact_email') => $employer->contact_email,
+                    __('employer.settings.contact_phone') => $employer->contact_phone,
+                ];
+                $missingCompanyFields = [];
+                if (! $employer->city) {
+                    $missingCompanyFields[] = __('employer.settings.city');
+                }
+                if (! $employer->country) {
+                    $missingCompanyFields[] = __('employer.settings.country');
+                }
+                if (! $employer->industry) {
+                    $missingCompanyFields[] = __('employer.settings.industry');
+                }
+                if (! $employer->contact_email) {
+                    $missingCompanyFields[] = __('employer.settings.contact_email');
+                }
+                if (! $employer->contact_phone) {
+                    $missingCompanyFields[] = __('employer.settings.contact_phone');
+                }
+            @endphp
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+                <article class="cw-card-shell p-5 xl:col-span-2">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="h-12 w-12 rounded-xl border border-neutral-200 bg-white overflow-hidden flex items-center justify-center text-sm font-semibold text-slate-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
+                                @if($logoUrl)
+                                    <img src="{{ $logoUrl }}" alt="{{ $companyDisplayName }}" class="h-full w-full object-cover" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
+                                @else
+                                    {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($companyDisplayName, 0, 2)) }}
+                                @endif
+                            </div>
+                            <div class="min-w-0">
+                                <h2 class="cw-heading-3 truncate">{{ $companyDisplayName }}</h2>
+                                <p class="text-sm text-neutral-600">{{ __('employer.dashboard.company_tab.summary_title') }}</p>
+                            </div>
                         </div>
-                        <div class="w-24 h-24">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="8" 
-                                    class="text-emerald-600 cw-ring-rotate-top" 
-                                    stroke-dasharray="{{ $employer->getProfileReadinessAttribute() * 2.83 }},283"
-                                    stroke-linecap="round"
-                                />
-                                <text x="50" y="55" text-anchor="middle" font-size="20" font-weight="bold" fill="currentColor">
-                                    {{ $employer->getProfileReadinessAttribute() }}%
-                                </text>
-                            </svg>
-                        </div>
+                        <a href="{{ route('employer.settings.profile') }}" class="cw-button-primary">{{ __('employer.dashboard.company_tab.edit_profile') }}</a>
                     </div>
-                </div>
-            </div>
+
+                    <dl class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        @foreach($summaryRows as $label => $value)
+                            <div class="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900/80">
+                                <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ $label }}</dt>
+                                <dd class="text-sm font-medium text-neutral-800 mt-0.5 dark:text-neutral-100">{{ $value ?: __('employer.dashboard.company_tab.missing_value') }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+
+                    @if(! empty($missingCompanyFields))
+                        <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mt-5 mb-2">{{ __('employer.dashboard.company_tab.missing_data_title') }}</p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($missingCompanyFields as $field)
+                                <span class="cw-chip">{{ $field }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+                </article>
+
+                <article class="cw-card-shell p-5">
+                    <p class="text-sm text-neutral-600">{{ __('employer.dashboard.profile_completeness') }}</p>
+                    <p class="cw-heading-2 mt-1">{{ $profileReadiness }}%</p>
+
+                    <div class="w-24 h-24 mt-4">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+                            <circle
+                                cx="50"
+                                cy="50"
+                                r="45"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="8"
+                                class="text-emerald-600 cw-ring-rotate-top"
+                                stroke-dasharray="{{ $profileReadiness * 2.83 }},283"
+                                stroke-linecap="round"
+                            />
+                            <text x="50" y="55" text-anchor="middle" font-size="20" font-weight="bold" fill="currentColor">{{ $profileReadiness }}%</text>
+                        </svg>
+                    </div>
+
+                    <p class="text-sm text-neutral-600 mt-4">{{ __('employer.dashboard.company_tab.helper_text') }}</p>
+                    <a href="{{ route('employer.settings.profile') }}" class="cw-button-secondary mt-3">{{ __('employer.dashboard.company_tab.edit_profile') }}</a>
+                </article>
             </div>
         @endif
     </div>

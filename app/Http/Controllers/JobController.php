@@ -211,14 +211,14 @@ class JobController extends Controller
      */
     protected function getCities()
     {
-        return Cache::remember('job_cities', 3600, function () {
-            return Job::active()
-                ->whereNotNull('location_city')
-                ->distinct()
-                ->pluck('location_city')
-                ->sort()
-                ->values();
-        });
+        return Job::active()
+            ->whereNotNull('location_city')
+            ->pluck('location_city')
+            ->map(fn ($city) => is_string($city) ? trim($city) : '')
+            ->filter(fn ($city) => $city !== '')
+            ->unique()
+            ->sort()
+            ->values();
     }
 
     /**
@@ -226,14 +226,14 @@ class JobController extends Controller
      */
     protected function getCategories()
     {
-        return Cache::remember('job_categories', 3600, function () {
-            return Job::active()
-                ->whereNotNull('category')
-                ->distinct()
-                ->pluck('category')
-                ->sort()
-                ->values();
-        });
+        return Job::active()
+            ->whereNotNull('category')
+            ->pluck('category')
+            ->map(fn ($category) => is_string($category) ? trim($category) : '')
+            ->filter(fn ($category) => $category !== '')
+            ->unique()
+            ->sort()
+            ->values();
     }
 
     /**

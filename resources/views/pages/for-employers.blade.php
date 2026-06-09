@@ -40,11 +40,11 @@
 
     @php
         $previewImages = [
-            asset('assets/employers/dashboard/employer-dashboard-1600x900.jpg'),
-            asset('assets/employers/hiring/job-posting-flow-1400x900.jpg'),
-            asset('assets/employers/workflow/application-review-1400x900.jpg'),
-            asset('assets/employers/onboarding/onboarding-tools-1400x900.jpg'),
-            asset('assets/employers/workflow/hiring-workflow-1600x900.jpg'),
+            marketing_image_url('for_employers.platform_01'),
+            marketing_image_url('for_employers.platform_02'),
+            marketing_image_url('for_employers.platform_03'),
+            marketing_image_url('for_employers.platform_04'),
+            marketing_image_url('for_employers.platform_05'),
         ];
     @endphp
 
@@ -80,15 +80,15 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <article class="for-employers-window sm:col-span-2">
-                            <img src="{{ asset('assets/employers/hero/employer-hero-dashboard-1600x900.jpg') }}" alt="{{ __('for_employers.hero.visual_1_alt') }}" class="for-employers-window-image" />
+                            <img src="{{ marketing_image_url('for_employers.hero_dashboard') }}" alt="{{ marketing_image_alt('for_employers.hero_dashboard') }}" class="for-employers-window-image" />
                             <div class="for-employers-window-label">{{ __('for_employers.hero.visual_1_label') }}</div>
                         </article>
                         <article class="for-employers-window">
-                            <img src="{{ asset('assets/employers/hero/onboarding-workflow-1600x900.jpg') }}" alt="{{ __('for_employers.hero.visual_2_alt') }}" class="for-employers-window-image" />
+                            <img src="{{ marketing_image_url('for_employers.hero_onboarding') }}" alt="{{ marketing_image_alt('for_employers.hero_onboarding') }}" class="for-employers-window-image" />
                             <div class="for-employers-window-label">{{ __('for_employers.hero.visual_2_label') }}</div>
                         </article>
                         <article class="for-employers-window">
-                            <img src="{{ asset('assets/employers/hero/candidate-pipeline-1400x900.jpg') }}" alt="{{ __('for_employers.hero.visual_3_alt') }}" class="for-employers-window-image" />
+                            <img src="{{ marketing_image_url('for_employers.hero_pipeline') }}" alt="{{ marketing_image_alt('for_employers.hero_pipeline') }}" class="for-employers-window-image" />
                             <div class="for-employers-window-label">{{ __('for_employers.hero.visual_3_label') }}</div>
                         </article>
                     </div>
@@ -101,14 +101,14 @@
         <div class="cw-container">
             <div class="grid grid-cols-1 xl:grid-cols-[1.02fr_1fr] gap-6 items-start">
                 <article class="cw-surface rounded-3xl p-6 md:p-8">
-                    <p class="cw-kicker text-violet-700">{{ __('for_employers.struggle.eyebrow') }}</p>
+                    <p class="cw-kicker text-brand-violet">{{ __('for_employers.struggle.eyebrow') }}</p>
                     <h2 class="cw-display text-3xl md:text-5xl mt-2">{{ __('for_employers.struggle.headline') }}</h2>
                     <p class="mt-4 text-slate-700 leading-relaxed">{{ __('for_employers.struggle.body_1') }}</p>
                     <p class="mt-4 text-slate-700 leading-relaxed">{{ __('for_employers.struggle.body_2') }}</p>
                     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
                         @foreach(__('for_employers.struggle.problems') as $problem)
                             <div class="for-employers-problem-card">
-                                <svg viewBox="0 0 20 20" fill="none" class="h-5 w-5 text-violet-600 flex-shrink-0" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none" class="h-5 w-5 text-brand-violet flex-shrink-0" aria-hidden="true">
                                     <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"></circle>
                                     <path d="M6 10.5L8.8 13.2L14 7.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
@@ -129,7 +129,7 @@
                         </div>
                     </article>
                     <article class="for-employers-layer-card for-employers-layer-card-shift">
-                        <img src="{{ asset('assets/employers/workflow/hiring-workflow-1600x900.jpg') }}" alt="{{ __('for_employers.struggle.visual_alt') }}" class="h-full w-full object-cover" />
+                        <img src="{{ marketing_image_url('for_employers.complexity') }}" alt="{{ marketing_image_alt('for_employers.complexity') }}" class="h-full w-full object-cover" />
                     </article>
                 </aside>
             </div>
@@ -171,7 +171,7 @@
                 </article>
 
                 <article class="for-employers-window h-full">
-                    <img src="{{ asset('assets/employers/onboarding/onboarding-tools-1400x900.jpg') }}" alt="{{ __('for_employers.experience.visual_alt') }}" class="for-employers-window-image" />
+                    <img src="{{ marketing_image_url('for_employers.better_outcomes') }}" alt="{{ marketing_image_alt('for_employers.better_outcomes') }}" class="for-employers-window-image" />
                 </article>
             </div>
         </div>
@@ -190,7 +190,7 @@
                             <div class="for-employers-step-card">
                                 <div class="flex items-start justify-between gap-3">
                                     <h3 class="text-lg md:text-xl font-semibold text-slate-900">{{ $step['title'] }}</h3>
-                                    <svg viewBox="0 0 20 20" fill="none" class="h-5 w-5 text-violet-600" aria-hidden="true">
+                                    <svg viewBox="0 0 20 20" fill="none" class="h-5 w-5 text-brand-violet" aria-hidden="true">
                                         <path d="M5.5 10H14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                                         <path d="M11.8 6.8L15 10L11.8 13.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
@@ -221,10 +221,10 @@
                 <article class="for-employers-branding-preview">
                     <div class="for-employers-job-card">
                         <div class="for-employers-job-logo" aria-hidden="true">
-                            <img src="{{ asset('assets/employers/branding/employer-branding-1400x900.jpg') }}" alt="{{ __('for_employers.branding.logo_alt') }}" class="h-full w-full object-cover" />
+                            <img src="{{ marketing_image_url('for_employers.extra_01') }}" alt="{{ marketing_image_alt('for_employers.extra_01') }}" class="h-full w-full object-cover" />
                         </div>
                         <div>
-                            <p class="text-xs uppercase tracking-[0.08em] text-violet-700">{{ __('for_employers.branding.card_label') }}</p>
+                            <p class="text-xs uppercase tracking-[0.08em] text-brand-violet">{{ __('for_employers.branding.card_label') }}</p>
                             <h3 class="mt-1 text-xl font-semibold text-slate-900">{{ __('for_employers.branding.card_title') }}</h3>
                             <p class="mt-2 text-slate-600">{{ __('for_employers.branding.card_text') }}</p>
                         </div>
@@ -306,7 +306,7 @@
             }
 
             .for-employers-highlight {
-                color: #6d28d9;
+                color: #fe5000;
             }
 
             .for-employers-hero-glow {
@@ -323,7 +323,7 @@
                 height: 280px;
                 right: -90px;
                 top: -50px;
-                background: radial-gradient(circle, rgba(124, 58, 237, 0.28), rgba(124, 58, 237, 0));
+                background: radial-gradient(circle, rgba(139, 132, 215, 0.32), rgba(139, 132, 215, 0));
             }
 
             .for-employers-hero-glow-b {
@@ -331,7 +331,7 @@
                 height: 300px;
                 left: -120px;
                 bottom: -120px;
-                background: radial-gradient(circle, rgba(56, 189, 248, 0.24), rgba(56, 189, 248, 0));
+                background: radial-gradient(circle, rgba(12, 35, 64, 0.26), rgba(12, 35, 64, 0));
                 animation-delay: 1.6s;
             }
 
@@ -376,11 +376,11 @@
                 display: flex;
                 align-items: center;
                 gap: 0.65rem;
-                border: 1px solid #e2e8f0;
+                border: 1px solid rgba(12, 35, 64, 0.16);
                 border-radius: 0.9rem;
                 background: rgba(255, 255, 255, 0.9);
                 padding: 0.7rem 0.8rem;
-                color: #334155;
+                color: rgba(12, 35, 64, 0.78);
             }
 
             .for-employers-layer-stack {
@@ -428,7 +428,7 @@
                 right: -34px;
                 top: -44px;
                 border-radius: 999px;
-                background: radial-gradient(circle, rgba(196, 181, 253, 0.45), rgba(196, 181, 253, 0));
+                background: radial-gradient(circle, rgba(139, 132, 215, 0.42), rgba(139, 132, 215, 0));
                 pointer-events: none;
             }
 
@@ -436,8 +436,8 @@
                 height: 2.4rem;
                 width: 2.4rem;
                 border-radius: 0.8rem;
-                background: rgba(237, 233, 254, 0.9);
-                color: #7c3aed;
+                background: rgba(139, 132, 215, 0.18);
+                color: #0c2340;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -460,17 +460,17 @@
                 width: 2rem;
                 height: 2rem;
                 border-radius: 999px;
-                background: #7c3aed;
+                background: #fe5000;
                 color: #ffffff;
                 font-weight: 700;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 8px 16px rgba(124, 58, 237, 0.3);
+                box-shadow: 0 8px 16px rgba(254, 80, 0, 0.3);
             }
 
             .for-employers-step-card {
-                border: 1px solid #e2e8f0;
+                border: 1px solid rgba(12, 35, 64, 0.16);
                 border-radius: 1rem;
                 padding: 0.9rem 1rem;
                 background: #ffffff;
@@ -489,7 +489,7 @@
                 grid-template-columns: auto 1fr;
                 gap: 0.95rem;
                 align-items: center;
-                border: 1px solid #e2e8f0;
+                border: 1px solid rgba(12, 35, 64, 0.16);
                 border-radius: 1rem;
                 background: #ffffff;
                 padding: 0.9rem;
@@ -500,12 +500,12 @@
                 height: 4rem;
                 border-radius: 999px;
                 overflow: hidden;
-                border: 2px solid #e2e8f0;
+                border: 2px solid rgba(12, 35, 64, 0.16);
                 flex-shrink: 0;
             }
 
             .for-employers-square-upload {
-                border: 1px solid #e2e8f0;
+                border: 1px solid rgba(12, 35, 64, 0.16);
                 border-radius: 1rem;
                 background: rgba(255, 255, 255, 0.95);
                 padding: 0.85rem;
@@ -539,17 +539,17 @@
             }
 
             .dark .for-employers-page .for-employers-feature-card::after {
-                background: radial-gradient(circle, rgba(99, 102, 241, 0.26), rgba(99, 102, 241, 0));
+                background: radial-gradient(circle, rgba(139, 132, 215, 0.32), rgba(139, 132, 215, 0));
             }
 
             .dark .for-employers-page .for-employers-feature-icon {
-                background: rgba(55, 48, 163, 0.34);
-                color: #c4b5fd;
+                background: rgba(139, 132, 215, 0.28);
+                color: #dde5ed;
             }
 
             .dark .for-employers-page .for-employers-step-badge {
-                background: #8b5cf6;
-                box-shadow: 0 10px 20px rgba(139, 92, 246, 0.35);
+                background: #fe5000;
+                box-shadow: 0 10px 20px rgba(254, 80, 0, 0.35);
             }
 
             .dark .for-employers-page .for-employers-job-logo {

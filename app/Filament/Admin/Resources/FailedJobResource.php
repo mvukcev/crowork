@@ -17,7 +17,7 @@ class FailedJobResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-exclamation-triangle';
 
-    protected static ?string $navigationGroup = 'System';
+    protected static ?string $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Failed Jobs';
 

@@ -11,6 +11,8 @@ class EmailSendLog extends Model
     protected $fillable = [
         'to_address',
         'template',
+        'subject',
+        'body_preview',
         'context_hash',
         'message_id',
         'sent_at',

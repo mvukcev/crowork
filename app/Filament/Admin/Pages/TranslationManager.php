@@ -12,7 +12,7 @@ class TranslationManager extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-language';
 
-    protected static ?string $navigationGroup = 'System';
+    protected static ?string $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Translation Manager';
 

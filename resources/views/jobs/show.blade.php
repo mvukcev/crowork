@@ -388,7 +388,7 @@
                                     <div class="flex-shrink-0">
                                         <div class="w-14 h-14 rounded-full border border-slate-300 bg-gradient-to-br from-white to-slate-50 flex items-center justify-center overflow-hidden">
                                             @if($employerLogoUrl)
-                                                <img src="{{ $employerLogoUrl }}" alt="{{ $companyName }} logo" class="w-full h-full object-cover" loading="lazy" decoding="async" width="56" height="56">
+                                                <img src="{{ $employerLogoUrl }}" alt="{{ $companyName }} logo" class="w-full h-full object-cover" loading="lazy" decoding="async" width="56" height="56" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
                                             @else
                                                 <span class="text-xs font-bold text-slate-600">{{ substr($companyName, 0, 2) }}</span>
                                             @endif

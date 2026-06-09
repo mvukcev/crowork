@@ -2,6 +2,31 @@
 
 use Illuminate\Support\Str;
 
+if (! function_exists('cw_asset')) {
+    /**
+     * Generate a versioned URL for files in /public using filemtime cache busting.
+     */
+    function cw_asset(string $path): string
+    {
+        $normalizedPath = ltrim($path, '/');
+        $url = asset($normalizedPath);
+        $absolutePath = public_path($normalizedPath);
+
+        if (! is_file($absolutePath)) {
+            return $url;
+        }
+
+        $mtime = @filemtime($absolutePath);
+        if ($mtime === false) {
+            return $url;
+        }
+
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        return $url . $separator . 'v=' . $mtime;
+    }
+}
+
 if (! function_exists('setting')) {
     /**
      * Get a platform setting value by key with optional default.
@@ -19,6 +44,34 @@ if (! function_exists('setting')) {
             return \App\Models\Setting::getValue($key, $fallback);
         } catch (\Throwable) {
             return $default;
+        }
+    }
+}
+
+if (! function_exists('marketing_image_url')) {
+    /**
+     * Resolve marketing image URL from override storage or fallback registry path.
+     */
+    function marketing_image_url(string $key): ?string
+    {
+        try {
+            return app(\App\Services\MarketingImageService::class)->url($key);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+}
+
+if (! function_exists('marketing_image_alt')) {
+    /**
+     * Resolve marketing image alt text from override or slot registry metadata.
+     */
+    function marketing_image_alt(string $key): string
+    {
+        try {
+            return app(\App\Services\MarketingImageService::class)->alt($key);
+        } catch (\Throwable) {
+            return '';
         }
     }
 }

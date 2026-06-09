@@ -60,7 +60,7 @@
                             <div class="mt-3 flex items-center gap-4">
                                 <div class="h-20 w-20 rounded-full border border-slate-200 overflow-hidden bg-slate-50 shadow-sm dark:border-gray-700 dark:bg-gray-800" data-logo-preview>
                                     @if($employer->logo_path)
-                                        <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover" data-logo-preview-image data-cw-logo-image data-cw-fallback-text="{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}" data-cw-fallback-label="{{ $employer->company_name }}">
+                                        <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover" data-logo-preview-image data-cw-logo-image data-cw-fallback-text="{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}" data-cw-fallback-label="{{ $employer->company_name }}" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
                                     @else
                                         <div class="h-full w-full grid place-items-center text-sm font-semibold text-slate-500" data-logo-preview-fallback>
                                             {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}

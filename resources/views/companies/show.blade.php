@@ -69,7 +69,7 @@
                         <div class="flex flex-col md:flex-row md:items-start gap-5">
                             <div class="h-20 w-20 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden grid place-items-center flex-shrink-0">
                                 @if($logoUrl)
-                                    <img src="{{ $logoUrl }}" alt="{{ $displayName }} logo" class="h-full w-full object-cover">
+                                    <img src="{{ $logoUrl }}" alt="{{ $displayName }} logo" class="h-full w-full object-cover" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
                                 @else
                                     <span class="text-2xl font-semibold text-slate-700">{{ \Illuminate\Support\Str::substr($displayName, 0, 1) }}</span>
                                 @endif

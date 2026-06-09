@@ -55,6 +55,7 @@ return [
         'pending_approval_notices' => 'Obavijesti o čekanju odobrenja',
         'pending_jobs_waiting' => '{1} :count oglas čeka administratorski pregled.|[2,4] :count oglasa čekaju administratorski pregled.|[5,*] :count oglasa čeka administratorski pregled.',
         'open_job_listings' => 'Otvori oglase za posao',
+        'anonymized_candidates_count' => '{1} :count kandidat je trenutno prikazan u anonimiziranom načinu.|[2,*] :count kandidata je trenutno prikazano u anonimiziranom načinu.',
         'submitted_on' => 'predano :time',
         'job_overview' => 'Pregled poslova',
         'active_jobs' => 'Aktivni poslovi',
@@ -105,11 +106,19 @@ return [
             'hired' => 'Zaposlen',
         ],
         'tabs' => [
+            'aria_label' => 'Kartice nadzorne ploče poslodavca',
             'quick_overview' => 'Brzi pregled',
             'all_applications' => 'Sve prijave',
             'job_analytics' => 'Analitika oglasa',
             'active_jobs' => 'Aktivni oglasi',
             'company_profile' => 'Profil tvrtke',
+        ],
+        'company_tab' => [
+            'summary_title' => 'Sažetak profila tvrtke',
+            'edit_profile' => 'Uredi profil tvrtke',
+            'missing_data_title' => 'Nedostajući podaci tvrtke',
+            'missing_value' => 'Nije postavljeno',
+            'helper_text' => 'Potpun profil tvrtke gradi povjerenje i poboljšava učinak oglasa.',
         ],
     ],
     'applications_pipeline' => [

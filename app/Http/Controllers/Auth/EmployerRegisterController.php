@@ -36,6 +36,7 @@ class EmployerRegisterController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'city' => ['nullable', 'string', 'max:100'],
+            'oib' => ['required', 'string', 'max:32'],
         ]);
 
         // Create user with employer role
@@ -50,6 +51,7 @@ class EmployerRegisterController extends Controller
         Employer::create([
             'user_id' => $user->id,
             'company_name' => $request->company_name,
+            'oib' => preg_replace('/\s+/', '', (string) $request->oib),
             'city' => $request->city,
         ]);
 

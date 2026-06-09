@@ -187,13 +187,13 @@ data-cw-public-nav>
             <div class="flex items-center gap-8">
                 <a href="{{ route('home') }}" class="flex items-center">
                     <img
-                        src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                        src="{{ cw_asset('assets/branding/CW-Logo-Dark.svg') }}"
                         alt="CroWork"
                         class="h-6 w-auto cw-logo-on-light"
                         onerror="this.style.display='none';"
                     >
                     <img
-                        src="{{ asset('assets/branding/CW-Logo-Light.svg') }}"
+                        src="{{ cw_asset('assets/branding/CW-Logo-Light.svg') }}"
                         alt="CroWork"
                         class="h-6 w-auto cw-logo-on-dark"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
@@ -312,7 +312,7 @@ data-cw-public-nav>
                         <a href="{{ url('/employer') }}" class="cw-button-secondary cw-nav-control" data-cw-track-click="navigation_click">{{ __('navigation.dashboard') }}</a>
                     @endif
                     @if(auth()->user()->isWorker())
-                        <a href="{{ route('worker.applications.index') }}" class="cw-button-secondary cw-nav-control" data-cw-track-click="navigation_click">{{ __('navigation.dashboard') }}</a>
+                        <a href="{{ route('worker.dashboard') }}" class="cw-button-secondary cw-nav-control" data-cw-track-click="navigation_click">{{ __('navigation.dashboard') }}</a>
                     @endif
                     <form method="POST" action="{{ route('logout') }}" data-cw-track-submit="logout">
                         @csrf
@@ -341,8 +341,8 @@ data-cw-public-nav>
 
             <div class="cw-mobile-panel-toolbar flex items-center justify-between px-6 pt-6 pb-2 relative z-[1320]">
                 <a href="{{ route('home') }}" class="flex items-center gap-2" data-cw-mobile-panel-main>
-                    <img src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-6 w-auto cw-logo-on-light">
-                    <img src="{{ asset('assets/branding/CW-Logo-Light.svg') }}" alt="CroWork" class="h-6 w-auto cw-logo-on-dark">
+                    <img src="{{ cw_asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-6 w-auto cw-logo-on-light">
+                    <img src="{{ cw_asset('assets/branding/CW-Logo-Light.svg') }}" alt="CroWork" class="h-6 w-auto cw-logo-on-dark">
                 </a>
                 <button type="button" class="cw-header-icon-button" data-cw-mobile-close aria-label="{{ __('settings.close_menu') }}" data-cw-mobile-panel-main>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="cw-header-icon" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" /></svg>

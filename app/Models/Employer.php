@@ -11,6 +11,7 @@ class Employer extends Model
         'user_id',
         'approved_at',
         'company_name',
+        'oib',
         'company_display_name',
         'slug',
         'logo_path',

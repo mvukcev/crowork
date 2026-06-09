@@ -42,6 +42,12 @@
                     <x-input-error :messages="$errors->get('city')" />
                 </div>
 
+                <div class="mt-4">
+                    <label class="cw-label" for="oib">{{ __('auth.employer_oib') }}</label>
+                    <input id="oib" name="oib" class="cw-field" value="{{ old('oib') }}" placeholder="{{ __('auth.employer_oib_placeholder') }}" maxlength="32" required @if($errors->has('oib')) aria-invalid="true" @endif>
+                    <x-input-error :messages="$errors->get('oib')" />
+                </div>
+
                 <button type="button" class="cw-button-primary w-full mt-6" @click="step = 2">{{ __('auth.continue') }}</button>
                 
                 <p class="text-xs text-slate-500 mt-4 text-center">{{ __('auth.data_secure_encryption') }}</p>

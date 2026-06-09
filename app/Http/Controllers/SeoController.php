@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Education;
 use App\Models\Employer;
 use App\Models\Job;
+use App\Models\ResourcePost;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -217,7 +218,7 @@ class SeoController extends Controller
      */
     private function resourceSlugs(): array
     {
-        return [
+        $staticSlugs = [
             'work-permits',
             'documents-needed',
             'accommodation',
@@ -225,5 +226,12 @@ class SeoController extends Controller
             'employer-obligations',
             'faq-foreign-workers',
         ];
+
+        $postSlugs = ResourcePost::query()
+            ->published()
+            ->pluck('slug')
+            ->all();
+
+        return array_values(array_unique(array_merge($staticSlugs, $postSlugs)));
     }
 }

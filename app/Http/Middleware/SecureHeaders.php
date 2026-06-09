@@ -15,6 +15,17 @@ class SecureHeaders
     {
         $response = $next($request);
 
+        $isLocalEnvironment = app()->environment(['local', 'testing']);
+        $viteScriptSources = $isLocalEnvironment
+            ? " 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net http://127.0.0.1:5173 http://localhost:5173 http://[::1]:5173"
+            : " 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net";
+        $viteStyleSources = $isLocalEnvironment
+            ? " 'self' 'unsafe-inline' cdn.jsdelivr.net http://127.0.0.1:5173 http://localhost:5173 http://[::1]:5173"
+            : " 'self' 'unsafe-inline' cdn.jsdelivr.net";
+        $viteConnectSources = $isLocalEnvironment
+            ? " 'self' api.github.com http://127.0.0.1:5173 http://localhost:5173 http://[::1]:5173 ws://127.0.0.1:5173 ws://localhost:5173 ws://[::1]:5173"
+            : " 'self' api.github.com";
+
         // Prevent clickjacking attacks
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
@@ -34,12 +45,12 @@ class SecureHeaders
         // Inline scripts disabled except for nonces; external scripts from same origin
         $csp = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net",
-            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com",
+            "script-src{$viteScriptSources}",
+            "style-src{$viteStyleSources} fonts.googleapis.com",
             "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net",
             "img-src 'self' data: https:",
             "media-src 'self'",
-            "connect-src 'self' api.github.com",
+            "connect-src{$viteConnectSources}",
             "frame-ancestors 'self'",
             "base-uri 'self'",
             "form-action 'self'",

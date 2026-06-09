@@ -7,6 +7,10 @@ return [
     'search_placeholder' => 'Search guides, relocation topics, onboarding help...',
     'filter_all' => 'All',
     'categories' => [
+        'guide' => 'Guides',
+        'article' => 'Articles',
+        'interview' => 'Interviews',
+        'news' => 'News',
         'work_permits' => 'Work permits',
         'documents' => 'Documents',
         'housing' => 'Housing',
@@ -18,6 +22,7 @@ return [
     ],
     'featured_title' => 'Featured Guides',
     'featured_subtitle' => 'Practical, readable guides for each stage of your relocation and onboarding journey.',
+    'read_time_default' => '5 min read',
     'read_times' => [
         'work-permits' => '5 min read',
         'documents-needed' => '4 min read',

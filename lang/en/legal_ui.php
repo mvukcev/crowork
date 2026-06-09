@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'content_unavailable_title' => 'Legal Document Unavailable',
+    'content_unavailable_body' => 'This legal document is temporarily unavailable. Please contact support for the current version.',
     'reaccept' => [
         'title' => 'Updated Terms and Privacy Policy',
         'heading' => 'Updated Terms and Privacy Policy',

@@ -62,6 +62,8 @@ return [
     'name' => 'Name',
     'your_full_name' => 'Your full name',
     'company_name' => 'Company name',
+    'employer_oib' => 'Company OIB',
+    'employer_oib_placeholder' => 'e.g. 12345678901',
     'contact_name' => 'Contact name',
     'city_hiring' => 'City (where you are hiring)',
     'account_type' => 'Account type',
@@ -126,7 +128,7 @@ return [
     'status_registration_disabled_new' => 'New registrations are currently disabled for this account type.',
     'status_account_pending_deletion' => 'This account has a pending deletion request and cannot be used to sign in.',
     'status_profile_updated' => 'Profile updated successfully.',
-    'status_account_created_verify_pending' => 'Account created successfully! Please verify your email. After verification, your account must be approved before you can post jobs.',
+    'status_account_created_verify_pending' => 'Account created successfully! Please verify your email to continue.',
 
     'email_invalid' => 'Invalid email address.',
     'password_required' => 'Password is required.',

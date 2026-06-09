@@ -49,6 +49,18 @@
                 @csrf
                 @method('PUT')
 
+                <datalist id="country-options-list">
+                    @foreach($countryOptions as $countryCode => $countryName)
+                        <option value="{{ $countryName }}" data-code="{{ $countryCode }}"></option>
+                    @endforeach
+                </datalist>
+
+                <datalist id="skill-suggestions-list">
+                    @foreach($skillSuggestions as $skillSuggestion)
+                        <option value="{{ $skillSuggestion }}"></option>
+                    @endforeach
+                </datalist>
+
                 <template x-for="(role, index) in preservedDesiredRoles" :key="`desired-role-preserved-${index}`">
                     <input type="hidden" name="desired_roles[]" :value="role">
                 </template>
@@ -61,15 +73,15 @@
                     <div class="cv-grid">
                         <div>
                             <label class="cw-label" for="first_name">{{ __('worker_profile.editor.label_first_name') }}</label>
-                            <input id="first_name" name="first_name" class="cw-field" value="{{ old('first_name', $profile->first_name) }}" required>
+                            <input id="first_name" name="first_name" class="cw-field" value="{{ old('first_name', $profile->first_name) }}" autocomplete="given-name" required>
                         </div>
                         <div>
                             <label class="cw-label" for="last_name">{{ __('worker_profile.editor.label_last_name') }}</label>
-                            <input id="last_name" name="last_name" class="cw-field" value="{{ old('last_name', $profile->last_name) }}" required>
+                            <input id="last_name" name="last_name" class="cw-field" value="{{ old('last_name', $profile->last_name) }}" autocomplete="family-name" required>
                         </div>
                         <div>
                             <label class="cw-label" for="nationality_country_code">{{ __('worker_profile.editor.label_nationality') }}</label>
-                            <input id="nationality_country_code" name="nationality_country_code" class="cw-field" value="{{ old('nationality_country_code', $profile->nationality_country_code) }}">
+                            <input id="nationality_country_code" name="nationality_country_code" class="cw-field" list="country-options-list" autocomplete="country-name" value="{{ $nationalityDisplayValue }}" placeholder="{{ __('worker_profile.editor.placeholder_country') }}">
                         </div>
                         <div>
                             <label class="cw-label" for="birth_year">{{ __('worker_profile.editor.label_birth_year') }}</label>
@@ -77,11 +89,11 @@
                         </div>
                         <div>
                             <label class="cw-label" for="current_country">{{ __('worker_profile.editor.label_current_country') }}</label>
-                            <input id="current_country" name="current_country" class="cw-field" value="{{ old('current_country', $profile->current_country) }}">
+                            <input id="current_country" name="current_country" class="cw-field" list="country-options-list" autocomplete="country-name" value="{{ $currentCountryDisplayValue }}" placeholder="{{ __('worker_profile.editor.placeholder_country') }}">
                         </div>
                         <div>
                             <label class="cw-label" for="current_city">{{ __('worker_profile.editor.label_current_city') }}</label>
-                            <input id="current_city" name="current_city" class="cw-field" value="{{ old('current_city', $profile->current_city) }}">
+                            <input id="current_city" name="current_city" class="cw-field" autocomplete="address-level2" value="{{ old('current_city', $profile->current_city) }}">
                         </div>
                         <div>
                             <label class="cw-label" for="desired_city">{{ __('worker_profile.editor.label_desired_city') }}</label>
@@ -110,7 +122,15 @@
                         </div>
                         <div>
                             <label class="cw-label" for="visa_work_permit_status">{{ __('worker_profile.editor.label_visa_status') }}</label>
-                            <input id="visa_work_permit_status" name="visa_work_permit_status" class="cw-field" value="{{ old('visa_work_permit_status', $profile->visa_work_permit_status) }}">
+                            <select id="visa_work_permit_status" name="visa_work_permit_status" class="cw-field">
+                                <option value="">{{ __('worker_profile.editor.select_placeholder') }}</option>
+                                @foreach($visaStatusOptions as $visaValue => $visaLabel)
+                                    <option value="{{ $visaValue }}" @selected($visaCurrentValue === $visaValue)>{{ $visaLabel }}</option>
+                                @endforeach
+                                @if($visaCurrentValue !== '' && !array_key_exists($visaCurrentValue, $visaStatusOptions))
+                                    <option value="{{ $visaCurrentValue }}" selected>{{ __('worker_profile.editor.legacy_value_prefix') }} {{ $visaCurrentValue }}</option>
+                                @endif
+                            </select>
                         </div>
                         <div>
                             <label class="cw-label" for="profile_visibility">{{ __('worker_profile.editor.label_profile_visibility') }}</label>
@@ -148,7 +168,7 @@
                                 <div class="cv-grid">
                                     <div>
                                         <label class="cw-label">{{ __('worker_profile.editor.label_language') }}</label>
-                                        <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_language'))" x-model="row.language" :name="`languages[${idx}][language]`">
+                                        <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_language'))" x-model="row.language" :name="`languages[${idx}][language]`" autocomplete="language">
                                     </div>
                                     <div>
                                         <label class="cw-label">{{ __('worker_profile.editor.label_level') }}</label>
@@ -189,11 +209,11 @@
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_city') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_city'))" x-model="education.city" :name="`educations[${idx}][city]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_city'))" x-model="education.city" :name="`educations[${idx}][city]`" autocomplete="address-level2">
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_country') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_country'))" x-model="education.country" :name="`educations[${idx}][country]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_country'))" x-model="education.country" :name="`educations[${idx}][country]`" list="country-options-list" autocomplete="country-name">
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_start') }}</label>
@@ -233,15 +253,15 @@
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_employer') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_employer'))" x-model="experience.company_name" :name="`experiences[${idx}][company_name]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_employer'))" x-model="experience.company_name" :name="`experiences[${idx}][company_name]`" autocomplete="organization">
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_city') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_city'))" x-model="experience.city" :name="`experiences[${idx}][city]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_city'))" x-model="experience.city" :name="`experiences[${idx}][city]`" autocomplete="address-level2">
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_country') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_country'))" x-model="experience.country" :name="`experiences[${idx}][country]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_country'))" x-model="experience.country" :name="`experiences[${idx}][country]`" list="country-options-list" autocomplete="country-name">
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_start') }}</label>
@@ -319,7 +339,7 @@
                         <div class="cv-field--full">
                             <label class="cw-label">{{ __('worker_profile.editor.section_skills') }}</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <input x-model="skillInput" class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_skill'))" @keydown.enter.prevent="addSkill()">
+                                <input x-model="skillInput" class="cw-field" list="skill-suggestions-list" :placeholder="@js(__('worker_profile.editor.placeholder_skill'))" @keydown.enter.prevent="addSkill()">
                                 <button type="button" class="cw-button-secondary w-full" @click="addSkill()">{{ __('worker_profile.editor.add_skill') }}</button>
                             </div>
                             <div class="cw-cv-chip-list">
@@ -362,15 +382,15 @@
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_company') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_company'))" x-model="reference.company" :name="`references_list[${idx}][company]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_company'))" x-model="reference.company" :name="`references_list[${idx}][company]`" autocomplete="organization">
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_email') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_email'))" x-model="reference.contact_email" :name="`references_list[${idx}][contact_email]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_email'))" x-model="reference.contact_email" :name="`references_list[${idx}][contact_email]`" autocomplete="email">
                                 </div>
                                 <div>
                                     <label class="cw-label">{{ __('worker_profile.editor.label_phone') }}</label>
-                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_phone'))" x-model="reference.contact_phone" :name="`references_list[${idx}][contact_phone]`">
+                                    <input class="cw-field" :placeholder="@js(__('worker_profile.editor.placeholder_phone'))" x-model="reference.contact_phone" :name="`references_list[${idx}][contact_phone]`" autocomplete="tel">
                                 </div>
                                 <div class="cv-field--full">
                                     <label class="cw-label">{{ __('worker_profile.editor.label_note') }}</label>
@@ -451,7 +471,8 @@
                                     x-show="!photoPreview && hasPhoto"
                                     src="{{ $profile->photoUrl() ?? '' }}" 
                                     alt="{{ __('worker_profile.editor.photo_current_alt') }}" 
-                                    class="h-20 w-20 rounded-full object-cover border-2 border-slate-200">
+                                    class="h-20 w-20 rounded-full object-cover border-2 border-slate-200"
+                                    onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/worker/worker-avatar-400x400.jpg') }}';">
                             </div>
                             <div class="flex gap-2">
                                 <button 
@@ -503,7 +524,9 @@
                 addSkill() {
                     const value = (this.skillInput || '').trim();
                     if (!value) return;
-                    if (!this.skills.includes(value)) this.skills.push(value);
+                    const lower = value.toLowerCase();
+                    const duplicate = this.skills.some((skill) => (skill || '').toLowerCase() === lower);
+                    if (!duplicate) this.skills.push(value);
                     this.skillInput = '';
                 },
 

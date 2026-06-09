@@ -18,7 +18,7 @@ class AbuseReportResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
-    protected static ?string $navigationGroup = 'Moderation';
+    protected static ?string $navigationGroup = 'Applications';
 
     protected static ?string $navigationLabel = 'Abuse Reports';
 

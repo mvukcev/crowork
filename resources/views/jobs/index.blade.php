@@ -183,12 +183,13 @@
                     <h2 class="text-2xl md:text-3xl font-semibold text-slate-900 mb-6">{{ __('ui.jobs_page.why_crowork_title') }}</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                         <!-- Transparent listings -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-indigo-100">
-                                        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -200,12 +201,12 @@
                         </div>
 
                         <!-- Faster applications -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100">
-                                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 2.25 4.5 14.25h6l-1.5 7.5 9-12h-6l1.5-7.5Z"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -217,12 +218,16 @@
                         </div>
 
                         <!-- Modern hiring -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-purple-100">
-                                        <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 18h9"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 12h9"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 8.25 1.5 1.5 3-3"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 14.25 1.5 1.5 3-3"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -234,12 +239,16 @@
                         </div>
 
                         <!-- Multilingual support -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-emerald-100">
-                                        <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 00.948-.684l1.498-4.493a1 1 0 011.502-.684l1.498 4.493a1 1 0 00.948.684H19a2 2 0 012 2v1M3 5a2 2 0 012-2h.5a1 1 0 01.855.468L7.5 4m0 0l1.5-2a1 1 0 011.414 0m0 0l1.5 2m-9 0h2m6 0h2"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c4.5 0 8.25 4.03 8.25 9s-3.75 9-8.25 9"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-4.5 0-8.25 4.03-8.25 9s3.75 9 8.25 9"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.2 2.2 3.75 5.5 3.75 9S14.2 18.8 12 21"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-2.2 2.2-3.75 5.5-3.75 9S9.8 18.8 12 21"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -399,18 +408,18 @@
                         </div>
 
                         <div class="cw-filter-topbar-modern">
-                            <div>
+                            <div class="cw-topbar-field">
                                 <label class="cw-label" for="q">{{ __('ui.jobs_page.search_jobs_label') }}</label>
-                                <input id="q" name="q" value="{{ $filters['q'] ?? request('q') }}" class="cw-field cw-field-premium" placeholder="{{ __('ui.jobs_page.search_placeholder') }}">
+                                <input id="q" name="q" value="{{ $filters['q'] ?? request('q') }}" class="cw-field cw-field-premium w-full" placeholder="{{ __('ui.jobs_page.search_placeholder') }}">
                             </div>
-                            <div class="cw-modern-select" @click.outside="cityOpen = false">
+                            <div class="cw-modern-select cw-topbar-city" @click.outside="cityOpen = false">
                                 <label class="cw-label">{{ __('ui.jobs_page.city_label') }}</label>
-                                <button type="button" class="cw-field cw-field-premium w-full text-left flex items-center justify-between" @click="cityOpen = !cityOpen" :aria-expanded="cityOpen ? 'true' : 'false'" aria-controls="job-city-popover">
+                                <button type="button" class="cw-field cw-field-premium cw-select-trigger w-full text-left flex items-center justify-between" @click="cityOpen = !cityOpen" :aria-expanded="cityOpen ? 'true' : 'false'" aria-controls="job-city-popover">
                                     <span x-text="cityValue || @js(__('ui.jobs_page.all_cities'))"></span>
                                     <span class="text-xs text-slate-500">▾</span>
                                 </button>
                                 <div id="job-city-popover" x-show="cityOpen" x-cloak x-transition.opacity.scale.origin.top class="cw-select-popover mt-2">
-                                    <input type="text" x-model="citySearch" class="cw-field cw-field-premium mb-2" :placeholder="@js(__('ui.jobs_page.city_search_placeholder'))">
+                                    <input type="text" x-model="citySearch" class="cw-field cw-field-premium mb-2 w-full" :placeholder="@js(__('ui.jobs_page.city_search_placeholder'))">
                                     <template x-if="recentCities.length">
                                         <div class="mb-2">
                                             <p class="cw-filter-heading !mb-2">{{ __('ui.jobs_page.recent_locations') }}</p>
@@ -429,13 +438,15 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-end gap-2">
-                                <button class="cw-button-primary min-w-[132px]" type="submit" :disabled="submitting">
+                            <div class="cw-topbar-actions">
+                                <button class="cw-button-primary cw-topbar-action w-full md:w-auto" type="submit" :disabled="submitting">
                                     <span data-cw-submit-label data-default-label="{{ __('ui.jobs_page.search_button') }}" data-loading-label="Updating..." aria-live="polite">{{ __('ui.jobs_page.search_button') }}</span>
                                 </button>
+                            </div>
+                            <div class="cw-topbar-actions hidden md:flex">
                                 <button
                                     type="button"
-                                    class="cw-button-secondary hidden md:inline-flex"
+                                    class="cw-button-secondary cw-topbar-action w-full"
                                     data-cw-filter-toggle
                                     aria-controls="job-advanced-filters"
                                     :aria-expanded="desktopAdvancedOpen ? 'true' : 'false'"
@@ -478,7 +489,7 @@
                                 <button type="button" class="cw-button-secondary !px-3 !py-2 text-xs" data-cw-filter-close aria-controls="job-advanced-filters" @click="mobilePanelOpen = false">{{ __('ui.jobs_page.close_filters') }}</button>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
                                 <div>
                                     <p class="cw-filter-heading">{{ __('ui.jobs_page.primary_filters') }}</p>
                                     <div class="cw-pill-group">
@@ -509,7 +520,17 @@
                                     </div>
                                 </div>
 
-                                <div class="md:col-span-2 xl:col-span-2">
+                                <div>
+                                    <label class="cw-label" for="category">{{ __('ui.jobs_page.category_label') }}</label>
+                                    <select id="category" class="cw-field cw-field-premium w-full" x-model="categoryValue">
+                                        <option value="">{{ __('ui.jobs_page.all_categories') }}</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category }}">{{ cw_localize_job_value('category', $category) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="md:col-span-2 xl:col-span-4">
                                     <div class="cw-range-card">
                                         <div class="flex items-center justify-between gap-3">
                                             <label class="cw-label mb-0">{{ __('ui.jobs_page.salary_range_label') }}</label>
@@ -524,17 +545,7 @@
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label class="cw-label" for="category">{{ __('ui.jobs_page.category_label') }}</label>
-                                    <select id="category" class="cw-field cw-field-premium" x-model="categoryValue">
-                                        <option value="">{{ __('ui.jobs_page.all_categories') }}</option>
-                                        @foreach($categories as $category)
-                                            <option value="{{ $category }}">{{ cw_localize_job_value('category', $category) }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="md:col-span-2 xl:col-span-3">
+                                <div class="md:col-span-2 xl:col-span-4">
                                     <p class="cw-filter-heading">{{ __('ui.jobs_page.quick_filters_title') }}</p>
                                     <div class="cw-pill-group">
                                         <button type="button" class="cw-choice-pill" :class="quick.accommodation ? 'is-active is-accent' : ''" @click="toggleQuick('accommodation')">{{ __('ui.jobs_page.accommodation_label') }}</button>

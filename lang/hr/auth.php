@@ -62,6 +62,8 @@ return [
     'name' => 'Ime',
     'your_full_name' => 'Vase puno ime',
     'company_name' => 'Naziv tvrtke',
+    'employer_oib' => 'OIB tvrtke/obrta/organizacije',
+    'employer_oib_placeholder' => 'npr. 12345678901',
     'contact_name' => 'Ime kontakt osobe',
     'city_hiring' => 'Grad (gdje zaposljavate)',
     'account_type' => 'Vrsta računa',
@@ -126,7 +128,7 @@ return [
     'status_registration_disabled_new' => 'Nove registracije za ovu vrstu racuna su trenutno onemogucene.',
     'status_account_pending_deletion' => 'Za ovaj racun postoji zahtjev za brisanje i prijava vise nije dostupna.',
     'status_profile_updated' => 'Profil je uspjesno azuriran.',
-    'status_account_created_verify_pending' => 'Racun je uspjesno kreiran! Potvrdite e-mail adresu. Nakon potvrde, racun mora biti odobren prije objave poslova.',
+    'status_account_created_verify_pending' => 'Racun je uspjesno kreiran! Potvrdite e-mail adresu za nastavak.',
 
     'email_invalid' => 'Nevaljana e-mail adresa.',
     'password_required' => 'Lozinka je obavezna.',

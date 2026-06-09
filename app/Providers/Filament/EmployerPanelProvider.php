@@ -19,7 +19,6 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -42,7 +41,32 @@ class EmployerPanelProvider extends PanelProvider
             ->darkModeBrandLogo(asset('assets/branding/CW-Logo-Light.svg'))
             ->brandLogoHeight('2rem')
             ->colors([
-                'primary' => Color::Green,
+                'primary' => [
+                    50 => '#fff4ec',
+                    100 => '#ffe5d6',
+                    200 => '#ffc4a7',
+                    300 => '#ff9f76',
+                    400 => '#ff7641',
+                    500 => '#fe5000',
+                    600 => '#db4300',
+                    700 => '#b53800',
+                    800 => '#902d00',
+                    900 => '#732400',
+                    950 => '#4a1700',
+                ],
+                'gray' => [
+                    50 => '#f4f7fa',
+                    100 => '#e8eef4',
+                    200 => '#dde5ed',
+                    300 => '#bcc9d7',
+                    400 => '#8fa1b6',
+                    500 => '#5e728d',
+                    600 => '#425570',
+                    700 => '#2c3f5a',
+                    800 => '#1b2f4b',
+                    900 => '#0c2340',
+                    950 => '#06182d',
+                ],
             ])
             ->resources([
                 EmployerProfileResource::class,
@@ -68,6 +92,10 @@ class EmployerPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('filament.partials.topbar-overlay-fix')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => view('filament.partials.brand-theme')->render()
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_START,

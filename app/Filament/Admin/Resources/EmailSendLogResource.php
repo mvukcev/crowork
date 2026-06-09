@@ -15,7 +15,7 @@ class EmailSendLogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope-open';
 
-    protected static ?string $navigationGroup = 'System';
+    protected static ?string $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Email Send Log';
 
@@ -53,6 +53,16 @@ class EmailSendLogResource extends Resource
                     ->badge()
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('subject')
+                    ->label('Subject')
+                    ->searchable()
+                    ->limit(80)
+                    ->tooltip(fn (?string $state): ?string => is_string($state) && mb_strlen($state) > 80 ? $state : null),
+                Tables\Columns\TextColumn::make('body_preview')
+                    ->label('Body Preview')
+                    ->wrap()
+                    ->limit(120)
+                    ->tooltip(fn (?string $state): ?string => is_string($state) && mb_strlen($state) > 120 ? $state : null),
                 Tables\Columns\TextColumn::make('message_id')
                     ->label('Message ID')
                     ->toggleable(isToggledHiddenByDefault: true)

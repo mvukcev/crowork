@@ -1,0 +1,45 @@
+@layer base {
+    :root {
+        /* Brand source of truth */
+        --cw-brand-orange: #fe5000;
+        --cw-brand-orange-hover: #db4300;
+        --cw-brand-orange-active: #b53800;
+        --cw-brand-orange-soft: rgba(254, 80, 0, 0.1);
+        --cw-brand-orange-border: rgba(254, 80, 0, 0.34);
+        --cw-brand-orange-rgb: 254 80 0;
+
+        --cw-brand-violet: #8b84d7;
+        --cw-brand-violet-rgb: 139 132 215;
+
+        --cw-brand-navy: #0c2340;
+        --cw-brand-navy-soft: #1b2f4b;
+        --cw-brand-navy-rgb: 12 35 64;
+
+        --cw-brand-lime: #e2e868;
+        --cw-brand-lime-rgb: 226 232 104;
+
+        /* Light semantic palette */
+        --cw-light-bg: #f4f7fa;
+        --cw-light-surface: #ffffff;
+        --cw-light-surface-soft: #dde5ed;
+        --cw-light-surface-muted: #e8eef4;
+        --cw-light-bg-soft: #eef2f7;
+        --cw-light-ink: #0c2340;
+        --cw-light-muted: rgba(12, 35, 64, 0.74);
+        --cw-light-subtle: rgba(12, 35, 64, 0.56);
+        --cw-light-hairline: rgba(12, 35, 64, 0.16);
+        --cw-light-hairline-strong: rgba(12, 35, 64, 0.26);
+
+        /* Dark semantic palette */
+        --cw-dark-bg: #06182d;
+        --cw-dark-surface: #0b223d;
+        --cw-dark-surface-soft: #143154;
+        --cw-dark-surface-muted: #1c4068;
+        --cw-dark-bg-soft: #0b223d;
+        --cw-dark-ink: #f4f7fa;
+        --cw-dark-muted: rgba(244, 247, 250, 0.78);
+        --cw-dark-subtle: rgba(221, 229, 237, 0.64);
+        --cw-dark-hairline: rgba(221, 229, 237, 0.22);
+        --cw-dark-hairline-strong: rgba(221, 229, 237, 0.36);
+    }
+}

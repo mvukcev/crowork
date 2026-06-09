@@ -7,9 +7,9 @@
 
     <title>CroWork - Coming Soon</title>
     <meta name="description" content="CroWork is getting ready. Private preview access is available for approved partners.">
-    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ cw_asset('assets/branding/CW-Favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 

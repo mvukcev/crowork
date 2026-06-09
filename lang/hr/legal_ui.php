@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'content_unavailable_title' => 'Pravni dokument trenutačno nije dostupan',
+    'content_unavailable_body' => 'Ovaj pravni dokument je privremeno nedostupan. Za aktualnu verziju kontaktirajte podršku.',
     'reaccept' => [
         'title' => 'Ažurirani uvjeti i pravila privatnosti',
         'heading' => 'Ažurirani uvjeti i pravila privatnosti',

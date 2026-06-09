@@ -29,7 +29,7 @@
         <button
             type="button"
             x-ref="button"
-            class="relative inline-flex h-8 w-8 min-h-8 min-w-8 shrink-0 items-center justify-center rounded-full border-0 bg-transparent p-0 text-gray-700 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+            class="relative inline-flex h-8 w-8 min-h-8 min-w-8 shrink-0 items-center justify-center rounded-full border-0 bg-transparent p-0 text-gray-700 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white"
             @click.prevent.stop="toggle()"
             aria-label="Notifications"
             aria-haspopup="true"
@@ -40,7 +40,7 @@
                 <path d="M9.5 17a2.5 2.5 0 0 0 5 0"/>
             </svg>
             @if($notificationUnreadCount > 0)
-                <span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 rounded-full bg-[rgb(255,85,0)] text-white text-[9px] leading-[14px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
+                <span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 rounded-full bg-[rgb(254,80,0)] text-white text-[9px] leading-[14px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
             @endif
         </button>
 
@@ -80,22 +80,26 @@
             }
 
             .dark .cw-admin-notification-panel {
-                background-color: rgb(3 7 18);
-                border-color: rgba(255, 255, 255, 0.14);
-                color: rgb(243 244 246);
+                background-color: rgb(11 34 61);
+                border-color: rgba(221, 229, 237, 0.24);
+                color: rgb(244 247 250);
             }
 
             .dark .cw-admin-notification-panel .border-gray-100 {
-                border-color: rgba(255, 255, 255, 0.14) !important;
+                border-color: rgba(221, 229, 237, 0.2) !important;
             }
 
             .dark .cw-admin-notification-panel .text-gray-900 {
-                color: rgb(243 244 246) !important;
+                color: rgb(244 247 250) !important;
             }
 
             .dark .cw-admin-notification-panel .text-gray-600,
             .dark .cw-admin-notification-panel .text-gray-500 {
-                color: rgb(209 213 219) !important;
+                color: rgba(221, 229, 237, 0.84) !important;
+            }
+
+            .dark .cw-admin-notification-panel a:hover {
+                background: rgba(254, 80, 0, 0.1) !important;
             }
 
             @media (max-width: 767px) {

@@ -20,17 +20,17 @@
         <meta property="og:description" content="{{ $guestDescription }}">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ $guestCanonical }}">
-        <meta property="og:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta property="og:image" content="{{ cw_asset('assets/branding/CW-Logo-Dark.png') }}">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ $guestTitle }}">
         <meta name="twitter:description" content="{{ $guestDescription }}">
-        <meta name="twitter:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta name="twitter:image" content="{{ cw_asset('assets/branding/CW-Logo-Dark.png') }}">
         @if(filled(setting('google_search_console_verification')))
             <meta name="google-site-verification" content="{{ setting('google_search_console_verification') }}">
         @endif
-        <link rel="icon" type="image/svg+xml" href="{{ asset('assets/branding/CW-Favicon.svg') }}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/branding/CW-Favicon.png') }}">
-        <link rel="apple-touch-icon" href="{{ asset('assets/branding/CW-Favicon.png') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ cw_asset('assets/branding/CW-Favicon.svg') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
+        <link rel="apple-touch-icon" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
 
         <x-theme-init />
 
@@ -78,13 +78,13 @@
                         <div class="relative h-full">
                             <a href="{{ url('/') }}" class="inline-flex items-center gap-2 text-slate-900">
                                 <img
-                                    src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                                    src="{{ cw_asset('assets/branding/CW-Logo-Dark.svg') }}"
                                     alt="CroWork"
                                     class="h-6 w-auto cw-logo-on-light"
                                     onerror="this.style.display='none';"
                                 >
                                 <img
-                                    src="{{ asset('assets/branding/CW-Logo-Light.svg') }}"
+                                    src="{{ cw_asset('assets/branding/CW-Logo-Light.svg') }}"
                                     alt="CroWork"
                                     class="h-6 w-auto cw-logo-on-dark"
                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
@@ -94,11 +94,6 @@
                             <p class="text-[2rem] leading-tight font-semibold text-slate-800 mt-12 max-w-[260px]">{{ __('auth.marketing_title') }}</p>
                             <p class="text-sm text-slate-600 mt-4 max-w-[260px]">{{ __('auth.marketing_subtitle') }}</p>
 
-                            <div class="absolute inset-x-0 bottom-0 h-[240px] rounded-2xl bg-white/55 border border-white/70 overflow-hidden">
-                                <span class="cw-orb cw-orb-violet" style="width: 180px; height: 180px; left: -40px; bottom: 14px;"></span>
-                                <span class="cw-orb cw-orb-orange" style="width: 140px; height: 140px; right: -30px; top: 16px;"></span>
-                                <span class="cw-orb cw-orb-yellow" style="width: 120px; height: 120px; right: 58px; bottom: -28px;"></span>
-                            </div>
                         </div>
                     </aside>
 
@@ -106,13 +101,13 @@
                         <div class="flex items-center justify-between mb-5 lg:hidden">
                             <a href="{{ url('/') }}" class="inline-flex items-center">
                                 <img
-                                    src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}"
+                                    src="{{ cw_asset('assets/branding/CW-Logo-Dark.svg') }}"
                                     alt="CroWork"
                                     class="h-5 w-auto cw-logo-on-light"
                                     onerror="this.style.display='none';"
                                 >
                                 <img
-                                    src="{{ asset('assets/branding/CW-Logo-Light.svg') }}"
+                                    src="{{ cw_asset('assets/branding/CW-Logo-Light.svg') }}"
                                     alt="CroWork"
                                     class="h-5 w-auto cw-logo-on-dark"
                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"

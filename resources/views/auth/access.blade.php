@@ -12,11 +12,11 @@
         <meta property="og:description" content="{{ __('seo.auth.access_description') }}">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ route('access.show') }}">
-        <meta property="og:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta property="og:image" content="{{ cw_asset('assets/branding/CW-Logo-Dark.png') }}">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ __('auth.continue_to_crowork') }} - {{ config('app.name', 'CroWork') }}">
         <meta name="twitter:description" content="{{ __('seo.auth.access_description') }}">
-        <meta name="twitter:image" content="{{ asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta name="twitter:image" content="{{ cw_asset('assets/branding/CW-Logo-Dark.png') }}">
         <x-theme-init />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -73,8 +73,8 @@
             <header class="cw-container py-4" style="position: relative; z-index: 80;">
                 <div class="flex items-center justify-between gap-3" data-cw-dropdown-root>
                     <a href="{{ route('home') }}" class="inline-flex items-center h-8">
-                        <img src="{{ asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-full cw-logo-on-light" loading="lazy">
-                        <img src="{{ asset('assets/branding/CW-Logo-Light.svg') }}" alt="CroWork" class="h-full cw-logo-on-dark" loading="lazy">
+                        <img src="{{ cw_asset('assets/branding/CW-Logo-Dark.svg') }}" alt="CroWork" class="h-full cw-logo-on-light" loading="lazy">
+                        <img src="{{ cw_asset('assets/branding/CW-Logo-Light.svg') }}" alt="CroWork" class="h-full cw-logo-on-dark" loading="lazy">
                     </a>
                     <div class="flex items-center gap-2">
                         <form method="POST" action="{{ route('preferences.locale') }}" data-cw-locale-form>
@@ -297,7 +297,7 @@
 
                     {{-- ─── Stage: REGISTER ───────────────────────────────────── --}}
                     @else
-                        <form method="POST" action="{{ route('access.register') }}" class="space-y-4">
+                        <form method="POST" action="{{ route('access.register') }}" class="space-y-4" x-data="{ accountType: '{{ old('account_type', $intentType ?? 'worker') }}' }">
                             @csrf
                             <div class="w-full">
                                 <label class="cw-label" for="email">{{ __('auth.email') }}</label>
@@ -311,11 +311,16 @@
                             </div>
                             <div class="w-full">
                                 <label class="cw-label" for="account_type">{{ __('auth.account_type') }}</label>
-                                <select id="account_type" name="account_type" class="cw-field w-full" required>
+                                <select id="account_type" name="account_type" class="cw-field w-full" x-model="accountType" required>
                                     <option value="worker" @selected(old('account_type', $intentType ?? 'worker') === 'worker')>{{ __('auth.worker') }}</option>
                                     <option value="employer" @selected(old('account_type', $intentType ?? 'worker') === 'employer')>{{ __('auth.employer') }}</option>
                                 </select>
                                 @error('account_type')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="w-full" x-show="accountType === 'employer'" x-cloak>
+                                <label class="cw-label" for="employer_oib">{{ __('auth.employer_oib') }}</label>
+                                <input id="employer_oib" class="cw-field w-full" type="text" name="employer_oib" value="{{ old('employer_oib') }}" maxlength="32" placeholder="{{ __('auth.employer_oib_placeholder') }}" :required="accountType === 'employer'">
+                                @error('employer_oib')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div class="w-full">
                                 <label class="cw-label" for="password">{{ __('auth.password') }}</label>

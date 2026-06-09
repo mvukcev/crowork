@@ -12,6 +12,13 @@ class WorkerProfileCompletenessServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        app()->setLocale('hr');
+    }
+
     public function test_empty_profile_has_zero_percent_and_missing_required_items(): void
     {
         $profile = $this->createBaseProfile();

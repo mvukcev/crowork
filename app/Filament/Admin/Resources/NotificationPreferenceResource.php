@@ -16,7 +16,7 @@ class NotificationPreferenceResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-bell-alert';
 
-    protected static ?string $navigationGroup = 'System';
+    protected static ?string $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Notification Preferences';
 

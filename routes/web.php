@@ -86,13 +86,10 @@ Route::get('/coming-soon/{feature?}', [PagesController::class, 'comingSoon'])->n
 Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
 Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
 
-// Legal pages (with aliases)
-Route::get('/privacy', [PagesController::class, 'privacy'])->name('privacy');
-Route::get('/privacy-policy', [PagesController::class, 'privacy'])->name('privacy-policy');
-Route::get('/terms', [PagesController::class, 'terms'])->name('terms');
-Route::get('/terms-of-service', [PagesController::class, 'terms'])->name('terms-of-service');
-Route::get('/cookies', [PagesController::class, 'cookies'])->name('cookies');
-Route::get('/cookie-policy', [PagesController::class, 'cookies'])->name('cookie-policy');
+// Legacy legal aliases redirect to canonical URLs
+Route::redirect('/privacy-policy', '/privacy')->name('privacy-policy');
+Route::redirect('/terms-of-service', '/terms')->name('terms-of-service');
+Route::redirect('/cookie-policy', '/cookies')->name('cookie-policy');
 
 Route::middleware('auth')->prefix('legal')->name('legal.')->group(function () {
     Route::get('/reaccept', [LegalConsentController::class, 'show'])->name('reaccept.show');
@@ -202,7 +199,7 @@ Route::middleware(['auth', 'legal.consent'])->prefix('employer')->name('employer
 });
 
 // Admin impersonation routes
-Route::middleware(['auth', 'legal.consent', 'admin.access'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'legal.consent', 'admin.access', 'admin.modules'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('impersonate/{userId}', [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
 });
 
@@ -221,13 +218,13 @@ require __DIR__.'/auth.php';
 
 Route::get('/export-candidates', function () {
     return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\CandidateExport, 'candidates.xlsx');
-})->name('export.candidates');
+})->middleware(['auth', 'legal.consent', 'admin.strict', 'admin.modules'])->name('export.candidates');
 
 Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::class, 'export'])
     ->middleware(['auth', 'legal.consent', 'throttle:3,1440'])
     ->name('user.export');
 
-Route::middleware(['auth', 'legal.consent', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'legal.consent', 'admin', 'admin.modules'])->prefix('admin')->group(function () {
     Route::get('/privacy-requests', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
     Route::put('/privacy-requests/{deletionRequest}', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'update'])->name('admin.privacy_requests.update');
 
@@ -245,7 +242,7 @@ if (app()->environment('local')) {
 }
 });
 
-Route::middleware(['auth', 'legal.consent', 'admin.strict'])->prefix('admin/gdpr')->name('admin.gdpr.')->group(function () {
+Route::middleware(['auth', 'legal.consent', 'admin.strict', 'admin.modules'])->prefix('admin/gdpr')->name('admin.gdpr.')->group(function () {
     Route::get('/', [AdminGdprController::class, 'index'])->name('index');
 
     Route::get('/requests', [AdminGdprController::class, 'dsarIndex'])->name('dsar.index');

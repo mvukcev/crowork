@@ -17,7 +17,7 @@ return [
         'profile' => 'Profile',
     ],
     'homepage' => [
-        'hero_headline' => 'The <span style="color: #7c3aed; font-weight: 600;">modern labor market</span> starts here.',
+        'hero_headline' => 'The <span class="cw-highlight-violet">modern labor market</span> starts here.',
         'hero_headline_highlight' => 'modern labor market',
         'hero_subheadline' => 'CroWork connects people, employers, and opportunities through simpler, more transparent, and modern employment.',
         'hero_search_placeholder' => 'Search jobs, companies, or cities',
@@ -104,7 +104,7 @@ return [
     'jobs_page' => [
         'page_title' => 'Jobs in Croatia - Find Your Next Opportunity',
         'page_description' => 'Discover verified job opportunities in Croatia. Search by city, salary, skills, and benefits. Transparent listings, simple applications, modern hiring experience.',
-        'hero_headline' => 'Find the <span style="color: #7c3aed; font-weight: 600;">right opportunity</span>.',
+        'hero_headline' => 'Find the <span class="cw-highlight-violet">right opportunity</span>.',
         'hero_subheadline' => 'Transparent job listings, simpler applications, and a modern hiring experience.',
         'search_placeholder' => 'Role, company, skill...',
         'search_chip' => 'Search: :value',
@@ -176,7 +176,7 @@ return [
     'educations_page' => [
         'page_title' => 'Professional Education & Development in Croatia - Grow Your Career',
         'page_description' => 'Discover professional development, language, and onboarding programs in Croatia. Practical skills, certifications, and career growth opportunities.',
-        'hero_headline' => 'Education that <span style="color: #6d28d9; font-weight: 600;">leads somewhere</span>.',
+        'hero_headline' => 'Education that <span class="cw-highlight-violet">leads somewhere</span>.',
         'hero_subheadline' => 'Professional development, onboarding support, and practical knowledge for modern careers in Croatia.',
         'search_placeholder' => 'Program, skill, language...',
         'city_label' => 'City',

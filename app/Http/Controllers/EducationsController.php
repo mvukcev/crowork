@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Education;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class EducationsController extends Controller
 {
@@ -160,14 +159,14 @@ class EducationsController extends Controller
      */
     protected function getCities()
     {
-        return Cache::remember('education_cities', 3600, function () {
-            return Education::active()
-                ->whereNotNull('city')
-                ->where('is_online', false)
-                ->distinct()
-                ->pluck('city')
-                ->sort()
-                ->values();
-        });
+        return Education::active()
+            ->whereNotNull('city')
+            ->where('is_online', false)
+            ->pluck('city')
+            ->map(fn ($city) => is_string($city) ? trim($city) : '')
+            ->filter(fn ($city) => $city !== '')
+            ->unique()
+            ->sort()
+            ->values();
     }
 }

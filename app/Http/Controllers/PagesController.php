@@ -2,20 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ResourcePost;
+use Illuminate\Support\Str;
+
 class PagesController extends Controller
 {
     public function resources()
     {
+        $resources = $this->combinedResources();
+
         return view('pages.resources.index', [
-            'resources' => $this->resourcePages(),
+            'resources' => $resources,
         ]);
     }
 
     public function resourceGuide(string $slug)
     {
-        $resources = $this->resourcePages();
+        $post = $this->publishedResourcePostBySlug($slug);
 
-        abort_unless(isset($resources[$slug]), 404);
+        if ($post !== null) {
+            return view('pages.resources.post', [
+                'post' => $post,
+                'resources' => $this->combinedResources(),
+            ]);
+        }
+
+        $resources = $this->combinedResources();
+
+        abort_unless(isset($resources[$slug]) && ! ($resources[$slug]['is_dynamic_post'] ?? false), 404);
 
         return view('pages.resources.show', [
             'resource' => $resources[$slug],
@@ -315,5 +329,84 @@ class PagesController extends Controller
         }
 
         return $resources;
+    }
+
+    private function combinedResources(): array
+    {
+        $staticResources = $this->resourcePages();
+        $dynamicResources = $this->resourcePostCards();
+
+        foreach ($staticResources as $slug => $resource) {
+            if (! isset($dynamicResources[$slug])) {
+                $dynamicResources[$slug] = $resource;
+            }
+        }
+
+        return $dynamicResources;
+    }
+
+    private function publishedResourcePostBySlug(string $slug): ?ResourcePost
+    {
+        $locale = app()->getLocale();
+        $fallbackLocale = (string) config('app.fallback_locale', 'en');
+
+        return ResourcePost::query()
+            ->published()
+            ->where('slug', $slug)
+            ->whereIn('locale', array_values(array_unique([$locale, $fallbackLocale])))
+            ->orderByRaw('locale = ? desc', [$locale])
+            ->first();
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function resourcePostCards(): array
+    {
+        $locale = app()->getLocale();
+        $fallbackLocale = (string) config('app.fallback_locale', 'en');
+
+        return ResourcePost::query()
+            ->published()
+            ->whereIn('locale', array_values(array_unique([$locale, $fallbackLocale])))
+            ->orderByRaw('locale = ? desc', [$locale])
+            ->orderByDesc('published_at')
+            ->get()
+            ->unique('slug')
+            ->mapWithKeys(function (ResourcePost $post): array {
+                $summary = trim((string) ($post->excerpt ?? ''));
+                if ($summary === '') {
+                    $summary = Str::of(strip_tags((string) $post->body))->squish()->limit(180)->toString();
+                }
+
+                return [
+                    $post->slug => [
+                        'slug' => $post->slug,
+                        'title' => $post->title,
+                        'kicker' => ucfirst($post->type),
+                        'description' => $summary,
+                        'intro' => $summary,
+                        'sections' => [],
+                        'category_key' => $post->type,
+                        'read_time' => $this->estimateReadTimeLabel((string) $post->body),
+                        'featured_image_path' => $post->featured_image_path,
+                        'author_name_with_title' => $post->author_name_with_title,
+                        'is_dynamic_post' => true,
+                    ],
+                ];
+            })
+            ->all();
+    }
+
+    private function estimateReadTimeLabel(string $html): string
+    {
+        $words = str_word_count(strip_tags($html));
+        $minutes = max(1, (int) ceil($words / 220));
+
+        if (app()->getLocale() === 'hr') {
+            return $minutes . ' min čitanja';
+        }
+
+        return $minutes . ' min read';
     }
 }

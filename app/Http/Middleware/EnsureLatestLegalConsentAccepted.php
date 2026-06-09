@@ -46,6 +46,10 @@ class EnsureLatestLegalConsentAccepted
 
     private function isExemptRoute(Request $request, string $routeName): bool
     {
+        if (str_starts_with($routeName, 'filament.admin.')) {
+            return true;
+        }
+
         if ($routeName === '') {
             return false;
         }

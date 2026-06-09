@@ -17,7 +17,7 @@ return [
         'profile' => 'Profil',
     ],
     'homepage' => [
-        'hero_headline' => '<span style="color: #7c3aed; font-weight: 600;">Moderno tržište rada</span> počinje ovdje.',
+        'hero_headline' => '<span class="cw-highlight-violet">Moderno tržište rada</span> počinje ovdje.',
         'hero_headline_highlight' => 'Moderno tržište rada',
         'hero_subheadline' => 'CroWork povezuje ljude, poslodavce i prilike kroz jednostavnije, transparentnije i modernije zapošljavanje.',
         'hero_search_placeholder' => 'Pretraži poslove, tvrtke ili gradove',
@@ -104,7 +104,7 @@ return [
     'jobs_page' => [
         'page_title' => 'Poslovi u Hrvatskoj - Pronađi Svoju Sljedeću Priliku',
         'page_description' => 'Otkrij provjeravane prilike za posao u Hrvatskoj. Pretraži po gradu, plaći, vještinama i benefitima. Transparentni oglasi, jednostavne prijave, moderno zapošljavanje.',
-        'hero_headline' => 'Pronađi <span style="color: #7c3aed; font-weight: 600;">pravu priliku</span>.',
+        'hero_headline' => 'Pronađi <span class="cw-highlight-violet">pravu priliku</span>.',
         'hero_subheadline' => 'Transparentni oglasi, jednostavnije prijave i moderno iskustvo zapošljavanja.',
         'search_placeholder' => 'Posao, tvrtka, vještina...',
         'search_chip' => 'Pretraga: :value',
@@ -176,7 +176,7 @@ return [
     'educations_page' => [
         'page_title' => 'Stručno usavršavanje i razvoj u Hrvatskoj - rast karijere',
         'page_description' => 'Otkrij programe stručnog razvoja, jezičnog usavršavanja i onboardinga u Hrvatskoj. Praktične vještine, certifikacije i mogućnosti razvoja karijere.',
-        'hero_headline' => 'Edukacija koja <span style="color: #6d28d9; font-weight: 600;">vodi negdje</span>.',
+        'hero_headline' => 'Edukacija koja <span class="cw-highlight-violet">vodi negdje</span>.',
         'hero_subheadline' => 'Stručni razvoj, podrška za uključivanje i praktično znanje za moderne karijere u Hrvatskoj.',
         'search_placeholder' => 'Program, vještina, jezik...',
         'city_label' => 'Grad',

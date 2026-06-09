@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WorkerProfile;
+use App\Support\CvProfileOptions;
 use App\Support\StructuredCvLegacyFormatter;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
@@ -34,6 +35,26 @@ class WorkerProfileController extends Controller
         $educationRows = $this->normalizeEducations(old('educations', $profile->educationSnapshot()));
         $certificationRows = $this->normalizeCertifications(old('certifications_list', $profile->certificationSnapshot()));
         $referenceRows = $this->normalizeReferences(old('references_list', $profile->referenceSnapshot()));
+        $locale = app()->getLocale();
+
+        $experienceRows = array_map(function (array $row) use ($locale): array {
+            $row['country'] = CvProfileOptions::displayCountryName((string) ($row['country'] ?? ''), $locale);
+
+            return $row;
+        }, $experienceRows);
+
+        $educationRows = array_map(function (array $row) use ($locale): array {
+            $row['country'] = CvProfileOptions::displayCountryName((string) ($row['country'] ?? ''), $locale);
+
+            return $row;
+        }, $educationRows);
+
+        $countryOptions = CvProfileOptions::countryOptions($locale);
+        $visaStatusOptions = CvProfileOptions::visaStatusOptions();
+        $skillSuggestions = CvProfileOptions::skillSuggestions();
+        $nationalityDisplayValue = CvProfileOptions::displayCountryName((string) old('nationality_country_code', $profile->nationality_country_code), $locale);
+        $currentCountryDisplayValue = CvProfileOptions::displayCountryName((string) old('current_country', $profile->current_country), $locale);
+        $visaCurrentValue = (string) old('visa_work_permit_status', $profile->visa_work_permit_status);
 
         $languageRows = $this->normalizeLanguages(old('languages', $profile->languagesArray()));
         if (empty($languageRows)) {
@@ -75,6 +96,12 @@ class WorkerProfileController extends Controller
             'missingChecklist',
             'completenessStateLabel',
             'completenessHelperText',
+            'countryOptions',
+            'visaStatusOptions',
+            'skillSuggestions',
+            'nationalityDisplayValue',
+            'currentCountryDisplayValue',
+            'visaCurrentValue',
         ));
     }
 
@@ -139,7 +166,7 @@ class WorkerProfileController extends Controller
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:80'],
             'last_name' => ['required', 'string', 'max:80'],
-            'nationality_country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
+            'nationality_country_code' => ['required', 'string', 'max:100'],
             'current_country' => ['nullable', 'string', 'max:100'],
             'current_city' => ['nullable', 'string', 'max:100'],
             'desired_city' => ['nullable', 'string', 'max:100'],
@@ -191,16 +218,34 @@ class WorkerProfileController extends Controller
             'profile_visibility' => ['required', 'in:' . implode(',', array_keys(WorkerProfile::visibilityOptions()))],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'], // 2MB max
         ], [
-            'nationality_country_code.regex' => __('worker_profile.validation.nationality_regex'),
-            'nationality_country_code.size' => __('worker_profile.validation.nationality_size'),
             'birth_year.between' => __('worker_profile.validation.birth_year_between', [
                 'min' => $minBirthYear,
                 'max' => $maxBirthYear,
             ]),
         ]);
 
-        $validated['nationality_country_code'] = strtoupper((string) $validated['nationality_country_code']);
+        $locale = app()->getLocale();
+
+        $validated['nationality_country_code'] = CvProfileOptions::normalizeCountryForStorage((string) ($validated['nationality_country_code'] ?? ''), $locale);
+        $validated['current_country'] = CvProfileOptions::normalizeCountryForStorage((string) ($validated['current_country'] ?? ''), $locale);
+        $validated['visa_work_permit_status'] = CvProfileOptions::normalizeVisaStatusForStorage((string) ($validated['visa_work_permit_status'] ?? ''));
         $validated['accommodation_needed'] = filter_var($request->input('accommodation_needed', false), FILTER_VALIDATE_BOOL);
+
+        if (isset($validated['experiences']) && is_array($validated['experiences'])) {
+            $validated['experiences'] = array_map(function (array $row) use ($locale): array {
+                $row['country'] = CvProfileOptions::normalizeCountryForStorage((string) ($row['country'] ?? ''), $locale);
+
+                return $row;
+            }, $validated['experiences']);
+        }
+
+        if (isset($validated['educations']) && is_array($validated['educations'])) {
+            $validated['educations'] = array_map(function (array $row) use ($locale): array {
+                $row['country'] = CvProfileOptions::normalizeCountryForStorage((string) ($row['country'] ?? ''), $locale);
+
+                return $row;
+            }, $validated['educations']);
+        }
 
         $validated['education_summary'] = StructuredCvLegacyFormatter::educationSummary($validated['educations'] ?? []);
         $validated['work_experience'] = StructuredCvLegacyFormatter::experienceSummary($validated['experiences'] ?? []);

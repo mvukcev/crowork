@@ -55,6 +55,7 @@ return [
         'pending_approval_notices' => 'Pending approval notices',
         'pending_jobs_waiting' => '{1} :count job listing is awaiting admin review.|[2,*] :count job listings are awaiting admin review.',
         'open_job_listings' => 'Open job listings',
+        'anonymized_candidates_count' => '{1} :count candidate is currently shown in anonymized mode.|[2,*] :count candidates are currently shown in anonymized mode.',
         'submitted_on' => 'submitted :time',
         'job_overview' => 'Job overview',
         'active_jobs' => 'Active Jobs',
@@ -105,11 +106,19 @@ return [
             'hired' => 'Hired',
         ],
         'tabs' => [
+            'aria_label' => 'Employer dashboard tabs',
             'quick_overview' => 'Quick overview',
             'all_applications' => 'All applications',
             'job_analytics' => 'Job analytics',
             'active_jobs' => 'Active jobs',
             'company_profile' => 'Company profile',
+        ],
+        'company_tab' => [
+            'summary_title' => 'Company profile summary',
+            'edit_profile' => 'Edit company profile',
+            'missing_data_title' => 'Missing company data',
+            'missing_value' => 'Not set',
+            'helper_text' => 'A complete company profile builds trust and improves listing performance.',
         ],
     ],
     'applications_pipeline' => [

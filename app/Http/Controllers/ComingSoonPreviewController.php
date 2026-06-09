@@ -29,8 +29,8 @@ class ComingSoonPreviewController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $expectedUsername = (string) config('crowork.coming_soon.demo_username', 'demo');
-        $expectedPassword = (string) config('crowork.coming_soon.demo_password', 'demo123');
+        $expectedUsername = (string) config('crowork.coming_soon.demo_username', '');
+        $expectedPassword = (string) config('crowork.coming_soon.demo_password', '');
 
         $usernameValid = hash_equals($expectedUsername, (string) $credentials['username']);
         $passwordValid = hash_equals($expectedPassword, (string) $credentials['password']);

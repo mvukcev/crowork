@@ -151,12 +151,13 @@
                     <h2 class="text-2xl md:text-3xl font-semibold text-slate-900 mb-6">{{ __('ui.educations_page.why_crowork_title') }}</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                         <!-- Practical learning -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-indigo-100">
-                                        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5 12 4.5l7.5 3-7.5 3-7.5-3Z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9.75v4.5c0 1.66 2.69 3 6 3s6-1.34 6-3v-4.5"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -168,12 +169,14 @@
                         </div>
 
                         <!-- Career growth -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100">
-                                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 16.5 8.25 12l3 3 6-6"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9h3v3"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 19.5h16.5"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -185,12 +188,15 @@
                         </div>
 
                         <!-- Workplace integration -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-purple-100">
-                                        <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-2a6 6 0 0112 0v2zm0 0h6v-2a6 6 0 00-9-5.656v2.656A4 4 0 0115 21z"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.5v-1.125A3.375 3.375 0 0 0 11.625 15h-5.25A3.375 3.375 0 0 0 3 18.375V19.5"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 19.5v-1.125A3.375 3.375 0 0 0 18.75 15.2"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.2a3 3 0 0 1 0 5.6"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -202,12 +208,13 @@
                         </div>
 
                         <!-- Build confidence -->
-                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                        <div class="cw-surface p-6 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cw-feature-card">
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-emerald-100">
-                                        <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <div class="cw-feature-icon-wrap">
+                                        <svg class="cw-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9 12 2.25 2.25L15 10.5"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75c3.57 0 6.75.72 6.75 2.25v5.25c0 4.5-3.34 7.5-6.75 9-3.41-1.5-6.75-4.5-6.75-9V6c0-1.53 3.18-2.25 6.75-2.25Z"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -349,18 +356,18 @@
                         </div>
 
                         <div class="cw-filter-topbar-modern">
-                            <div>
+                            <div class="cw-topbar-field">
                                 <label class="cw-label" for="q">{{ __('ui.educations_page.search_educations_label') }}</label>
-                                <input id="q" name="q" value="{{ $filters['q'] ?? request('q') }}" class="cw-field cw-field-premium" placeholder="{{ __('ui.educations_page.search_placeholder') }}">
+                                <input id="q" name="q" value="{{ $filters['q'] ?? request('q') }}" class="cw-field cw-field-premium w-full" placeholder="{{ __('ui.educations_page.search_placeholder') }}">
                             </div>
-                            <div class="cw-modern-select" @click.outside="cityOpen = false">
+                            <div class="cw-modern-select cw-topbar-city" @click.outside="cityOpen = false">
                                 <label class="cw-label">{{ __('ui.educations_page.city_label') }}</label>
-                                <button type="button" class="cw-field cw-field-premium w-full text-left flex items-center justify-between" @click="cityOpen = !cityOpen" :aria-expanded="cityOpen ? 'true' : 'false'" aria-controls="education-city-popover">
+                                <button type="button" class="cw-field cw-field-premium cw-select-trigger w-full text-left flex items-center justify-between" @click="cityOpen = !cityOpen" :aria-expanded="cityOpen ? 'true' : 'false'" aria-controls="education-city-popover">
                                     <span x-text="cityValue || @js(__('ui.educations_page.all_cities'))"></span>
                                     <span class="text-xs text-slate-500">▾</span>
                                 </button>
                                 <div id="education-city-popover" x-show="cityOpen" x-cloak x-transition.opacity.scale.origin.top class="cw-select-popover mt-2">
-                                    <input type="text" x-model="citySearch" class="cw-field cw-field-premium mb-2" :placeholder="@js(__('ui.educations_page.city_search_placeholder'))">
+                                    <input type="text" x-model="citySearch" class="cw-field cw-field-premium mb-2 w-full" :placeholder="@js(__('ui.educations_page.city_search_placeholder'))">
                                     <template x-if="recentCities.length">
                                         <div class="mb-2">
                                             <p class="cw-filter-heading !mb-2">{{ __('ui.educations_page.recent_locations') }}</p>
@@ -379,17 +386,19 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-end gap-2">
+                            <div class="cw-topbar-actions">
                                 <button
-                                    class="cw-button-primary min-w-[132px]"
+                                    class="cw-button-primary cw-topbar-action w-full md:w-auto"
                                     type="submit"
                                     :disabled="submitting"
                                 >
                                     <span data-cw-submit-label data-default-label="{{ __('ui.educations_page.search_button') }}" data-loading-label="{{ __('ui.educations_page.updating_results') }}" aria-live="polite">{{ __('ui.educations_page.search_button') }}</span>
                                 </button>
+                            </div>
+                            <div class="cw-topbar-actions hidden md:flex">
                                 <button
                                     type="button"
-                                    class="cw-button-secondary hidden md:inline-flex"
+                                    class="cw-button-secondary cw-topbar-action w-full"
                                     data-cw-filter-toggle
                                     aria-controls="education-advanced-filters"
                                     :aria-expanded="desktopAdvancedOpen ? 'true' : 'false'"

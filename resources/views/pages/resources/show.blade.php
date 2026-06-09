@@ -26,7 +26,7 @@
                 'name' => config('app.name', 'CroWork'),
                 'logo' => [
                     '@type' => 'ImageObject',
-                    'url' => asset('assets/branding/CW-Logo-Dark.png'),
+                    'url' => cw_asset('assets/branding/CW-Logo-Dark.png'),
                 ],
             ],
             'articleBody' => $articleBody,
@@ -95,14 +95,14 @@
             <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-10 items-start">
                 <div class="space-y-8">
                     <article class="cw-surface p-8 rounded-2xl shadow-md bg-white/90">
-                        <p class="cw-kicker mb-3 text-violet-600 font-semibold">{{ $resource['kicker'] }}</p>
+                        <p class="cw-kicker mb-3 text-brand-violet font-semibold">{{ $resource['kicker'] }}</p>
                         <h1 class="cw-display text-4xl md:text-6xl mb-4 font-bold">{{ $resource['title'] }}</h1>
                         <p class="text-lg text-slate-700 leading-relaxed mb-6">{{ $resource['intro'] }}</p>
                     </article>
 
                     @foreach($resource['sections'] as $section)
-                        <article class="cw-surface p-7 rounded-xl bg-white/80 shadow border-l-4 border-violet-200">
-                            <h2 class="text-2xl font-semibold text-violet-700 mb-3">{{ $section['title'] }}</h2>
+                        <article class="cw-surface p-7 rounded-xl bg-white/80 shadow border-l-4 border-brand-violet">
+                            <h2 class="text-2xl font-semibold text-brand-violet mb-3">{{ $section['title'] }}</h2>
                             <div class="space-y-3 text-slate-700">
                                 @foreach($section['body'] as $paragraph)
                                     <p>{{ $paragraph }}</p>
@@ -114,7 +114,7 @@
 
                 <aside class="mt-8 lg:mt-0 space-y-6 lg:sticky lg:top-24">
                     <div class="cw-surface p-6 rounded-xl bg-white/90 shadow">
-                        <h2 class="text-lg font-semibold text-violet-700 mb-3">{{ __('resources.show.guide_topics') }}</h2>
+                        <h2 class="text-lg font-semibold text-brand-violet mb-3">{{ __('resources.show.guide_topics') }}</h2>
                         <div class="flex flex-col gap-2">
                             @foreach($resources as $navResource)
                                 <a
@@ -124,7 +124,7 @@
                                     data-cw-item-slug="{{ $navResource['slug'] }}"
                                     @class([
                                         'cw-button-secondary text-left' => true,
-                                        'border-violet-700 text-violet-700 font-bold' => $navResource['slug'] === $resource['slug'],
+                                        'border-brand-violet text-brand-violet font-bold' => $navResource['slug'] === $resource['slug'],
                                     ])
                                 >
                                     {{ $navResource['title'] }}
@@ -134,7 +134,7 @@
                     </div>
 
                     <div class="cw-surface p-6 rounded-xl bg-gradient-to-r from-violet-50 to-white shadow">
-                        <h2 class="text-lg font-semibold text-violet-700 mb-3">{{ __('resources.show.next_steps') }}</h2>
+                        <h2 class="text-lg font-semibold text-brand-violet mb-3">{{ __('resources.show.next_steps') }}</h2>
                         <div class="space-y-3 text-sm text-slate-700">
                             <p>{{ __('resources.show.next_steps_copy') }}</p>
                             <a href="{{ route('jobs.index') }}" class="cw-button-primary w-full text-center" data-cw-track-click="job_search" data-cw-item-type="cta">{{ __('resources.cta.browse_jobs') }}</a>
