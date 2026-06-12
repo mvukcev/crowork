@@ -83,6 +83,35 @@
                 </article>
 
                 <aside class="mt-8 lg:mt-0 space-y-6 lg:sticky lg:top-24">
+                    @if(!empty($alternateLocales))
+                        <div class="cw-surface p-4 rounded-xl bg-white/90 shadow border-l-4 border-brand-violet">
+                            <p class="text-xs uppercase tracking-[0.08em] text-slate-500 font-semibold mb-2">{{ __('ui.language') }}</p>
+                            <div class="space-y-2">
+                                <span class="block text-sm font-medium text-slate-700 px-3 py-2 bg-slate-100 rounded-lg">
+                                    @if($post->locale === 'en')
+                                        English
+                                    @else
+                                        Hrvatski
+                                    @endif
+                                </span>
+                                @foreach($alternateLocales as $altLocale => $altSlug)
+                                    <form method="POST" action="{{ route('preferences.locale') }}" class="w-full">
+                                        @csrf
+                                        <input type="hidden" name="locale" value="{{ $altLocale }}">
+                                        <input type="hidden" name="redirect" value="{{ route('resources.show', $altSlug) }}">
+                                        <button type="submit" class="w-full text-sm font-medium text-slate-700 px-3 py-2 bg-slate-50 rounded-lg hover:bg-brand-violet hover:text-white transition-colors text-left">
+                                            @if($altLocale === 'en')
+                                                English
+                                            @else
+                                                Hrvatski
+                                            @endif
+                                        </button>
+                                    </form>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="cw-surface p-6 rounded-xl bg-white/90 shadow">
                         <h2 class="text-lg font-semibold text-brand-violet mb-3">{{ __('resources.show.guide_topics') }}</h2>
                         <div class="flex flex-col gap-2">

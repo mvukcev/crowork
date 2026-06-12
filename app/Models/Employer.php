@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageSanitizerService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -57,6 +58,19 @@ class Employer extends Model
             }
 
             $employer->slug = static::generateUniqueSlug($employer->company_name, $employer->id);
+        });
+
+        static::saved(function (Employer $employer): void {
+            if (! $employer->wasChanged('logo_path')) {
+                return;
+            }
+
+            $logoPath = trim((string) $employer->logo_path);
+            if ($logoPath === '') {
+                return;
+            }
+
+            app(ImageSanitizerService::class)->sanitizeAndOptimize('public', $logoPath, 1200, 1200);
         });
     }
 

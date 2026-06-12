@@ -1,10 +1,12 @@
 @php
+    use App\Models\Setting;
     use App\Services\AnalyticsConfigService;
     use App\Services\ConsentConfigService;
+    use App\Services\MetaPixelConfigService;
 
-    $metaEnabled = (bool) config('meta.enabled', false);
-    $pixelEnabled = (bool) config('meta.browser_enabled', true);
-    $pixelId = (string) config('meta.pixel_id', '');
+    $metaEnabled = MetaPixelConfigService::isTrackingEnabled();
+    $pixelEnabled = Setting::getBool('meta_browser_enabled', true);
+    $pixelId = (string) (MetaPixelConfigService::getPixelId() ?? '');
 @endphp
 
 {{-- Google Tag Manager (noscript) - Rendered if GTM is configured and enabled --}}
@@ -15,6 +17,8 @@
                 height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
+@elseif(AnalyticsConfigService::shouldInjectGTM())
+    <!-- Google Tag Manager configured but blocked until analytics consent is granted. -->
 @endif
 
 {{-- Meta Pixel (noscript) - Rendered if Pixel is configured and enabled --}}

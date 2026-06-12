@@ -74,9 +74,9 @@ class FailedJobResource extends Resource
                     ->color('warning')
                     ->requiresConfirmation()
                     ->action(function (): void {
-                        $uuids = FailedJob::query()->pluck('uuid')->filter()->values()->all();
+                        $ids = self::retryIdentifiers(FailedJob::query()->get());
 
-                        if ($uuids === []) {
+                        if ($ids === []) {
                             Notification::make()
                                 ->title('No failed jobs to retry')
                                 ->success()
@@ -85,13 +85,46 @@ class FailedJobResource extends Resource
                             return;
                         }
 
-                        Artisan::call('queue:retry', ['id' => $uuids]);
+                        try {
+                            $success = 0;
+                            $failed = [];
 
-                        Notification::make()
-                            ->title('Retry queued for failed jobs')
-                            ->body(sprintf('Retried %d failed job(s).', count($uuids)))
-                            ->success()
-                            ->send();
+                            foreach ($ids as $id) {
+                                try {
+                                    Artisan::call('queue:retry', ['id' => [$id]]);
+                                    $success++;
+                                } catch (\Throwable $inner) {
+                                    $failed[] = [
+                                        'id' => $id,
+                                        'message' => $inner->getMessage(),
+                                    ];
+                                }
+                            }
+
+                            if ($success > 0) {
+                                Notification::make()
+                                    ->title('Retry queued for failed jobs')
+                                    ->body("Retried {$success} failed job(s)." . (count($failed) > 0 ? ' Some jobs could not be retried.' : ''))
+                                    ->success()
+                                    ->send();
+                            }
+
+                            if (count($failed) > 0) {
+                                $first = $failed[0]['message'] ?? 'Unknown retry failure.';
+
+                                Notification::make()
+                                    ->title('Some failed jobs could not be retried')
+                                    ->body('Count: ' . count($failed) . '. First error: ' . $first)
+                                    ->warning()
+                                    ->send();
+                            }
+                        } catch (\Throwable $exception) {
+                            Notification::make()
+                                ->title('Retry failed jobs action failed')
+                                ->body($exception->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     }),
                 Tables\Actions\Action::make('clearAll')
                     ->label('Clear All')
@@ -114,12 +147,22 @@ class FailedJobResource extends Resource
                     ->color('warning')
                     ->requiresConfirmation()
                     ->action(function (FailedJob $record): void {
-                        Artisan::call('queue:retry', ['id' => [$record->uuid]]);
+                        $retryId = filled((string) $record->uuid) ? (string) $record->uuid : (string) $record->id;
 
-                        Notification::make()
-                            ->title('Failed job queued for retry')
-                            ->success()
-                            ->send();
+                        try {
+                            Artisan::call('queue:retry', ['id' => [$retryId]]);
+
+                            Notification::make()
+                                ->title('Failed job queued for retry')
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $exception) {
+                            Notification::make()
+                                ->title('Retry action failed')
+                                ->body($exception->getMessage())
+                                ->warning()
+                                ->send();
+                        }
                     }),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -130,19 +173,52 @@ class FailedJobResource extends Resource
                     ->color('warning')
                     ->requiresConfirmation()
                     ->action(function ($records): void {
-                        $uuids = $records->pluck('uuid')->filter()->values()->all();
+                        $ids = self::retryIdentifiers($records);
 
-                        if ($uuids === []) {
+                        if ($ids === []) {
                             return;
                         }
 
-                        Artisan::call('queue:retry', ['id' => $uuids]);
+                        try {
+                            $success = 0;
+                            $failed = [];
 
-                        Notification::make()
-                            ->title('Selected failed jobs queued for retry')
-                            ->body(sprintf('Retried %d failed job(s).', count($uuids)))
-                            ->success()
-                            ->send();
+                            foreach ($ids as $id) {
+                                try {
+                                    Artisan::call('queue:retry', ['id' => [$id]]);
+                                    $success++;
+                                } catch (\Throwable $inner) {
+                                    $failed[] = [
+                                        'id' => $id,
+                                        'message' => $inner->getMessage(),
+                                    ];
+                                }
+                            }
+
+                            if ($success > 0) {
+                                Notification::make()
+                                    ->title('Selected failed jobs queued for retry')
+                                    ->body("Retried {$success} failed job(s)." . (count($failed) > 0 ? ' Some jobs could not be retried.' : ''))
+                                    ->success()
+                                    ->send();
+                            }
+
+                            if (count($failed) > 0) {
+                                $first = $failed[0]['message'] ?? 'Unknown retry failure.';
+
+                                Notification::make()
+                                    ->title('Some selected jobs could not be retried')
+                                    ->body('Count: ' . count($failed) . '. First error: ' . $first)
+                                    ->warning()
+                                    ->send();
+                            }
+                        } catch (\Throwable $exception) {
+                            Notification::make()
+                                ->title('Retry selected action failed')
+                                ->body($exception->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     }),
                 Tables\Actions\DeleteBulkAction::make(),
             ])
@@ -155,5 +231,24 @@ class FailedJobResource extends Resource
         return [
             'index' => Pages\ListFailedJobs::route('/'),
         ];
+    }
+
+    /**
+     * @param iterable<int, FailedJob> $records
+     * @return array<int, string>
+     */
+    private static function retryIdentifiers(iterable $records): array
+    {
+        $ids = [];
+
+        foreach ($records as $record) {
+            $identifier = filled((string) $record->uuid) ? (string) $record->uuid : (string) $record->id;
+
+            if ($identifier !== '') {
+                $ids[] = $identifier;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 }

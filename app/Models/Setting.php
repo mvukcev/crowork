@@ -119,9 +119,10 @@ class Setting extends Model
             'label' => 'Mail Driver',
             'group' => 'Email & SMTP',
             'type' => 'select',
-            'default' => 'smtp',
+            'default' => 'failover',
             'options' => [
                 'smtp' => 'SMTP',
+                'failover' => 'Failover (SMTP + Log fallback)',
                 'log' => 'Log (Development)',
                 'mailgun' => 'Mailgun',
                 'postmark' => 'Postmark',
@@ -596,6 +597,32 @@ class Setting extends Model
     public static function adminManagedKeys(): array
     {
         return array_keys(static::DEFINITIONS);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function groups(): array
+    {
+        return collect(static::DEFINITIONS)
+            ->pluck('group')
+            ->filter(fn ($group) => is_string($group) && $group !== '')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function keysForGroup(string $group): array
+    {
+        return collect(static::DEFINITIONS)
+            ->filter(fn ($definition) => (($definition['group'] ?? null) === $group))
+            ->keys()
+            ->values()
+            ->all();
     }
 
     public static function defaultFor(string $key): mixed

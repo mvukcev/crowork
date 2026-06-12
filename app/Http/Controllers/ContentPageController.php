@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContentPage;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 class ContentPageController
@@ -12,8 +13,16 @@ class ContentPageController
         $locale = app()->getLocale();
         $page = ContentPage::findBySlugAndLocale($slug, $locale);
 
+        $canonicalUrl = Route::has($slug)
+            ? route($slug)
+            : route('legal.content.show', ['slug' => $slug]);
+
         // Fallback to defaults if not found
         if (! $page) {
+            if (! in_array($slug, ['privacy', 'terms', 'cookies'], true)) {
+                abort(404);
+            }
+
             $defaults = ContentPage::getDefaultContent($slug, $locale);
 
             $fallbackDescription = match ($slug) {
@@ -31,6 +40,7 @@ class ContentPageController
                 'metaTitle' => $defaults['title'],
                 'metaDescription' => $fallbackDescription,
                 'fromDatabase' => false,
+                'canonicalUrl' => $canonicalUrl,
             ]);
         }
 
@@ -42,6 +52,7 @@ class ContentPageController
             'metaTitle' => $page->meta_title ?: $page->title,
             'metaDescription' => $page->meta_description,
             'fromDatabase' => true,
+            'canonicalUrl' => $canonicalUrl,
         ]);
     }
 
@@ -61,6 +72,7 @@ class ContentPageController
             'metaTitle' => $page->meta_title ?: $page->title,
             'metaDescription' => $page->meta_description,
             'fromDatabase' => true,
+            'canonicalUrl' => route('content.preview', ['slug' => $slug, 'locale' => $locale]),
         ]);
     }
 }

@@ -422,6 +422,17 @@ return [
         'translations_value_helper' => 'Ovaj tekst će zamijeniti zadanu vrijednost iz datoteke prijevoda.',
         'updated' => 'Ažurirano',
     ],
+    'bug_report' => [
+        'trigger' => 'Prijavi bug',
+        'title' => 'Prijavi bug (beta)',
+        'close' => 'Zatvori',
+        'description' => 'Opišite što se dogodilo. Uključujemo URI trenutne stranice i server greške iz prethodnih 20 minuta.',
+        'problem_label' => 'Opis problema',
+        'problem_placeholder' => 'Što ste očekivali i što se dogodilo umjesto toga?',
+        'screenshot_label' => 'Screenshot (opcionalno)',
+        'screenshot_help' => 'PNG, JPG, WEBP do 5MB.',
+        'submit' => 'Pošalji prijavu',
+    ],
     'validation' => [
         'required' => 'Ovo polje je obavezno.',
         'email' => 'Unesite ispravnu e-mail adresu.',

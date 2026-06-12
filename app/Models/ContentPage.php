@@ -10,6 +10,7 @@ class ContentPage extends Model
     protected $fillable = [
         'slug',
         'locale',
+        'related_page_id',
         'title',
         'body',
         'meta_title',
@@ -29,18 +30,64 @@ class ContentPage extends Model
         return $this->belongsTo(User::class, 'updated_by_user_id');
     }
 
+    public function relatedPage(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'related_page_id');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true);
+    }
+
     public static function findBySlugAndLocale(string $slug, string $locale): ?self
     {
-        $page = static::where('slug', $slug)
+        $page = static::query()
+            ->published()
+            ->where('slug', $slug)
             ->where('locale', $locale)
-            ->where('is_published', true)
             ->first();
+
+        if ($page) {
+            return $page;
+        }
+
+        // If slug exists in another locale, resolve mapped translation (supports different slugs).
+        $basePage = static::query()
+            ->published()
+            ->where('slug', $slug)
+            ->first();
+
+        if ($basePage) {
+            $candidate = null;
+
+            if ($basePage->related_page_id) {
+                $candidate = static::query()
+                    ->published()
+                    ->where('id', $basePage->related_page_id)
+                    ->where('locale', $locale)
+                    ->first();
+            }
+
+            if (! $candidate) {
+                $candidate = static::query()
+                    ->published()
+                    ->where('related_page_id', $basePage->id)
+                    ->where('locale', $locale)
+                    ->first();
+            }
+
+            if ($candidate) {
+                return $candidate;
+            }
+        }
 
         // Fallback to English if current locale not found
         if (! $page && $locale !== 'en') {
-            $page = static::where('slug', $slug)
+            $page = static::query()
+                ->published()
+                ->where('slug', $slug)
                 ->where('locale', 'en')
-                ->where('is_published', true)
                 ->first();
         }
 

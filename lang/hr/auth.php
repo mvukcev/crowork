@@ -128,7 +128,7 @@ return [
     'status_registration_disabled_new' => 'Nove registracije za ovu vrstu racuna su trenutno onemogucene.',
     'status_account_pending_deletion' => 'Za ovaj racun postoji zahtjev za brisanje i prijava vise nije dostupna.',
     'status_profile_updated' => 'Profil je uspjesno azuriran.',
-    'status_account_created_verify_pending' => 'Racun je uspjesno kreiran! Potvrdite e-mail adresu za nastavak.',
+    'status_account_created_verify_pending' => 'Racun je uspjesno kreiran! Employer racun ceka administratorski pregled.',
 
     'email_invalid' => 'Nevaljana e-mail adresa.',
     'password_required' => 'Lozinka je obavezna.',

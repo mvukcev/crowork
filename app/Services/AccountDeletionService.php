@@ -17,7 +17,10 @@ class AccountDeletionService
         }
 
         $requestedAt = now();
-        $scheduledAt = $requestedAt->copy()->addDays(14);
+        $isEmployer = $user->role === User::ROLE_EMPLOYER;
+        $scheduledAt = $isEmployer
+            ? $requestedAt->copy()
+            : $requestedAt->copy()->addDays(14);
 
         $deletionRequest = $user->accountDeletionRequests()->create([
             'status' => AccountDeletionRequest::STATUS_PENDING,
@@ -32,7 +35,12 @@ class AccountDeletionService
             'anonymization_scheduled_at' => $scheduledAt,
         ])->save();
 
-        AnonymizeUserDataJob::dispatch($user->id, $deletionRequest->id)->delay($scheduledAt);
+        if ($isEmployer) {
+            // Employer self-deletion should release account identifiers immediately.
+            AnonymizeUserDataJob::dispatchSync($user->id, $deletionRequest->id);
+        } else {
+            AnonymizeUserDataJob::dispatch($user->id, $deletionRequest->id)->delay($scheduledAt);
+        }
 
         return $deletionRequest;
     }

@@ -43,6 +43,17 @@ class ContentPageResource extends Resource
                             ])
                             ->required()
                             ->disabled(fn (?ContentPage $record) => $record !== null),
+                        Forms\Components\Select::make('related_page_id')
+                            ->label('Link to translated version')
+                            ->relationship(
+                                name: 'relatedPage',
+                                titleAttribute: 'title',
+                                modifyQueryUsing: fn ($query, Forms\Get $get) => $query
+                                    ->where('locale', '!=', $get('locale')),
+                            )
+                            ->helperText('Link this legal page to its translation, even if slug differs.')
+                            ->searchable()
+                            ->preload(),
                         Forms\Components\TextInput::make('title')
                             ->label('Page Title')
                             ->required()
@@ -88,6 +99,10 @@ class ContentPageResource extends Resource
                     ->label('Language')
                     ->sortable()
                     ->badge(),
+                Tables\Columns\IconColumn::make('relatedPage.id')
+                    ->label('Linked')
+                    ->boolean(fn ($state) => $state !== null)
+                    ->tooltip('Linked to translated version'),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
                     ->searchable()

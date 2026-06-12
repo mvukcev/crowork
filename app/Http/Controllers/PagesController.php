@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ResourcePost;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class PagesController extends Controller
@@ -21,9 +23,17 @@ class PagesController extends Controller
         $post = $this->publishedResourcePostBySlug($slug);
 
         if ($post !== null) {
+            // Find related post in another language (even with different slug)
+            $alternateLocales = [];
+            $relatedPost = $post->relatedPost;
+            if ($relatedPost && $relatedPost->is_published && $relatedPost->published_at <= now()) {
+                $alternateLocales[$relatedPost->locale] = $relatedPost->slug;
+            }
+
             return view('pages.resources.post', [
                 'post' => $post,
                 'resources' => $this->combinedResources(),
+                'alternateLocales' => $alternateLocales,
             ]);
         }
 
@@ -31,9 +41,21 @@ class PagesController extends Controller
 
         abort_unless(isset($resources[$slug]) && ! ($resources[$slug]['is_dynamic_post'] ?? false), 404);
 
+        // For static resources, check if they exist in other languages
+        $alternateLocales = [];
+        $currentLocale = app()->getLocale();
+        $otherLocale = $currentLocale === 'en' ? 'hr' : 'en';
+        
+        $otherLocaleResources = Lang::get('resources.guides', [], $otherLocale);
+        if (is_array($otherLocaleResources) && isset($otherLocaleResources[$slug])) {
+            $alternateLocales[$otherLocale] = $slug;
+        }
+
         return view('pages.resources.show', [
             'resource' => $resources[$slug],
             'resources' => $resources,
+            'alternateLocales' => $alternateLocales,
+            'resourceSlug' => $slug,
         ]);
     }
 
@@ -366,13 +388,52 @@ class PagesController extends Controller
         $locale = app()->getLocale();
         $fallbackLocale = (string) config('app.fallback_locale', 'en');
 
-        return ResourcePost::query()
+        $posts = ResourcePost::query()
             ->published()
             ->whereIn('locale', array_values(array_unique([$locale, $fallbackLocale])))
-            ->orderByRaw('locale = ? desc', [$locale])
             ->orderByDesc('published_at')
-            ->get()
-            ->unique('slug')
+            ->get();
+
+        $reverseLinks = $posts
+            ->filter(fn (ResourcePost $post): bool => $post->related_post_id !== null)
+            ->groupBy('related_post_id')
+            ->map(fn (Collection $group): array => $group->pluck('id')->all());
+
+        return $posts
+            ->groupBy(function (ResourcePost $post) use ($reverseLinks): string {
+                $linkedId = $post->related_post_id;
+
+                if ($linkedId === null) {
+                    $reverseCandidates = $reverseLinks->get($post->id, []);
+                    $linkedId = $reverseCandidates[0] ?? null;
+                }
+
+                if ($linkedId === null) {
+                    return 'slug:' . $post->slug;
+                }
+
+                $left = min($post->id, (int) $linkedId);
+                $right = max($post->id, (int) $linkedId);
+
+                return 'pair:' . $left . '-' . $right;
+            })
+            ->map(function (Collection $group) use ($locale, $fallbackLocale): ?ResourcePost {
+                $preferred = $group->firstWhere('locale', $locale);
+
+                if ($preferred instanceof ResourcePost) {
+                    return $preferred;
+                }
+
+                $fallback = $group->firstWhere('locale', $fallbackLocale);
+
+                if ($fallback instanceof ResourcePost) {
+                    return $fallback;
+                }
+
+                return $group->sortByDesc('published_at')->first();
+            })
+            ->filter(fn ($post): bool => $post instanceof ResourcePost)
+            ->sortByDesc(fn (ResourcePost $post) => $post->published_at?->timestamp ?? 0)
             ->mapWithKeys(function (ResourcePost $post): array {
                 $summary = trim((string) ($post->excerpt ?? ''));
                 if ($summary === '') {

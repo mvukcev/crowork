@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageSanitizerService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,7 @@ class ResourcePost extends Model
         'published_at',
         'created_by_admin_id',
         'updated_by_admin_id',
+        'related_post_id',
     ];
 
     /**
@@ -55,6 +57,22 @@ class ResourcePost extends Model
             ->where('published_at', '<=', now());
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function (ResourcePost $post): void {
+            if (! $post->wasChanged('featured_image_path')) {
+                return;
+            }
+
+            $path = trim((string) $post->featured_image_path);
+            if ($path === '') {
+                return;
+            }
+
+            app(ImageSanitizerService::class)->sanitizeAndOptimize('public', $path, 1600, 900);
+        });
+    }
+
     public function createdByAdmin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_admin_id');
@@ -63,6 +81,11 @@ class ResourcePost extends Model
     public function updatedByAdmin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by_admin_id');
+    }
+
+    public function relatedPost(): BelongsTo
+    {
+        return $this->belongsTo(ResourcePost::class, 'related_post_id');
     }
 
     public static function typeOptions(): array

@@ -68,9 +68,6 @@ class EnsureLatestLegalConsentAccepted
             'worker.privacy.request-deletion',
             'user.export',
             'profile.destroy',
-            'verification.notice',
-            'verification.send',
-            'verification.verify',
         ];
 
         if (in_array($routeName, $exempt, true)) {

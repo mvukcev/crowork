@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\BugReportController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\CompanyController;
@@ -19,7 +20,6 @@ use App\Http\Controllers\WorkerSettingsController;
 use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
 use App\Http\Controllers\Auth\AccessController;
-use App\Http\Controllers\Auth\EmployerRegisterController;
 use App\Http\Controllers\FrontendPreferenceController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Models\Job;
@@ -85,6 +85,9 @@ Route::get('/coming-soon/{feature?}', [PagesController::class, 'comingSoon'])->n
 
 Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
 Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+Route::post('/bugs/report', [BugReportController::class, 'store'])
+    ->middleware('throttle:8,60')
+    ->name('bugs.report.store');
 
 // Legacy legal aliases redirect to canonical URLs
 Route::redirect('/privacy-policy', '/privacy')->name('privacy-policy');
@@ -115,7 +118,7 @@ Route::get('/dashboard', function () {
     }
 
     return view('dashboard');
-})->middleware(['auth', 'verified', 'legal.consent'])->name('dashboard');
+})->middleware(['auth', 'legal.consent'])->name('dashboard');
 
 Route::middleware(['auth', 'legal.consent'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -188,7 +191,6 @@ Route::middleware(['auth', 'legal.consent', 'employer.approved', 'impersonation.
 // Employer registration (guest only)
 Route::middleware('guest')->prefix('employer')->name('employer.')->group(function () {
     Route::get('register', fn () => redirect()->route('access.show', ['type' => 'employer']))->name('register');
-    Route::post('register', [EmployerRegisterController::class, 'store']);
 });
 
 // Employer pending approval view (authenticated employers)
@@ -210,6 +212,7 @@ Route::middleware(['auth', 'legal.consent'])->post('impersonation/end', [\App\Ht
 Route::get('privacy', [\App\Http\Controllers\ContentPageController::class, 'show'])->defaults('slug', 'privacy')->name('privacy');
 Route::get('terms', [\App\Http\Controllers\ContentPageController::class, 'show'])->defaults('slug', 'terms')->name('terms');
 Route::get('cookies', [\App\Http\Controllers\ContentPageController::class, 'show'])->defaults('slug', 'cookies')->name('cookies');
+Route::get('legal/{slug}', [\App\Http\Controllers\ContentPageController::class, 'show'])->name('legal.content.show');
 
 // Content page preview (admin only)
 Route::middleware(['auth', 'admin.access'])->get('content/{slug}/preview/{locale}', [\App\Http\Controllers\ContentPageController::class, 'preview'])->name('content.preview');

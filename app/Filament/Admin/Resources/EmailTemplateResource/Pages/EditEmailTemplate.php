@@ -76,7 +76,9 @@ class EditEmailTemplate extends EditRecord
                         (string) $data['email'],
                         (string) $this->record->key,
                         $variables,
-                        null
+                        null,
+                        $rendered['subject'] ?? null,
+                        $rendered['body'] ?? null,
                     );
                 }),
             Actions\DeleteAction::make(),

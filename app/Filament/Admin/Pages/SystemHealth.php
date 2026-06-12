@@ -94,9 +94,15 @@ class SystemHealth extends Page
                         return;
                     }
 
-                    $uuids = DB::table('failed_jobs')->pluck('uuid')->filter()->values()->all();
+                    $rows = DB::table('failed_jobs')->select(['id', 'uuid'])->get();
+                    $ids = $rows
+                        ->map(fn ($row) => filled((string) ($row->uuid ?? '')) ? (string) $row->uuid : (string) ($row->id ?? ''))
+                        ->filter(fn ($id) => is_string($id) && $id !== '')
+                        ->unique()
+                        ->values()
+                        ->all();
 
-                    if ($uuids === []) {
+                    if ($ids === []) {
                         Notification::make()
                             ->title('No failed jobs to retry')
                             ->success()
@@ -107,13 +113,46 @@ class SystemHealth extends Page
                         return;
                     }
 
-                    Artisan::call('queue:retry', ['id' => $uuids]);
+                    try {
+                        $success = 0;
+                        $failed = [];
 
-                    Notification::make()
-                        ->title('Retry queued for failed jobs')
-                        ->body(sprintf('Retried %d failed job(s).', count($uuids)))
-                        ->success()
-                        ->send();
+                        foreach ($ids as $id) {
+                            try {
+                                Artisan::call('queue:retry', ['id' => [$id]]);
+                                $success++;
+                            } catch (\Throwable $inner) {
+                                $failed[] = [
+                                    'id' => $id,
+                                    'message' => $inner->getMessage(),
+                                ];
+                            }
+                        }
+
+                        if ($success > 0) {
+                            Notification::make()
+                                ->title('Retry queued for failed jobs')
+                                ->body("Retried {$success} failed job(s)." . (count($failed) > 0 ? ' Some jobs could not be retried.' : ''))
+                                ->success()
+                                ->send();
+                        }
+
+                        if (count($failed) > 0) {
+                            $first = $failed[0]['message'] ?? 'Unknown retry failure.';
+
+                            Notification::make()
+                                ->title('Some failed jobs could not be retried')
+                                ->body('Count: ' . count($failed) . '. First error: ' . $first)
+                                ->warning()
+                                ->send();
+                        }
+                    } catch (\Throwable $exception) {
+                        Notification::make()
+                            ->title('Retry failed jobs action failed')
+                            ->body($exception->getMessage())
+                            ->danger()
+                            ->send();
+                    }
 
                     $this->refreshChecks();
                 }),

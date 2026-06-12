@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\NotificationPreference;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class NotificationPreferenceService
 {
@@ -102,5 +103,42 @@ class NotificationPreferenceService
                 ]
             );
         }
+    }
+
+    /**
+     * Ensure every user has rows for every notification category.
+     *
+     * @return int Number of created rows.
+     */
+    public function ensureDefaultsForAllUsers(): int
+    {
+        $created = 0;
+        $categories = array_keys(self::categoryLabels());
+
+        User::query()
+            ->select(['id'])
+            ->chunk(200, function (Collection $users) use (&$created, $categories): void {
+                foreach ($users as $user) {
+                    foreach ($categories as $category) {
+                        $row = NotificationPreference::query()->firstOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'category' => $category,
+                            ],
+                            [
+                                'email_enabled' => true,
+                                'database_enabled' => true,
+                                'digest_frequency' => NotificationPreference::DIGEST_NONE,
+                            ]
+                        );
+
+                        if ($row->wasRecentlyCreated) {
+                            $created++;
+                        }
+                    }
+                }
+            });
+
+        return $created;
     }
 }

@@ -422,6 +422,17 @@ return [
         'translations_value_helper' => 'This text will override the default translation file value.',
         'updated' => 'Updated',
     ],
+    'bug_report' => [
+        'trigger' => 'Report a bug',
+        'title' => 'Report a bug (beta)',
+        'close' => 'Close',
+        'description' => 'Share what happened. We include current page URI and server errors from the previous 20 minutes.',
+        'problem_label' => 'Problem description',
+        'problem_placeholder' => 'What did you expect, and what happened instead?',
+        'screenshot_label' => 'Screenshot (optional)',
+        'screenshot_help' => 'PNG, JPG, WEBP up to 5MB.',
+        'submit' => 'Send report',
+    ],
     'validation' => [
         'required' => 'This field is required.',
         'email' => 'Please enter a valid email address.',

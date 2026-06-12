@@ -261,6 +261,7 @@ class WorkerProfileController extends Controller
 
             // Store new photo
             $path = $request->file('photo')->store('worker-photos', 'public');
+            app(\App\Services\ImageSanitizerService::class)->sanitizeAndOptimize('public', $path, 1200, 1200);
             $validated['photo_path'] = $path;
         }
 

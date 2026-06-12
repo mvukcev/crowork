@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\EmailTemplateService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 
@@ -10,12 +11,20 @@ class AuthResetPasswordNotification extends ResetPassword
     public function toMail($notifiable): MailMessage
     {
         $url = $this->resetUrl($notifiable);
+        $locale = $notifiable->communication_language ?? app()->getLocale();
+        $expires = (string) config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
 
-        return (new MailMessage)
-            ->subject(__('emails.reset_subject'))
-            ->line(__('emails.reset_line_1'))
-            ->action(__('emails.reset_action'), $url)
-            ->line(__('emails.reset_line_2', ['count' => config('auth.passwords.'.config('auth.defaults.passwords').'.expire')]))
-            ->line(__('emails.reset_line_3'));
+        return app(EmailTemplateService::class)->toMailMessage(
+            'auth_reset_password',
+            $locale,
+            [
+                'name' => $notifiable->name ?? trans('emails.recipient_fallback', locale: $locale),
+                'count' => $expires,
+                'expire_minutes' => $expires,
+                'action_url' => $url,
+            ],
+            trans('emails.reset_action', locale: $locale),
+            $url,
+        );
     }
 }

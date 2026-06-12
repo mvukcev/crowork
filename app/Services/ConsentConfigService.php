@@ -62,7 +62,12 @@ class ConsentConfigService
         }
 
         $user ??= $request?->user();
-        return self::latestUserConsent($user, self::CONSENT_TYPE_ANALYTICS) ?? false;
+        $historyValue = self::latestUserConsent($user, self::CONSENT_TYPE_ANALYTICS);
+        if ($historyValue !== null) {
+            return $historyValue;
+        }
+
+        return self::hasImplicitTrackingConsentForAuthenticatedUser($user);
     }
 
     public static function hasMarketingConsent(?Request $request = null, ?User $user = null): bool
@@ -78,7 +83,21 @@ class ConsentConfigService
         }
 
         $user ??= $request?->user();
-        return self::latestUserConsent($user, self::CONSENT_TYPE_MARKETING) ?? false;
+        $historyValue = self::latestUserConsent($user, self::CONSENT_TYPE_MARKETING);
+        if ($historyValue !== null) {
+            return $historyValue;
+        }
+
+        return self::hasImplicitTrackingConsentForAuthenticatedUser($user);
+    }
+
+    public static function hasImplicitTrackingConsentForAuthenticatedUser(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return in_array($user->role, [User::ROLE_WORKER, User::ROLE_EMPLOYER], true);
     }
 
     public static function latestUserConsent(?User $user, string $consentType): ?bool

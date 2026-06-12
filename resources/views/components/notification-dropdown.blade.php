@@ -20,7 +20,7 @@
                 <path d="M9.5 17a2.5 2.5 0 0 0 5 0"/>
             </svg>
             @if($notificationUnreadCount > 0)
-                <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[rgb(255,85,0)] text-white text-[10px] leading-[18px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
+                <span class="absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[rgb(255,85,0)] text-white text-[10px] leading-[18px] text-center font-semibold">{{ min($notificationUnreadCount, 99) }}</span>
             @endif
         </button>
 

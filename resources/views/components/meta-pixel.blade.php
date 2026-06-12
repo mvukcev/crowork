@@ -1,8 +1,8 @@
 @php
-    $metaEnabled = (bool) config('meta.enabled', false);
-    $pixelEnabled = (bool) config('meta.browser_enabled', true);
-    $pixelId = (string) config('meta.pixel_id', '');
-    $testEventCode = (string) config('meta.test_event_code', '');
+    $metaEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled();
+    $pixelEnabled = \App\Models\Setting::getBool('meta_browser_enabled', true);
+    $pixelId = (string) (\App\Services\MetaPixelConfigService::getPixelId() ?? '');
+    $testEventCode = (string) (\App\Services\MetaPixelConfigService::getTestEventCode() ?? '');
     $hasConsent = \App\Services\ConsentConfigService::isMarketingAllowed();
 @endphp
 
@@ -31,4 +31,6 @@
             @endif
         })(window, document);
     </script>
+@elseif($metaEnabled && $pixelEnabled && $pixelId !== '')
+    <!-- Meta Pixel configured but blocked until marketing consent is granted. -->
 @endif

@@ -133,6 +133,7 @@ const readConsentState = () => {
 	const consentRequired = body?.dataset?.cwConsentRequired === '1';
 	const analyticsEnabled = body?.dataset?.cwAnalyticsEnabled === '1';
 	const marketingEnabled = body?.dataset?.cwMarketingEnabled === '1';
+	const authConsentAllowed = body?.dataset?.cwAuthConsentAllowed === '1';
 
 	const cookieAnalytics = readCookieValue('consent_analytics') === '1';
 	const cookieMarketing = readCookieValue('consent_marketing') === '1';
@@ -149,8 +150,8 @@ const readConsentState = () => {
 		storedConsent = null;
 	}
 
-	const analyticsAllowed = !consentRequired || cookieAnalytics || storedChoice === 'all' || storedConsent?.analytics === true;
-	const marketingAllowed = !consentRequired || cookieMarketing || storedChoice === 'all' || storedConsent?.marketing === true;
+	const analyticsAllowed = !consentRequired || authConsentAllowed || cookieAnalytics || storedChoice === 'all' || storedConsent?.analytics === true;
+	const marketingAllowed = !consentRequired || authConsentAllowed || cookieMarketing || storedChoice === 'all' || storedConsent?.marketing === true;
 
 	return {
 		analyticsAllowed: analyticsEnabled && analyticsAllowed,
@@ -183,6 +184,19 @@ const persistConsentPreference = async ({ analytics, marketing, choice, source =
 	} catch (_) {
 		// Keep UX responsive even if consent sync endpoint is temporarily unavailable.
 	}
+};
+
+const updateGoogleConsentMode = ({ analytics, marketing }) => {
+	if (typeof window.gtag !== 'function') {
+		return;
+	}
+
+	window.gtag('consent', 'update', {
+		analytics_storage: analytics ? 'granted' : 'denied',
+		ad_storage: marketing ? 'granted' : 'denied',
+		ad_user_data: marketing ? 'granted' : 'denied',
+		ad_personalization: marketing ? 'granted' : 'denied',
+	});
 };
 
 const resolvePageType = () => {
@@ -1102,6 +1116,8 @@ const initCroworkUi = () => {
 					choice: normalizedChoice,
 					source: 'cookie_banner',
 				});
+
+				updateGoogleConsentMode({ analytics, marketing });
 			};
 
 			const openModal = () => {

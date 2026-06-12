@@ -52,8 +52,9 @@
         $consentRequired = \App\Services\ConsentConfigService::isConsentRequired();
         $analyticsEnabled = \App\Services\AnalyticsConfigService::isAnalyticsEnabled();
         $marketingEnabled = \App\Services\MetaPixelConfigService::isTrackingEnabled()
-            && (bool) config('meta.browser_enabled', true)
-            && filled(config('meta.pixel_id'));
+            && \App\Models\Setting::getBool('meta_browser_enabled', true)
+            && filled(\App\Services\MetaPixelConfigService::getPixelId());
+        $authTrackingConsentAllowed = \App\Services\ConsentConfigService::hasImplicitTrackingConsentForAuthenticatedUser(request()->user());
         $trackDebug = app()->environment('local') || config('app.debug');
     @endphp
     <body
@@ -61,6 +62,7 @@
         data-cw-consent-required="{{ $consentRequired ? '1' : '0' }}"
         data-cw-analytics-enabled="{{ $analyticsEnabled ? '1' : '0' }}"
         data-cw-marketing-enabled="{{ $marketingEnabled ? '1' : '0' }}"
+        data-cw-auth-consent-allowed="{{ $authTrackingConsentAllowed ? '1' : '0' }}"
         data-cw-track-debug="{{ $trackDebug ? '1' : '0' }}"
     >
         <div class="min-h-screen flex flex-col cw-page-shell">
@@ -169,6 +171,8 @@
                 </div>
             </section>
         </div>
+
+        <x-bug-report-banner />
 
         @include('components.analytics-noscript')
     </body>

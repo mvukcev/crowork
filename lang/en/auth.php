@@ -128,7 +128,7 @@ return [
     'status_registration_disabled_new' => 'New registrations are currently disabled for this account type.',
     'status_account_pending_deletion' => 'This account has a pending deletion request and cannot be used to sign in.',
     'status_profile_updated' => 'Profile updated successfully.',
-    'status_account_created_verify_pending' => 'Account created successfully! Please verify your email to continue.',
+    'status_account_created_verify_pending' => 'Account created successfully! Your employer account is pending admin review.',
 
     'email_invalid' => 'Invalid email address.',
     'password_required' => 'Password is required.',

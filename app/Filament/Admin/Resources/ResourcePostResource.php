@@ -110,6 +110,16 @@ class ResourcePostResource extends Resource
                         Forms\Components\DateTimePicker::make('published_at')
                             ->seconds(false)
                             ->helperText('Leave empty to publish manually later.'),
+                        Forms\Components\Select::make('related_post_id')
+                            ->label('Link to translated version')
+                            ->relationship(
+                                name: 'relatedPost',
+                                titleAttribute: 'title',
+                                modifyQueryUsing: fn ($query, Forms\Get $get) => $query
+                                    ->where('locale', '!=', $get('locale'))
+                                    ->whereNotNull('published_at'),
+                            )
+                            ->helperText('Select the post version in another language (even if slug is different).'),
                     ])
                     ->columns(2),
             ]);
@@ -129,6 +139,11 @@ class ResourcePostResource extends Resource
                 Tables\Columns\TextColumn::make('locale')
                     ->badge()
                     ->sortable(),
+                Tables\Columns\IconColumn::make('relatedPost.id')
+                    ->label('Linked')
+                    ->boolean(fn ($state) => $state !== null)
+                    ->sortable()
+                    ->tooltip('Linked to translated version'),
                 Tables\Columns\ImageColumn::make('featured_image_path')
                     ->label('Featured')
                     ->disk('public')

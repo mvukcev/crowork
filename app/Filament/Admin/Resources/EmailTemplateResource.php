@@ -67,11 +67,19 @@ class EmailTemplateResource extends Resource
                             ->options([
                                 'en' => 'English',
                                 'hr' => 'Croatian',
-                                'de' => 'German',
                             ])
                             ->required()
                             ->default('en')
                             ->native(false),
+
+                        Forms\Components\Placeholder::make('trigger_description')
+                            ->label('Sent When')
+                            ->content(function (Forms\Get $get) use ($definitions): string {
+                                $key = (string) $get('key');
+
+                                return (string) ($definitions[$key]['trigger'] ?? 'Trigger details are not available for this template key.');
+                            })
+                            ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('subject')
                             ->required()
@@ -151,6 +159,11 @@ class EmailTemplateResource extends Resource
                     ->formatStateUsing(fn (string $state): string => $definitions[$state]['label'] ?? $state)
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('trigger')
+                    ->label('Sent When')
+                    ->state(fn (EmailTemplate $record): string => (string) ($definitions[$record->key]['trigger'] ?? '-'))
+                    ->wrap()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('locale')
                     ->badge()
                     ->sortable(),
@@ -166,7 +179,6 @@ class EmailTemplateResource extends Resource
                     ->options([
                         'en' => 'English',
                         'hr' => 'Croatian',
-                        'de' => 'German',
                     ]),
                 Tables\Filters\SelectFilter::make('key')
                     ->options(collect($definitions)->mapWithKeys(fn (array $def, string $key) => [$key => $def['label']])->toArray()),

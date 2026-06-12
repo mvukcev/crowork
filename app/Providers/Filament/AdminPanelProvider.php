@@ -7,6 +7,7 @@ use App\Http\Middleware\AdminAccessMiddleware;
 use App\Http\Middleware\AdminModuleAccessMiddleware;
 use App\Http\Middleware\EnsureLatestLegalConsentAccepted;
 use App\Http\Middleware\EnsureAdminPanelSessionIsPrivileged;
+use App\Http\Middleware\LogAdminWriteActions;
 use App\Models\User;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -123,6 +124,7 @@ class AdminPanelProvider extends PanelProvider
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
                 SubstituteBindings::class,
+                LogAdminWriteActions::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])

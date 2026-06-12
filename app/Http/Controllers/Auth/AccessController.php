@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendMetaEventJob;
 use App\Mail\VerificationCodeMail;
+use App\Models\AccountDeletionRequest;
 use App\Models\Setting;
 use App\Models\Employer;
 use App\Models\User;
@@ -12,6 +13,8 @@ use App\Models\WorkerProfile;
 use App\Notifications\AdminNewEmployerPending;
 use App\Services\ConsentConfigService;
 use App\Services\ConsentHistoryService;
+use App\Services\DataIntegrityService;
+use App\Services\EmailTemplateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -105,7 +108,12 @@ class AccessController extends Controller
 
             session(['access_email' => $email, 'access_intent_type' => $intentType]);
 
-            if (User::where('email', $email)->exists()) {
+            $existingUser = User::query()
+                ->where('email', $email)
+                ->where('pending_deletion', false)
+                ->first();
+
+            if ($existingUser) {
                 session(['access_stage' => 'login']);
                 return redirect()->route('access.show');
             }
@@ -300,10 +308,10 @@ class AccessController extends Controller
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            session(['access_stage' => 'login', 'access_email' => $email]);
+            session(['access_stage' => 'email', 'access_email' => $email]);
 
             return redirect()->route('access.show')
-                ->withErrors(['email' => __('auth.status_account_pending_deletion')]);
+                ->withErrors(['email' => __('auth.failed')]);
         }
 
         $user->forceFill(['last_login_at' => now()])->save();
@@ -333,6 +341,10 @@ class AccessController extends Controller
         // Guard: email must have been verified in this session
         $submittedEmail = strtolower($request->input('email', ''));
         $verifiedEmail  = session('cw_verified_email');
+        $pendingDeletionUser = User::query()
+            ->where('email', $submittedEmail)
+            ->where('pending_deletion', true)
+            ->first();
 
         if (! $verifiedEmail || strtolower($verifiedEmail) !== $submittedEmail) {
             session(['access_stage' => 'email', 'access_email' => '']);
@@ -341,7 +353,14 @@ class AccessController extends Controller
         }
 
         $data = $request->validate([
-            'email'        => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email'        => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class)->ignore($pendingDeletionUser?->id),
+            ],
             'name'         => ['required', 'string', 'max:255'],
             'account_type' => ['required', Rule::in([User::ROLE_WORKER, User::ROLE_EMPLOYER])],
             'employer_oib' => ['nullable', 'string', 'max:32', 'required_if:account_type,' . User::ROLE_EMPLOYER],
@@ -357,14 +376,37 @@ class AccessController extends Controller
                 ->withErrors(['email' => __('auth.status_registration_disabled')]);
         }
 
-        $user = User::create([
-            'name'     => $data['name'],
-            'email'    => strtolower($data['email']),
-            'password' => Hash::make($data['password']),
-            'role'     => $data['account_type'],
-            // Email was verified in the access flow via one-time code.
-            'email_verified_at' => now(),
-        ]);
+        if ($pendingDeletionUser) {
+            $pendingDeletionUser->forceFill([
+                'name' => $data['name'],
+                'email' => strtolower($data['email']),
+                'password' => Hash::make($data['password']),
+                'role' => $data['account_type'],
+                'pending_deletion' => false,
+                'deletion_requested_at' => null,
+                'anonymization_scheduled_at' => null,
+                // Email was verified in the access flow via one-time code.
+                'email_verified_at' => now(),
+            ])->save();
+
+            $pendingDeletionUser->accountDeletionRequests()
+                ->where('status', AccountDeletionRequest::STATUS_PENDING)
+                ->update([
+                    'status' => AccountDeletionRequest::STATUS_CANCELLED,
+                    'completed_at' => now(),
+                ]);
+
+            $user = $pendingDeletionUser->fresh();
+        } else {
+            $user = User::create([
+                'name'     => $data['name'],
+                'email'    => strtolower($data['email']),
+                'password' => Hash::make($data['password']),
+                'role'     => $data['account_type'],
+                // Email was verified in the access flow via one-time code.
+                'email_verified_at' => now(),
+            ]);
+        }
 
         app(ConsentHistoryService::class)->recordRegistrationConsents($user, $request);
 
@@ -387,14 +429,16 @@ class AccessController extends Controller
         $this->clearAccessSessionState();
 
         if ($user->role === User::ROLE_WORKER) {
-            WorkerProfile::create([
-                'user_id'                  => $user->id,
-                'first_name'               => '',
-                'last_name'                => '',
-                'nationality_country_code' => '',
-                'birth_year'               => 1940,
-                'skills'                   => [],
-            ]);
+            WorkerProfile::query()->firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'first_name' => '',
+                    'last_name' => '',
+                    'nationality_country_code' => '',
+                    'birth_year' => 1940,
+                    'skills' => [],
+                ]
+            );
 
             Auth::login($user);
             $this->queueTrackEvent('register_complete', [
@@ -406,13 +450,12 @@ class AccessController extends Controller
             return redirect()->route('worker.profile.edit');
         }
 
-        Employer::create([
-            'user_id'      => $user->id,
-            'company_name' => $user->name,
-            'oib'          => isset($data['employer_oib']) ? preg_replace('/\s+/', '', (string) $data['employer_oib']) : null,
-            // First-time employer registration is automatically enabled after verified signup.
-            'approved_at'  => now(),
-        ]);
+        $employer = Employer::query()->firstOrNew(['user_id' => $user->id]);
+        $employer->company_name = $user->name;
+        $employer->oib = isset($data['employer_oib']) ? preg_replace('/\s+/', '', (string) $data['employer_oib']) : null;
+        // First-time employer registration is automatically enabled after verified signup.
+        $employer->approved_at = $employer->approved_at ?? now();
+        $employer->save();
 
         $user->loadMissing('employer');
 
@@ -484,10 +527,25 @@ class AccessController extends Controller
 
         Cache::put($this->resendCooldownKey($email), true, now()->addSeconds(60));
 
+        $fallbackName = trans('emails.recipient_fallback', locale: app()->getLocale());
+        $rendered = app(EmailTemplateService::class)->render('verification_code', app()->getLocale(), [
+            'name' => $fallbackName,
+            'code' => $code,
+        ]);
+
         $mailable = new VerificationCodeMail($code, app()->getLocale());
 
         try {
             Mail::to($email)->send($mailable);
+
+            DataIntegrityService::logEmailSend(
+                $email,
+                'verification_code',
+                ['flow' => 'access_otp', 'locale' => app()->getLocale()],
+                null,
+                $rendered['subject'] ?? null,
+                $rendered['body'] ?? null,
+            );
         } catch (\Throwable $exception) {
             if (! (app()->environment('local') || config('app.debug'))) {
                 throw $exception;
@@ -500,6 +558,15 @@ class AccessController extends Controller
             ]);
 
             Mail::mailer('log')->to($email)->send($mailable);
+
+            DataIntegrityService::logEmailSend(
+                $email,
+                'verification_code',
+                ['flow' => 'access_otp', 'locale' => app()->getLocale(), 'transport' => 'log_fallback'],
+                null,
+                $rendered['subject'] ?? null,
+                $rendered['body'] ?? null,
+            );
         }
 
         if ($this->isDevMode()) {

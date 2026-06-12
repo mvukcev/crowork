@@ -12,9 +12,9 @@ return [
     'reset_line_2' => 'Poveznica za reset lozinke istjece za :count minuta.',
     'reset_line_3' => 'Ako niste zatrazili reset lozinke, nije potrebna dodatna radnja.',
 
-    'verification_code_subject' => 'Vas CroWork verifikacijski kod',
-    'recipient_fallback' => 'tamo',
-    'verification_code_greeting' => 'Pozdrav :name,',
-    'verification_code_body' => 'Vas verifikacijski kod je: :code',
-    'verification_code_fallback' => 'Kod uskoro istjece. Ako ovo niste zatrazili, zanemarite ovu poruku.',
+    'verification_code_subject' => 'Vas verifikacijski kod za CroWork',
+    'recipient_fallback' => 'korisnice',
+    'verification_code_greeting' => 'Pozdrav,',
+    'verification_code_body' => 'Vas verifikacijski kod glasi: :code',
+    'verification_code_fallback' => 'Kod vrijedi 10 minuta. Ako niste zatrazili ovaj kod, slobodno zanemarite ovu poruku.',
 ];

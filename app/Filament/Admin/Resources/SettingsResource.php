@@ -46,7 +46,8 @@ class SettingsResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('key')
                             ->label('Setting Key')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(),
                         Forms\Components\Placeholder::make('setting_label')
                             ->label('Setting Label')
                             ->content(fn (?Setting $record) => Setting::definition($record?->key ?? '')['label'] ?? $record?->key ?? '-'),
@@ -55,7 +56,6 @@ class SettingsResource extends Resource
                             ->content(fn (?Setting $record) => Setting::definition($record?->key ?? '')['group'] ?? 'System'),
                         Forms\Components\Toggle::make('value_boolean')
                             ->label('Value')
-                            ->statePath('value')
                             ->default(false)
                             ->helperText(fn (?Setting $record) => self::comingSoonControlHelperText($record) ?? self::getHelperText($record))
                             ->disabled(fn (?Setting $record) => self::comingSoonEnvLock($record))
@@ -63,41 +63,35 @@ class SettingsResource extends Resource
                             ->dehydrateStateUsing(fn ($state) => (bool) $state),
                         Forms\Components\Select::make('value_select')
                             ->label('Value')
-                            ->statePath('value')
                             ->options(fn (?Setting $record) => self::settingOptions($record))
                             ->helperText(fn (?Setting $record) => self::getHelperText($record))
                             ->native(false)
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'select'),
                         Forms\Components\TextInput::make('value_integer')
                             ->label('Value')
-                            ->statePath('value')
                             ->numeric()
-                            ->minValue(1)
+                            ->minValue(0)
                             ->helperText(fn (?Setting $record) => self::getHelperText($record))
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'integer')
                             ->dehydrateStateUsing(fn ($state) => is_numeric($state) ? (int) $state : null),
                         Forms\Components\TextInput::make('value_email')
                             ->label('Value')
-                            ->statePath('value')
                             ->email()
                             ->maxLength(255)
                             ->helperText(fn (?Setting $record) => self::getHelperText($record))
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'email'),
                         Forms\Components\TextInput::make('value_password')
                             ->label('Value')
-                            ->statePath('value')
                             ->password()
                             ->maxLength(255)
                             ->helperText('Leave blank to keep the existing value.')
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'password'),
                         Forms\Components\TagsInput::make('value_array')
                             ->label('Value')
-                            ->statePath('value')
                             ->visible(fn (?Setting $record) => self::settingType($record) === 'array')
                             ->helperText(fn (?Setting $record) => self::getHelperText($record) ?: 'Enter comma-separated values.'),
                         Forms\Components\Textarea::make('value_text')
                             ->label('Value')
-                            ->statePath('value')
                             ->rows(4)
                             ->helperText(fn (?Setting $record) => self::getHelperText($record))
                             ->visible(fn (?Setting $record) => !in_array(self::settingType($record), ['boolean', 'select', 'integer', 'email', 'password', 'array'], true)),
@@ -111,7 +105,30 @@ class SettingsResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('key')
                     ->label('Setting Key')
-                    ->searchable()
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        $needle = mb_strtolower(trim($search));
+
+                        $matchingKeys = collect(Setting::DEFINITIONS)
+                            ->filter(function (array $definition, string $key) use ($needle): bool {
+                                $label = mb_strtolower((string) ($definition['label'] ?? ''));
+                                $group = mb_strtolower((string) ($definition['group'] ?? ''));
+
+                                return str_contains(mb_strtolower($key), $needle)
+                                    || str_contains($label, $needle)
+                                    || str_contains($group, $needle);
+                            })
+                            ->keys()
+                            ->values()
+                            ->all();
+
+                        return $query->where(function (Builder $inner) use ($search, $matchingKeys): void {
+                            $inner->where('key', 'like', "%{$search}%");
+
+                            if ($matchingKeys !== []) {
+                                $inner->orWhereIn('key', $matchingKeys);
+                            }
+                        });
+                    })
                     ->sortable()
                     ->badge()
                     ->color('gray')
@@ -119,7 +136,7 @@ class SettingsResource extends Resource
                 Tables\Columns\TextColumn::make('setting_label')
                     ->label('Label')
                     ->getStateUsing(fn (Setting $record) => Setting::definition($record->key)['label'] ?? $record->key)
-                    ->searchable(),
+                    ->wrap(),
                 Tables\Columns\TextColumn::make('setting_group')
                     ->label('Group')
                     ->getStateUsing(fn (Setting $record) => Setting::definition($record->key)['group'] ?? 'System')
@@ -166,19 +183,9 @@ class SettingsResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('group')
                     ->label('Group')
-                    ->options(function () {
-                        return collect(\App\Models\Setting::DEFINITIONS)
-                            ->pluck('group')
-                            ->unique()
-                            ->sort()
-                            ->mapWithKeys(fn ($g) => [$g => $g])
-                            ->toArray();
-                    })
+                    ->options(fn () => collect(Setting::groups())->mapWithKeys(fn (string $group) => [$group => $group])->all())
                     ->query(fn (\Illuminate\Database\Eloquent\Builder $query, array $data) => isset($data['value'])
-                        ? $query->whereIn('key', collect(\App\Models\Setting::DEFINITIONS)
-                            ->filter(fn ($def) => ($def['group'] ?? '') === $data['value'])
-                            ->keys()
-                            ->all())
+                        ? $query->whereIn('key', Setting::keysForGroup((string) $data['value']))
                         : $query
                     ),
             ])

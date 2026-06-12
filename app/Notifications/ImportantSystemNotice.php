@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\EmailTemplateService;
 use App\Services\NotificationPreferenceService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,16 +40,21 @@ class ImportantSystemNotice extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $mail = (new MailMessage)
-            ->subject($this->title)
-            ->greeting('Hi '.$notifiable->name.',')
-            ->line($this->message);
+        $locale = $notifiable->communication_language ?? app()->getLocale();
+        $actionLabel = $locale === 'hr' ? 'Otvori obavijest' : 'Open notification';
 
-        if ($this->url) {
-            $mail->action('Open notification', $this->url);
-        }
-
-        return $mail;
+        return app(EmailTemplateService::class)->toMailMessage(
+            'important_system_notice',
+            $locale,
+            [
+                'name' => $notifiable->name ?? trans('emails.recipient_fallback', locale: $locale),
+                'title' => $this->title,
+                'message' => $this->message,
+                'action_url' => $this->url ?: route('notifications.index'),
+            ],
+            $actionLabel,
+            $this->url ?: route('notifications.index'),
+        );
     }
 
     /**

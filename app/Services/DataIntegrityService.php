@@ -232,11 +232,21 @@ class DataIntegrityService
         string $toEmail,
         string $emailTemplate,
         ?array $context = null,
-        ?string $messageId = null
+        ?string $messageId = null,
+        ?string $subject = null,
+        ?string $bodyPreview = null,
     ): void {
+        $normalizedPreview = null;
+
+        if (is_string($bodyPreview) && trim($bodyPreview) !== '') {
+            $normalizedPreview = str(strip_tags($bodyPreview))->squish()->limit(500)->toString();
+        }
+
         DB::table('email_send_log')->insert([
             'to_address' => $toEmail,
             'template' => $emailTemplate,
+            'subject' => $subject,
+            'body_preview' => $normalizedPreview,
             'context_hash' => $context ? hash('sha256', json_encode($context)) : null,
             'message_id' => $messageId,
             'sent_at' => now(),

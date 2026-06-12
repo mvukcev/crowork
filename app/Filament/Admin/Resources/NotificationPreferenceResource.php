@@ -31,9 +31,9 @@ class NotificationPreferenceResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('user.email')
+                Forms\Components\Placeholder::make('user_email')
                     ->label('User')
-                    ->disabled(),
+                    ->content(fn (?NotificationPreference $record): string => $record?->user?->email ?? '-'),
                 Forms\Components\TextInput::make('category')
                     ->disabled(),
                 Forms\Components\Toggle::make('email_enabled')

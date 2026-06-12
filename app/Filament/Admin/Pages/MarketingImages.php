@@ -67,6 +67,13 @@ class MarketingImages extends Page implements HasForms
                         Forms\Components\FileUpload::make("{$field}.path")
                             ->label('Upload override')
                             ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(array_values(array_unique(array_filter([
+                                $this->dimensionToAspectRatio((string) ($slot['dimensions'] ?? '')),
+                                '16:9',
+                                '4:3',
+                                '1:1',
+                            ]))))
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(5120)
                             ->disk('public')
@@ -78,7 +85,7 @@ class MarketingImages extends Page implements HasForms
 
                                 return trim($slug !== '' ? $slug : 'marketing-image').'-'.strtolower(Str::random(8)).'.'.$ext;
                             })
-                            ->helperText('Accepted: JPG, PNG, WEBP. Max size: 5MB.'),
+                            ->helperText('Accepted: JPG, PNG, WEBP. Max size: 5MB. Use crop editor for recommended aspect ratio.'),
                         Forms\Components\TextInput::make("{$field}.alt_text")
                             ->label('Alt text')
                             ->maxLength(255),
@@ -152,6 +159,11 @@ class MarketingImages extends Page implements HasForms
 
             $disk = 'public';
             $exists = Storage::disk($disk)->exists($path);
+            $metadata = $this->extractImageMetadata($disk, $path);
+
+            // Sanitize and optimize uploaded image to strip metadata and reduce payload.
+            [$targetWidth, $targetHeight] = $this->parseDimensions((string) ($slot['dimensions'] ?? ''));
+            app(\App\Services\ImageSanitizerService::class)->sanitizeAndOptimize($disk, $path, $targetWidth, $targetHeight);
             $metadata = $this->extractImageMetadata($disk, $path);
 
             $record->fill([
@@ -271,5 +283,44 @@ class MarketingImages extends Page implements HasForms
         }
 
         return '';
+    }
+
+    private function dimensionToAspectRatio(string $dimensions): ?string
+    {
+        [$width, $height] = $this->parseDimensions($dimensions);
+
+        if (! $width || ! $height) {
+            return null;
+        }
+
+        $gcd = $this->gcd($width, $height);
+
+        return (int) ($width / $gcd) . ':' . (int) ($height / $gcd);
+    }
+
+    /**
+     * @return array{0: int|null, 1: int|null}
+     */
+    private function parseDimensions(string $dimensions): array
+    {
+        if (preg_match('/^(\d+)x(\d+)$/i', trim($dimensions), $matches) !== 1) {
+            return [null, null];
+        }
+
+        return [(int) $matches[1], (int) $matches[2]];
+    }
+
+    private function gcd(int $a, int $b): int
+    {
+        $a = abs($a);
+        $b = abs($b);
+
+        while ($b !== 0) {
+            $tmp = $b;
+            $b = $a % $b;
+            $a = $tmp;
+        }
+
+        return max(1, $a);
     }
 }

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ $metaTitle ?? $title }}</x-slot>
     <x-slot name="description">{{ $metaDescription ?? $title }}</x-slot>
-    <x-slot name="canonical">{{ route($slug) }}</x-slot>
+    <x-slot name="canonical">{{ $canonicalUrl ?? url()->current() }}</x-slot>
 
     @php
         $schemaName = $metaTitle ?? $title;
@@ -14,7 +14,7 @@
             '@type' => 'WebPage',
             'name' => $schemaName,
             'description' => $schemaDescription,
-            'url' => route($slug),
+            'url' => $canonicalUrl ?? url()->current(),
             'inLanguage' => app()->getLocale(),
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
         <script type="application/ld+json">{!! json_encode([
@@ -31,7 +31,7 @@
                     '@type' => 'ListItem',
                     'position' => 2,
                     'name' => $title,
-                    'item' => route($slug),
+                    'item' => $canonicalUrl ?? url()->current(),
                 ],
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>

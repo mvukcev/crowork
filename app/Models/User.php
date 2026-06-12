@@ -3,21 +3,17 @@
 namespace App\Models;
 
 use App\Notifications\AuthResetPasswordNotification;
-use App\Notifications\AuthVerifyEmailNotification;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Throwable;
 
-class User extends Authenticatable implements MustVerifyEmail, FilamentUser, HasLocalePreference
+class User extends Authenticatable implements FilamentUser, HasLocalePreference
 {
     use HasFactory, Notifiable, SoftDeletes;
 
@@ -39,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         'communication_language',
         'is_super_admin',
         'admin_visible_modules',
+        'email_verified_at',
     ];
 
     /**
@@ -160,7 +157,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
             'email-send-logs' => 'Email Send Logs',
             'notification-digests' => 'Notification Digests',
             'notification-preferences' => 'Notification Preferences',
-            'translation-overrides' => 'Translation Overrides',
+            'error-logs' => 'Error Logs',
+            'bugs' => 'Bugs',
             'translation-manager' => 'Translation Manager',
             'settings' => 'Settings',
             'audit-logs' => 'Audit Logs',
@@ -252,8 +250,13 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
 
         if (str_starts_with($routeName, 'filament.admin.resources.')) {
             $segments = explode('.', $routeName);
+            $resource = $segments[3] ?? null;
 
-            return $segments[3] ?? null;
+            if ($resource === 'translation-overrides') {
+                return 'translation-manager';
+            }
+
+            return $resource;
         }
 
         if (str_starts_with($routeName, 'filament.admin.pages.')) {
@@ -300,25 +303,6 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     public function preferredLocale(): string
     {
         return $this->communication_language ?: app()->getLocale();
-    }
-
-    public function sendEmailVerificationNotification(): void
-    {
-        try {
-            $this->notify((new AuthVerifyEmailNotification())->locale($this->preferredLocale()));
-        } catch (Throwable $exception) {
-            if (app()->environment(['local', 'testing'])) {
-                Log::warning('Email verification notification failed in local/testing environment', [
-                    'user_id' => $this->id,
-                    'role' => $this->role,
-                    'error' => $exception->getMessage(),
-                ]);
-
-                return;
-            }
-
-            throw $exception;
-        }
     }
 
     public function sendPasswordResetNotification($token): void

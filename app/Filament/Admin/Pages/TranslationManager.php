@@ -6,6 +6,7 @@ use App\Models\TranslationOverride;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 
 class TranslationManager extends Page
@@ -116,21 +117,26 @@ class TranslationManager extends Page
 
     public function getGroupRows(): array
     {
-        $source = $this->getSourceTranslations();
-        $fileTranslations = $this->getTargetFileTranslations();
+        $source = Arr::dot($this->getSourceTranslations());
+        $fileTranslations = Arr::dot($this->getTargetFileTranslations());
 
         $rows = [];
         foreach ($source as $key => $enValue) {
-            $override = $this->overrides[$key] ?? null;
-            $fileValue = $fileTranslations[$key] ?? null;
-            $current = $override ?? $fileValue ?? '';
+            $key = (string) $key;
+
+            $overrideRaw = $this->overrides[$key] ?? null;
+            $fileValueRaw = $fileTranslations[$key] ?? null;
+            $override = is_scalar($overrideRaw) ? (string) $overrideRaw : null;
+            $fileValue = is_scalar($fileValueRaw) ? (string) $fileValueRaw : '';
+            $current = $override ?? $fileValue;
+
             $rows[] = [
                 'key' => $key,
-                'en' => is_string($enValue) ? $enValue : json_encode($enValue),
-                'file_value' => is_string($fileValue) ? $fileValue : json_encode($fileValue),
+                'en' => is_scalar($enValue) ? (string) $enValue : '',
+                'file_value' => $fileValue,
                 'current' => $current,
                 'has_override' => $override !== null,
-                'is_missing' => trim((string) $current) === '',
+                'is_missing' => trim($current) === '',
                 'field' => "overrides.{$key}",
             ];
         }
@@ -147,10 +153,12 @@ class TranslationManager extends Page
 
     public function saveTranslations(): void
     {
-        $source = $this->getSourceTranslations();
+        $source = Arr::dot($this->getSourceTranslations());
 
         foreach ($source as $key => $_) {
-            $value = $this->overrides[$key] ?? null;
+            $key = (string) $key;
+            $valueRaw = $this->overrides[$key] ?? null;
+            $value = is_scalar($valueRaw) ? trim((string) $valueRaw) : null;
 
             if ($value !== null && $value !== '') {
                 TranslationOverride::setTranslation($this->targetLocale, $this->activeGroup, $key, $value);

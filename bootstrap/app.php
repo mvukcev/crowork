@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -38,5 +40,42 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->report(function (\Throwable $exception): void {
+            if ($exception instanceof ValidationException) {
+                return;
+            }
+
+            if ($exception instanceof HttpExceptionInterface && $exception->getStatusCode() < 500) {
+                return;
+            }
+
+            try {
+                if (! \Illuminate\Support\Facades\Schema::hasTable('error_logs')) {
+                    return;
+                }
+
+                $request = request();
+
+                \App\Models\ErrorLog::query()->create([
+                    'user_id' => auth()->id(),
+                    'level' => 'error',
+                    'message' => mb_substr((string) $exception->getMessage(), 0, 2000),
+                    'exception_class' => $exception::class,
+                    'file' => $exception->getFile(),
+                    'line' => $exception->getLine(),
+                    'uri' => $request?->fullUrl(),
+                    'method' => $request?->method(),
+                    'ip_address' => $request?->ip(),
+                    'user_agent' => $request?->userAgent(),
+                    'context' => [
+                        'route' => $request?->route()?->getName(),
+                        'code' => $exception->getCode(),
+                    ],
+                    'trace' => mb_substr($exception->getTraceAsString(), 0, 12000),
+                    'occurred_at' => now(),
+                ]);
+            } catch (\Throwable) {
+                // Never fail exception handling due to telemetry logging.
+            }
+        });
     })->create();
