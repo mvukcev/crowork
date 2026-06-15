@@ -49,7 +49,7 @@
                         <p class="text-sm text-slate-600">{{ $profile->professional_summary ?: __('worker_profile.preview.no_summary') }}</p>
                     </div>
                     @if($profile->photo_path)
-                        <img src="{{ $profile->photoUrl() }}" alt="{{ __('worker_profile.preview.worker_photo_alt') }}" class="h-20 w-20 rounded-full object-cover border border-slate-200" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/worker/worker-avatar-400x400.jpg') }}';">
+                        <img src="{{ $profile->photoUrl() }}" alt="{{ __('worker_profile.preview.worker_photo_alt') }}" class="h-20 w-20 rounded-full object-cover border border-slate-200" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/worker/worker-avatar-400x400.svg') }}';">
                     @endif
                 </div>
 

@@ -8,7 +8,9 @@ use App\Support\StructuredCvLegacyFormatter;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class WorkerProfileController extends Controller
 {
@@ -134,10 +136,32 @@ class WorkerProfileController extends Controller
 
     public function showPhoto(string $path)
     {
-        abort_unless(str_starts_with($path, 'worker-photos/'), 404);
-        abort_unless(Storage::disk('public')->exists($path), 404);
+        $resolvedPath = $this->resolveWorkerPhotoPath($path);
+        if ($resolvedPath !== null) {
+            return Storage::disk('public')->response($resolvedPath);
+        }
 
-        return Storage::disk('public')->response($path);
+        $basename = basename(ltrim($path, '/'));
+        if ($basename !== '' && $basename !== '.' && $basename !== '..') {
+            $publicCandidates = [
+                public_path('storage/worker-photos/' . $basename),
+                public_path('storage/' . $basename),
+            ];
+
+            foreach ($publicCandidates as $absolutePath) {
+                if (is_file($absolutePath)) {
+                    return response()->file($absolutePath);
+                }
+            }
+        }
+
+        Log::warning('Worker photo not found for display.', [
+            'requested_path' => $path,
+            'user_id' => auth()->id(),
+            'public_disk_root' => Storage::disk('public')->path(''),
+        ]);
+
+        abort(404);
     }
 
     /**
@@ -216,7 +240,7 @@ class WorkerProfileController extends Controller
             'references_list.*.contact_phone' => ['nullable', 'string', 'max:60'],
             'references_list.*.notes' => ['nullable', 'string', 'max:1000'],
             'profile_visibility' => ['required', 'in:' . implode(',', array_keys(WorkerProfile::visibilityOptions()))],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'], // 2MB max
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:12288'], // 12MB max
         ], [
             'birth_year.between' => __('worker_profile.validation.birth_year_between', [
                 'min' => $minBirthYear,
@@ -254,14 +278,25 @@ class WorkerProfileController extends Controller
 
         // Handle photo upload
         if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($profile->photo_path && Storage::disk('public')->exists($profile->photo_path)) {
-                Storage::disk('public')->delete($profile->photo_path);
+            $path = $request->file('photo')->store('worker-photos', 'public');
+
+            $optimized = app(\App\Services\ImageSanitizerService::class)
+                ->sanitizeAndOptimize('public', $path, 1200, 1200);
+
+            if (! $optimized) {
+                Storage::disk('public')->delete($path);
+
+                throw ValidationException::withMessages([
+                    'photo' => __('worker_profile.validation.photo_processing_failed'),
+                ]);
             }
 
-            // Store new photo
-            $path = $request->file('photo')->store('worker-photos', 'public');
-            app(\App\Services\ImageSanitizerService::class)->sanitizeAndOptimize('public', $path, 1200, 1200);
+            // Delete old photo only after a valid optimized replacement is ready.
+            $previousPhotoPath = $this->resolveWorkerPhotoPath($profile->photo_path);
+            if ($previousPhotoPath) {
+                Storage::disk('public')->delete($previousPhotoPath);
+            }
+
             $validated['photo_path'] = $path;
         }
 
@@ -404,6 +439,8 @@ class WorkerProfileController extends Controller
                 $item['end_date'] = '';
             }
 
+            $item = $this->normalizeEmptyDateFields($item, ['start_date', 'end_date']);
+
             $normalized[] = $item;
         }
 
@@ -434,6 +471,8 @@ class WorkerProfileController extends Controller
                 continue;
             }
 
+            $item = $this->normalizeEmptyDateFields($item, ['start_date', 'end_date']);
+
             $normalized[] = $item;
         }
 
@@ -461,6 +500,8 @@ class WorkerProfileController extends Controller
             if (collect($item)->filter()->isEmpty()) {
                 continue;
             }
+
+            $item = $this->normalizeEmptyDateFields($item, ['issued_on', 'expires_on']);
 
             $normalized[] = $item;
         }
@@ -510,6 +551,17 @@ class WorkerProfileController extends Controller
         }
     }
 
+    private function normalizeEmptyDateFields(array $row, array $keys): array
+    {
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $row) && $row[$key] === '') {
+                $row[$key] = null;
+            }
+        }
+
+        return $row;
+    }
+
     private function skillsToRows(array $skills): array
     {
         return array_map(
@@ -553,8 +605,9 @@ class WorkerProfileController extends Controller
 
         if ($profile && $profile->photo_path) {
             // Delete file from storage
-            if (Storage::disk('public')->exists($profile->photo_path)) {
-                Storage::disk('public')->delete($profile->photo_path);
+            $resolvedPath = $this->resolveWorkerPhotoPath($profile->photo_path);
+            if ($resolvedPath) {
+                Storage::disk('public')->delete($resolvedPath);
             }
 
             // Clear photo_path in database
@@ -566,5 +619,42 @@ class WorkerProfileController extends Controller
         }
 
         return redirect()->route('worker.profile.edit');
+    }
+
+    private function resolveWorkerPhotoPath(?string $path): ?string
+    {
+        $rawPath = trim((string) $path);
+        if ($rawPath === '') {
+            return null;
+        }
+
+        $normalized = ltrim($rawPath, '/');
+        $candidates = [];
+
+        if (str_starts_with($normalized, 'worker-photos/')) {
+            $candidates[] = $normalized;
+        }
+
+        $basename = basename($normalized);
+        if ($basename !== '' && $basename !== '.' && $basename !== '..') {
+            $candidates[] = 'worker-photos/' . $basename;
+
+            // Backward compatibility: some legacy uploads were stored at disk root.
+            if (!str_contains($normalized, '/')) {
+                $candidates[] = $basename;
+            }
+
+            if (str_starts_with($normalized, 'worker-photos/')) {
+                $candidates[] = $basename;
+            }
+        }
+
+        foreach (array_values(array_unique($candidates)) as $candidate) {
+            if (Storage::disk('public')->exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }

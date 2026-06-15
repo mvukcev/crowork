@@ -6,6 +6,7 @@ use App\Services\WorkerProfileCompletenessService;
 use App\Support\StructuredCvLegacyFormatter;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class WorkerProfile extends Model
 {
@@ -263,10 +264,32 @@ class WorkerProfile extends Model
 
     public function photoUrl(): ?string
     {
-        if (!$this->photo_path) {
+        $routePath = $this->photoRoutePath();
+        if (!$routePath) {
             return null;
         }
 
-        return route('worker.profile.photo.show', ['path' => $this->photo_path]);
+        return Storage::disk('public')->url($routePath);
+    }
+
+    private function photoRoutePath(): ?string
+    {
+        $path = trim((string) $this->photo_path);
+        if ($path === '') {
+            return null;
+        }
+
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'worker-photos/')) {
+            return $path;
+        }
+
+        $basename = basename($path);
+
+        if ($basename === '' || $basename === '.' || $basename === '..') {
+            return null;
+        }
+
+        return 'worker-photos/' . $basename;
     }
 }

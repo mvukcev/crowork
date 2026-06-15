@@ -117,7 +117,7 @@ return [
             'Bartending',
         ],
         'photo_drop' => 'Drop a photo here or click to choose',
-        'photo_meta' => 'PNG, JPG, WebP up to 2MB',
+        'photo_meta' => 'PNG, JPG, WebP up to 12MB',
         'photo_preview' => 'Preview:',
         'photo_preview_alt' => 'Photo preview',
         'photo_current_alt' => 'Profile photo',
@@ -170,6 +170,7 @@ return [
         'profile_updated' => 'Profile updated successfully!',
         'only_workers' => 'Only workers can access profile management.',
         'photo_deleted' => 'Photo deleted successfully!',
+        'photo_processing_failed' => 'Unable to process the photo. Please try another PNG, JPG, or WebP image.',
     ],
     'completeness' => [
         'missing' => [

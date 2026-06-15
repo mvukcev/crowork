@@ -117,7 +117,7 @@ return [
             'Rad u baru',
         ],
         'photo_drop' => 'Prevuci fotografiju ovdje ili klikni za odabir',
-        'photo_meta' => 'PNG, JPG, WebP do 2MB',
+        'photo_meta' => 'PNG, JPG, WebP do 12MB',
         'photo_preview' => 'Pregled:',
         'photo_preview_alt' => 'Pregled foto',
         'photo_current_alt' => 'Foto profila',
@@ -170,6 +170,7 @@ return [
         'profile_updated' => 'Profil je uspješno ažuriran!',
         'only_workers' => 'Samo radnici mogu pristupiti upravljanju profilom.',
         'photo_deleted' => 'Fotografija je uspješno obrisana!',
+        'photo_processing_failed' => 'Fotografiju nije moguće obraditi. Pokušajte s drugom PNG, JPG ili WebP fotografijom.',
     ],
     'completeness' => [
         'missing' => [

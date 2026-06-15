@@ -472,7 +472,7 @@
                                     src="{{ $profile->photoUrl() ?? '' }}" 
                                     alt="{{ __('worker_profile.editor.photo_current_alt') }}" 
                                     class="h-20 w-20 rounded-full object-cover border-2 border-slate-200"
-                                    onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/worker/worker-avatar-400x400.jpg') }}';">
+                                    onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/worker/worker-avatar-400x400.svg') }}';">
                             </div>
                             <div class="flex gap-2">
                                 <button 
