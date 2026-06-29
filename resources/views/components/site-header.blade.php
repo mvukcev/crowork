@@ -389,7 +389,7 @@ data-cw-public-nav>
                                     </span>
                                 </button>
                             @else
-                                <a href="{{ route('access.show') }}" class="cw-mobile-action-row cw-mobile-action-row-emphasis" data-cw-track-click="mobile_login">
+                                <a href="{{ route('access.show') }}" class="cw-mobile-action-row cw-mobile-action-row-emphasis cw-mobile-action-row-accent" data-cw-track-click="mobile_login">
                                     <span class="cw-mobile-action-row-label">{{ __('navigation.get_started') }}</span>
                                     <span class="cw-mobile-action-row-meta" aria-hidden="true">
                                         <svg class="cw-mobile-action-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -403,7 +403,7 @@ data-cw-public-nav>
                 </div>
 
                 <!-- Language Submenu Panel -->
-                <div id="cw-mobile-panel-language" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-language style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div id="cw-mobile-panel-language" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-language hidden style="display: none; visibility: hidden; transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>
@@ -425,7 +425,7 @@ data-cw-public-nav>
                 </div>
 
                 <!-- Theme Submenu Panel -->
-                <div id="cw-mobile-panel-theme" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-theme style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div id="cw-mobile-panel-theme" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-theme hidden style="display: none; visibility: hidden; transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>
@@ -446,7 +446,7 @@ data-cw-public-nav>
                     </div>
                 </div>
 
-                <div id="cw-mobile-panel-profile" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-profile style="transform: translateX(100%); opacity: 0; pointer-events: none;">
+                <div id="cw-mobile-panel-profile" class="absolute inset-0 z-[1310] flex flex-col overflow-y-auto" data-cw-mobile-content-profile hidden style="display: none; visibility: hidden; transform: translateX(100%); opacity: 0; pointer-events: none;">
                     <div class="flex-1 flex flex-col gap-4 px-6 py-6">
                         <button type="button" class="cw-mobile-back-control" data-cw-mobile-back aria-label="{{ __('settings.back_to_main_menu') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[18px] h-[18px]" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" /></svg>

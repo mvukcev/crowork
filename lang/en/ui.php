@@ -291,6 +291,12 @@ return [
         'supported' => 'Supported',
         'accommodation_provided_line' => 'Accommodation is provided by employer.',
         'visa_support_line' => 'Visa/work permit support is available.',
+        'hzz_source_badge' => 'Official source',
+        'hzz_source_title' => 'Croatian Employment Service',
+        'hzz_source_rights' => 'Job listing content is sourced from the Croatian Employment Service system.',
+        'hzz_source_transfer' => 'The original listing and related source data are available on official HZZ pages.',
+        'hzz_source_disclaimer' => 'CroWork is not responsible for the accuracy, completeness, or timeliness of data imported from the HZZ system.',
+        'hzz_source_link_label' => 'Open original listing on HZZ',
     ],
     'educations_apply' => [
         'page_title' => 'Apply - :title',

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'dashboard' => 'Dashboard',
+    'dashboard' => 'My profile',
     'welcome' => 'Welcome',
     'overview' => 'Overview',
     'settings' => 'Settings',

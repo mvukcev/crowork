@@ -6,7 +6,10 @@
 
     @php
         $companyProfileUrl = $job->employer?->slug ? route('companies.show', $job->employer) : null;
-        $companyName = $job->employer?->company_display_name ?? $job->employer?->company_name ?? __('jobs.employer_fallback');
+        $companyName = $job->employer?->company_display_name
+            ?? $job->employer?->company_name
+            ?? $job->external_company_name
+            ?? __('jobs.employer_fallback');
         $location = $job->location_city ?: null;
         $category = cw_localize_job_value('category', $job->category);
 
@@ -106,6 +109,9 @@
 
         $aboutEmployerText = trim((string) ($job->employer?->description ?? ''));
         $employerLogoUrl = $job->employer?->logo_path ? asset('storage/' . $job->employer->logo_path) : null;
+        $isHzzImported = $job->source_type === 'hzz';
+        $hzzSourceUrl = trim((string) ($job->source_url ?? '')) ?: null;
+        $hzzLogoUrl = trim((string) ($job->source_logo_url ?? '')) ?: config('services.hzz.logo_url');
 
         $jobPostingSchema = [
             '@context' => 'https://schema.org',
@@ -286,6 +292,26 @@
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.application_instructions') }}</h2>
                             <div class="prose max-w-none text-slate-700 leading-relaxed whitespace-pre-line">{{ $applicationInstructionsText }}</div>
+                        </article>
+                    @endif
+
+                    @if($isHzzImported)
+                        <article class="cw-hzz-attribution" aria-label="HZZ attribution">
+                            <div class="cw-hzz-attribution__head">
+                                @if($hzzLogoUrl)
+                                    <img src="{{ $hzzLogoUrl }}" alt="HZZ" class="cw-hzz-attribution__logo" loading="lazy" decoding="async" width="120" height="40">
+                                @endif
+                                <span class="cw-hzz-attribution__badge">{{ __('ui.jobs_show.hzz_source_badge') }}</span>
+                            </div>
+
+                            <h2 class="cw-hzz-attribution__title">{{ __('ui.jobs_show.hzz_source_title') }}</h2>
+                            <p class="cw-hzz-attribution__line">{{ __('ui.jobs_show.hzz_source_rights') }}</p>
+                            <p class="cw-hzz-attribution__line">{{ __('ui.jobs_show.hzz_source_transfer') }}</p>
+                            <p class="cw-hzz-attribution__line cw-hzz-attribution__line--disclaimer">{{ __('ui.jobs_show.hzz_source_disclaimer') }}</p>
+
+                            @if($hzzSourceUrl)
+                                <a href="{{ $hzzSourceUrl }}" target="_blank" rel="noopener nofollow" class="cw-hzz-attribution__link">{{ __('ui.jobs_show.hzz_source_link_label') }}</a>
+                            @endif
                         </article>
                     @endif
 

@@ -634,9 +634,15 @@ const initCroworkUi = () => {
 			}
 		});
 
-		// Close on nav link or form submit
-		mobilePanel.querySelectorAll('a[href], button[type="submit"]').forEach((item) => {
+		// Close on nav link navigation and submitted forms.
+		mobilePanel.querySelectorAll('a[href]').forEach((item) => {
 			item.addEventListener('click', () => {
+				setMobileOpen(false);
+			});
+		});
+
+		mobilePanel.querySelectorAll('form').forEach((form) => {
+			form.addEventListener('submit', () => {
 				setMobileOpen(false);
 			});
 		});
@@ -687,11 +693,17 @@ const initCroworkUi = () => {
 			   Object.entries(panels).forEach(([key, panel]) => {
 				   if (!panel) return;
 				   if (key === nextPanel) {
+					   panel.hidden = false;
+					   panel.style.display = 'flex';
+					   panel.style.visibility = 'visible';
 					   panel.style.transform = 'translateX(0)';
 					   panel.style.opacity = '1';
 					   panel.style.pointerEvents = 'auto';
 					   setTreeInteractiveState(panel, true);
 				   } else {
+					   panel.hidden = true;
+					   panel.style.display = 'none';
+					   panel.style.visibility = 'hidden';
 					   panel.style.transform = 'translateX(100%)';
 					   panel.style.opacity = '0';
 					   panel.style.pointerEvents = 'none';

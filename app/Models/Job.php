@@ -12,6 +12,12 @@ class Job extends Model
     protected $fillable = [
         'employer_id',
         'created_by_user_id',
+        'source_type',
+        'source_external_id',
+        'source_url',
+        'source_logo_url',
+        'source_imported_at',
+        'external_company_name',
         'title',
         'slug',
         'salary_min',
@@ -58,6 +64,7 @@ class Job extends Model
             'start_date' => 'date',
             'expires_at' => 'datetime',
             'published_at' => 'datetime',
+            'source_imported_at' => 'datetime',
         ];
     }
 
@@ -151,7 +158,14 @@ class Job extends Model
      */
     public function getCompanyNameAttribute(): ?string
     {
-        return $this->employer?->company_name ?? $this->attributes['company_name'] ?? null;
+        return $this->employer?->company_name
+            ?? $this->attributes['external_company_name']
+            ?? ($this->attributes['company_name'] ?? null);
+    }
+
+    public function isImportedFromHzz(): bool
+    {
+        return $this->source_type === 'hzz';
     }
 
     public function getLocationAttribute(): ?string

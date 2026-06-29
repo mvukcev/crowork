@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'dashboard' => 'Nadzorna ploča',
+    'dashboard' => 'Moj profil',
     'welcome' => 'Dobrodošao',
     'overview' => 'Pregled',
     'settings' => 'Postavke',

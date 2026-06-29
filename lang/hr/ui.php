@@ -291,6 +291,12 @@ return [
         'supported' => 'Podržano',
         'accommodation_provided_line' => 'Poslodavac osigurava smještaj.',
         'visa_support_line' => 'Dostupna je podrška za vizu/radnu dozvolu.',
+        'hzz_source_badge' => 'Službeni izvor',
+        'hzz_source_title' => 'Hrvatski zavod za zapošljavanje',
+        'hzz_source_rights' => 'Sadržaj oglasa preuzet je iz sustava Hrvatskog zavoda za zapošljavanje.',
+        'hzz_source_transfer' => 'Izvorni oglas i pripadajući podaci dostupni su na službenim stranicama HZZ-a.',
+        'hzz_source_disclaimer' => 'CroWork ne odgovara za točnost, potpunost niti ažurnost podataka preuzetih iz HZZ sustava.',
+        'hzz_source_link_label' => 'Otvori izvorni oglas na HZZ-u',
     ],
     'educations_apply' => [
         'page_title' => 'Prijava - :title',
