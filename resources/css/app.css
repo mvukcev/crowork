@@ -1806,6 +1806,15 @@
         gap: 1rem;
     }
 
+    .cw-job-cover-strip {
+        margin: -1.25rem -1.25rem 0.15rem;
+        height: clamp(7rem, 12vw, 9.5rem);
+        overflow: hidden;
+        border-radius: 1.05rem 1.05rem 0 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(226, 232, 240, 0.55);
+    }
+
     .cw-listing-card-top {
         display: flex;
         justify-content: space-between;
@@ -1847,6 +1856,12 @@
         flex-shrink: 0;
     }
 
+    .cw-employer-logo-float {
+        margin-top: -2.1rem;
+        position: relative;
+        z-index: 2;
+    }
+
     .cw-employer-logo span {
         font-size: 0.82rem;
         font-weight: 700;
@@ -1870,6 +1885,8 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         min-height: calc(1.34em * 2);
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .cw-listing-salary {
@@ -1886,6 +1903,8 @@
         line-height: 1.2;
         font-weight: 700;
         color: rgb(30 41 59);
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .cw-listing-salary-secondary {
@@ -1897,15 +1916,18 @@
     }
 
     .cw-listing-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem 0.65rem;
+        display: grid;
+        gap: 0.32rem;
         font-size: 0.76rem;
         color: rgb(100 116 139);
+        min-height: 3.25rem;
     }
 
     .cw-listing-meta span {
-        white-space: nowrap;
+        display: block;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .cw-listing-bottom {
@@ -2009,6 +2031,16 @@
             padding: 1rem;
         }
 
+        .cw-job-cover-strip {
+            margin: -1rem -1rem 0.1rem;
+            height: 8.4rem;
+            border-radius: 0.95rem 0.95rem 0 0;
+        }
+
+        .cw-employer-logo-float {
+            margin-top: -1.6rem;
+        }
+
         .cw-listing-actions {
             width: 100%;
         }
@@ -2016,6 +2048,58 @@
         .cw-card-cta-primary,
         .cw-card-cta-secondary {
             flex: 1 1 48%;
+        }
+    }
+
+    .cw-jobs-masonry,
+    .cw-jobs-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .cw-jobs-masonry > .cw-listing-card-wrap,
+    .cw-jobs-grid > .cw-listing-card-wrap {
+        width: 100%;
+        height: 100%;
+    }
+
+    .cw-rich-text {
+        display: grid;
+        gap: 0.55rem;
+        line-height: 1.55;
+    }
+
+    .cw-rich-text p {
+        margin: 0;
+    }
+
+    .cw-rich-list {
+        margin: 0.15rem 0 0;
+        padding-left: 1.2rem;
+        display: grid;
+        gap: 0.35rem;
+        list-style: disc;
+    }
+
+    .cw-rich-list li {
+        margin: 0;
+    }
+
+    @media (min-width: 768px) {
+        .cw-jobs-masonry,
+        .cw-jobs-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .cw-jobs-masonry,
+        .cw-jobs-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.5rem;
         }
     }
 

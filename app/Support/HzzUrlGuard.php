@@ -4,6 +4,8 @@ namespace App\Support;
 
 class HzzUrlGuard
 {
+    public const DEFAULT_FEED_URL = 'http://burzarada.hzz.hr/rss/0xADAA044C9A86446096022A136750DD8F.xml';
+
     /**
      * @var array<int, string>
      */
@@ -19,6 +21,11 @@ class HzzUrlGuard
     public static function isAllowedApplyUrl(?string $url): bool
     {
         return self::isAllowedUrl($url);
+    }
+
+    public static function defaultFeedUrl(): string
+    {
+        return self::DEFAULT_FEED_URL;
     }
 
     private static function isAllowedUrl(?string $url): bool

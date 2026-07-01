@@ -413,6 +413,7 @@ class ApplicationController extends Controller
         $validated = $request->validate([
             'company_name' => ['nullable', 'string', 'max:255'],
             'company_display_name' => ['nullable', 'string', 'max:255'],
+            'brand_color' => ['nullable', 'regex:/^#[A-Fa-f0-9]{6}$/'],
             'city' => ['nullable', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:120'],
             'industry' => ['nullable', 'string', 'max:100'],
@@ -421,23 +422,64 @@ class ApplicationController extends Controller
             'contact_phone' => ['nullable', 'string', 'max:60'],
             'company_address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:8192', 'dimensions:ratio=1/1,min_width=180,min_height=180'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:8192', 'dimensions:min_width=300,min_height=300'],
+            'cover_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:12288', 'dimensions:min_width=1200,min_height=600'],
+            'logo_crop_zoom' => ['nullable', 'numeric', 'min:1', 'max:3'],
+            'logo_crop_x' => ['nullable', 'numeric', 'min:-100', 'max:100'],
+            'logo_crop_y' => ['nullable', 'numeric', 'min:-100', 'max:100'],
+            'cover_crop_zoom' => ['nullable', 'numeric', 'min:1', 'max:3'],
+            'cover_crop_x' => ['nullable', 'numeric', 'min:-100', 'max:100'],
+            'cover_crop_y' => ['nullable', 'numeric', 'min:-100', 'max:100'],
             'relocation_support' => ['boolean'],
             'accommodation_support' => ['boolean'],
         ]);
 
         $validated['relocation_support'] = $request->boolean('relocation_support');
         $validated['accommodation_support'] = $request->boolean('accommodation_support');
+        $validated['brand_color'] = $this->normalizeHexColor($validated['brand_color'] ?? null);
 
         if ($request->hasFile('logo')) {
             if ($employer->logo_path) {
                 Storage::disk('public')->delete($employer->logo_path);
             }
 
-            $validated['logo_path'] = $this->storeProcessedLogo($request->file('logo'), $employer->id);
+            $validated['logo_path'] = $this->storeProcessedImage(
+                $request->file('logo'),
+                'company-logos',
+                (string) $employer->id,
+                1.0,
+                1024,
+                1024,
+                $this->extractCropMeta($request, 'logo_crop')
+            );
         }
 
-        unset($validated['logo']);
+        if ($request->hasFile('cover_image')) {
+            if ($employer->cover_image_path) {
+                Storage::disk('public')->delete($employer->cover_image_path);
+            }
+
+            $validated['cover_image_path'] = $this->storeProcessedImage(
+                $request->file('cover_image'),
+                'company-covers',
+                (string) $employer->id,
+                2.6,
+                2000,
+                770,
+                $this->extractCropMeta($request, 'cover_crop')
+            );
+        }
+
+        unset(
+            $validated['logo'],
+            $validated['cover_image'],
+            $validated['logo_crop_zoom'],
+            $validated['logo_crop_x'],
+            $validated['logo_crop_y'],
+            $validated['cover_crop_zoom'],
+            $validated['cover_crop_x'],
+            $validated['cover_crop_y'],
+        );
 
         $employer->update($validated);
 
@@ -453,6 +495,7 @@ class ApplicationController extends Controller
         $fields = [
             'company_name' => __('employer.settings.company_name'),
             'company_display_name' => __('employer.settings.company_display_name'),
+            'brand_color' => __('employer.settings.brand_color'),
             'city' => __('employer.settings.city'),
             'country' => __('employer.settings.country'),
             'industry' => __('employer.settings.industry'),
@@ -462,6 +505,7 @@ class ApplicationController extends Controller
             'company_address' => __('employer.settings.company_address'),
             'description' => __('employer.settings.company_description'),
             'logo_path' => __('employer.settings.company_logo'),
+            'cover_image_path' => __('employer.settings.cover_image'),
         ];
 
         $missing = [];
@@ -474,40 +518,101 @@ class ApplicationController extends Controller
         return $missing;
     }
 
-    private function storeProcessedLogo(UploadedFile $logoFile, int $employerId): string
+    private function normalizeHexColor(?string $color): ?string
     {
-        $extension = strtolower((string) $logoFile->getClientOriginalExtension());
-        $extension = in_array($extension, ['jpg', 'jpeg', 'png'], true) ? $extension : 'jpg';
+        $color = trim((string) $color);
 
-        $relativePath = 'company-logos/' . $employerId . '_' . time() . '.' . $extension;
+        if ($color === '') {
+            return null;
+        }
+
+        if (preg_match('/^#[A-Fa-f0-9]{6}$/', $color) !== 1) {
+            return null;
+        }
+
+        return strtoupper($color);
+    }
+
+    /**
+     * @return array{zoom: float, x: float, y: float}
+     */
+    private function extractCropMeta(Request $request, string $prefix): array
+    {
+        return [
+            'zoom' => max(1.0, min(3.0, (float) $request->input($prefix . '_zoom', 1))),
+            'x' => max(-100.0, min(100.0, (float) $request->input($prefix . '_x', 0))),
+            'y' => max(-100.0, min(100.0, (float) $request->input($prefix . '_y', 0))),
+        ];
+    }
+
+    /**
+     * @param array{zoom: float, x: float, y: float} $crop
+     */
+    private function storeProcessedImage(
+        UploadedFile $file,
+        string $directory,
+        string $namePrefix,
+        float $targetAspect,
+        int $targetWidth,
+        int $targetHeight,
+        array $crop
+    ): string {
+        $extension = function_exists('imagewebp') ? 'webp' : 'jpg';
+        $relativePath = $directory . '/' . $namePrefix . '_' . time() . '_' . Str::random(6) . '.' . $extension;
         $absolutePath = Storage::disk('public')->path($relativePath);
 
-        $directory = dirname($absolutePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        $directoryPath = dirname($absolutePath);
+        if (! is_dir($directoryPath)) {
+            mkdir($directoryPath, 0755, true);
         }
 
-        if (!function_exists('imagecreatefromstring') || !function_exists('imagecreatetruecolor') || !function_exists('imagecopyresampled')) {
-            $storedPath = $logoFile->storeAs('company-logos', basename($relativePath), 'public');
-            return (string) $storedPath;
+        if (! function_exists('imagecreatefromstring') || ! function_exists('imagecreatetruecolor') || ! function_exists('imagecopyresampled')) {
+            return (string) $file->storeAs($directory, basename($relativePath), 'public');
         }
 
-        $raw = @file_get_contents($logoFile->getRealPath());
+        $raw = @file_get_contents($file->getRealPath());
         $source = $raw ? @imagecreatefromstring($raw) : false;
 
-        if (!$source) {
-            $storedPath = $logoFile->storeAs('company-logos', basename($relativePath), 'public');
-            return (string) $storedPath;
+        if (! $source) {
+            return (string) $file->storeAs($directory, basename($relativePath), 'public');
         }
 
-        $width = imagesx($source);
-        $height = imagesy($source);
-        $cropSize = min($width, $height);
-        $cropX = (int) floor(($width - $cropSize) / 2);
-        $cropY = (int) floor(($height - $cropSize) / 2);
-        $targetSize = min($cropSize, 1024);
+        $sourceWidth = imagesx($source);
+        $sourceHeight = imagesy($source);
 
-        $canvas = imagecreatetruecolor($targetSize, $targetSize);
+        if ($sourceWidth < 2 || $sourceHeight < 2) {
+            imagedestroy($source);
+
+            return (string) $file->storeAs($directory, basename($relativePath), 'public');
+        }
+
+        $sourceAspect = $sourceWidth / $sourceHeight;
+        if ($sourceAspect >= $targetAspect) {
+            $baseCropHeight = $sourceHeight;
+            $baseCropWidth = $sourceHeight * $targetAspect;
+        } else {
+            $baseCropWidth = $sourceWidth;
+            $baseCropHeight = $sourceWidth / $targetAspect;
+        }
+
+        $zoom = max(1.0, min(3.0, (float) ($crop['zoom'] ?? 1.0)));
+        $cropWidth = max(1.0, $baseCropWidth / $zoom);
+        $cropHeight = max(1.0, $baseCropHeight / $zoom);
+
+        $maxShiftX = max(0.0, ($sourceWidth - $cropWidth) / 2);
+        $maxShiftY = max(0.0, ($sourceHeight - $cropHeight) / 2);
+        $shiftX = (($crop['x'] ?? 0.0) / 100.0) * $maxShiftX;
+        $shiftY = (($crop['y'] ?? 0.0) / 100.0) * $maxShiftY;
+
+        $centerX = $sourceWidth / 2;
+        $centerY = $sourceHeight / 2;
+
+        $cropX = (int) round(max(0.0, min($sourceWidth - $cropWidth, $centerX - ($cropWidth / 2) + $shiftX)));
+        $cropY = (int) round(max(0.0, min($sourceHeight - $cropHeight, $centerY - ($cropHeight / 2) + $shiftY)));
+        $cropWidthInt = (int) round($cropWidth);
+        $cropHeightInt = (int) round($cropHeight);
+
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
         imagealphablending($canvas, false);
         imagesavealpha($canvas, true);
         $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
@@ -520,14 +625,14 @@ class ApplicationController extends Controller
             0,
             $cropX,
             $cropY,
-            $targetSize,
-            $targetSize,
-            $cropSize,
-            $cropSize
+            $targetWidth,
+            $targetHeight,
+            $cropWidthInt,
+            $cropHeightInt
         );
 
-        if ($extension === 'png') {
-            imagepng($canvas, $absolutePath, 8);
+        if ($extension === 'webp' && function_exists('imagewebp')) {
+            imagewebp($canvas, $absolutePath, 84);
         } else {
             imagejpeg($canvas, $absolutePath, 84);
         }

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Setting;
 use App\Services\Hzz\HzzJobImportService;
 use App\Support\HzzUrlGuard;
 use Illuminate\Console\Command;
@@ -24,7 +25,11 @@ class ImportHzzJobsCommand extends Command
     {
         $url = trim((string) $this->option('url'));
         if ($url === '') {
-            $this->error('Missing --url option.');
+            $url = trim((string) (Setting::getString('hzz_feed_url', config('services.hzz.feed_url', HzzUrlGuard::defaultFeedUrl())) ?? HzzUrlGuard::defaultFeedUrl()));
+        }
+
+        if ($url === '') {
+            $this->error('Missing HZZ feed URL configuration.');
             return self::FAILURE;
         }
 
@@ -36,6 +41,8 @@ class ImportHzzJobsCommand extends Command
         $write = (bool) $this->option('write');
         $allowUpdates = (bool) $this->option('allow-updates');
         $dryRun = ! $write;
+
+        Setting::setValue('hzz_feed_url', $url);
 
         if (! $write && $allowUpdates) {
             $this->warn('Ignoring --allow-updates because --write was not provided (dry-run mode).');

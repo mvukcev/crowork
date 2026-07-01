@@ -46,6 +46,7 @@
                                         <div class="flex gap-2">
                                             <a href="{{ route('employer.jobs.show', $job) }}" class="cw-button-secondary">{{ __('common.info') }}</a>
                                             <a href="{{ route('employer.jobs.edit', $job) }}" class="cw-button-secondary">{{ __('common.edit') }}</a>
+                                            <a href="{{ route('jobs.preview.shared', ['token' => $job->preview_token]) }}" target="_blank" rel="noopener" class="cw-button-secondary">{{ __('employer.job_preview.open_short') }}</a>
                                             <form method="POST" action="{{ route('employer.jobs.destroy', $job) }}" onsubmit="return confirm('{{ __('employer.jobs_index.confirm_delete') }}')">
                                                 @csrf @method('DELETE')
                                                 <button class="cw-button-secondary text-red-700 border-red-200 bg-red-50">{{ __('common.delete') }}</button>

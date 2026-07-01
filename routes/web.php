@@ -67,6 +67,9 @@ Route::middleware('guest')->group(function () {
 
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/partial', [JobController::class, 'partial'])->name('jobs.partial');
+Route::get('/jobs/preview/{token}', [JobController::class, 'previewByToken'])
+    ->middleware('throttle:120,60')
+    ->name('jobs.preview.shared');
 Route::post('/jobs/{job}/hzz/cta-click', [JobController::class, 'trackHzzCtaClick'])
     ->middleware('throttle:120,60')
     ->name('jobs.hzz.cta-click');

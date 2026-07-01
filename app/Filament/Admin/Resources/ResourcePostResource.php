@@ -74,8 +74,8 @@ class ResourcePostResource extends Resource
                             ->directory('resources/featured')
                             ->visibility('public')
                             ->imageEditor()
-                            ->imageEditorAspectRatios(['2:1'])
-                            ->helperText('Upload and crop image to 2:1 ratio for consistent resource cards and headers.')
+                            ->rules(['dimensions:min_width=1200,min_height=600'])
+                            ->helperText('Minimum 1200x600. Any aspect ratio above minimum is accepted; crop it in the preview editor.')
                             ->columnSpanFull(),
                         Forms\Components\RichEditor::make('body')
                             ->fileAttachmentsDisk('public')

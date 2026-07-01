@@ -5,7 +5,7 @@
         <div class="cw-container max-w-4xl">
             <h1 class="cw-display text-4xl md:text-6xl mb-6">{{ __('ui.jobs.create_heading') }}</h1>
 
-            <form method="POST" action="{{ route('employer.jobs.store') }}" class="cw-surface p-6 space-y-4" data-cw-track-submit="employer_job_create">
+            <form method="POST" action="{{ route('employer.jobs.store') }}" enctype="multipart/form-data" class="cw-surface p-6 space-y-4" data-cw-track-submit="employer_job_create">
                 @csrf
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
@@ -149,6 +149,32 @@
                     <textarea id="application_instructions" name="application_instructions" rows="4" class="cw-field">{{ old('application_instructions') }}</textarea>
                 </div>
 
+                <div class="space-y-3">
+                    <label class="cw-label" for="cover_image">{{ __('employer.job_form.cover_image') }}</label>
+                    <input id="cover_image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" class="cw-field" data-job-cover-file>
+                    <p class="text-xs text-slate-500">{{ __('employer.job_form.cover_image_help') }}</p>
+
+                    <input type="hidden" name="cover_crop_zoom" value="1" data-job-cover-zoom-input>
+                    <input type="hidden" name="cover_crop_x" value="0" data-job-cover-x-input>
+                    <input type="hidden" name="cover_crop_y" value="0" data-job-cover-y-input>
+
+                    <div class="aspect-[2/1] overflow-hidden rounded-xl border border-slate-200 bg-slate-100" data-job-cover-preview>
+                        <div class="h-full w-full grid place-items-center text-sm text-slate-500" data-job-cover-fallback>{{ __('employer.job_form.cover_placeholder') }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <label class="text-xs text-slate-500">{{ __('employer.settings.zoom') }}
+                            <input type="range" min="1" max="3" step="0.05" value="1" class="w-full" data-job-cover-zoom>
+                        </label>
+                        <label class="text-xs text-slate-500">{{ __('employer.settings.horizontal_position') }}
+                            <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-job-cover-x>
+                        </label>
+                        <label class="text-xs text-slate-500">{{ __('employer.settings.vertical_position') }}
+                            <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-job-cover-y>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="flex gap-2">
                     <button type="submit" class="cw-button-primary">{{ __('employer.job_form.create_job') }}</button>
                     <a href="{{ route('employer.jobs.index') }}" class="cw-button-secondary">{{ __('common.cancel') }}</a>
@@ -156,4 +182,79 @@
             </form>
         </div>
     </section>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const fileInput = document.querySelector('[data-job-cover-file]');
+                const preview = document.querySelector('[data-job-cover-preview]');
+                const zoomRange = document.querySelector('[data-job-cover-zoom]');
+                const xRange = document.querySelector('[data-job-cover-x]');
+                const yRange = document.querySelector('[data-job-cover-y]');
+                const zoomInput = document.querySelector('[data-job-cover-zoom-input]');
+                const xInput = document.querySelector('[data-job-cover-x-input]');
+                const yInput = document.querySelector('[data-job-cover-y-input]');
+
+                if (!fileInput || !preview || !zoomRange || !xRange || !yRange) {
+                    return;
+                }
+
+                const applyTransform = function () {
+                    const image = preview.querySelector('img');
+                    if (!image) {
+                        return;
+                    }
+
+                    const zoom = Number(zoomRange.value || 1);
+                    const x = Number(xRange.value || 0);
+                    const y = Number(yRange.value || 0);
+
+                    const panFactor = zoom > 1 ? ((zoom - 1) / zoom) : 0;
+                    const translateX = x * panFactor;
+                    const translateY = y * panFactor;
+
+                    preview.style.position = 'relative';
+                    image.style.position = 'absolute';
+                    image.style.inset = '0';
+                    image.style.transform = 'translate(' + translateX + '%, ' + translateY + '%) scale(' + zoom + ')';
+                    image.style.transformOrigin = 'center center';
+
+                    if (zoomInput) zoomInput.value = String(zoom);
+                    if (xInput) xInput.value = String(x);
+                    if (yInput) yInput.value = String(y);
+                };
+
+                fileInput.addEventListener('change', function (event) {
+                    const file = event.target.files?.[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (loadEvent) {
+                        const oldImage = preview.querySelector('img');
+                        const fallback = preview.querySelector('[data-job-cover-fallback]');
+                        if (oldImage) oldImage.remove();
+                        if (fallback) fallback.remove();
+
+                        const image = document.createElement('img');
+                        image.src = String(loadEvent.target?.result || '');
+                        image.alt = 'Job cover preview';
+                        image.className = 'h-full w-full object-cover block';
+                        preview.appendChild(image);
+
+                        zoomRange.value = '1';
+                        xRange.value = '0';
+                        yRange.value = '0';
+                        applyTransform();
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                zoomRange.addEventListener('input', applyTransform);
+                xRange.addEventListener('input', applyTransform);
+                yRange.addEventListener('input', applyTransform);
+            });
+        </script>
+    @endpush
 </x-app-layout>

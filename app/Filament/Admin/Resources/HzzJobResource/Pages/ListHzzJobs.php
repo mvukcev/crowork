@@ -29,13 +29,17 @@ class ListHzzJobs extends ListRecords
                         ->label('HZZ Feed URL')
                         ->url()
                         ->required()
-                        ->default(fn (): string => (string) (Setting::getString('hzz_feed_url', '') ?? '')),
+                        ->default(fn (): string => (string) (Setting::getString('hzz_feed_url', config('services.hzz.feed_url', HzzUrlGuard::defaultFeedUrl())) ?? HzzUrlGuard::defaultFeedUrl())),
                     Toggle::make('allow_updates')
                         ->label('Update existing HZZ jobs')
                         ->default(fn (): bool => Setting::getBool('hzz_allow_updates_on_sync', true)),
                 ])
                 ->action(function (array $data): void {
-                    $url = (string) ($data['url'] ?? '');
+                    $url = trim((string) ($data['url'] ?? ''));
+                    if ($url === '') {
+                        $url = (string) (Setting::getString('hzz_feed_url', config('services.hzz.feed_url', HzzUrlGuard::defaultFeedUrl())) ?? HzzUrlGuard::defaultFeedUrl());
+                    }
+
                     $allowUpdates = (bool) ($data['allow_updates'] ?? false);
 
                     if (! HzzUrlGuard::isAllowedFeedUrl($url)) {

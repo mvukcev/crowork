@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\Hzz\HzzApplicationContactParser;
+use App\Services\ImageSanitizerService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -18,6 +19,7 @@ class Job extends Model
         'source_url',
         'source_logo_url',
         'source_imported_at',
+        'preview_token',
         'external_company_name',
         'source_system',
         'source_reference',
@@ -29,6 +31,7 @@ class Job extends Model
         'hzz_apply_url',
         'hzz_apply_method_available',
         'hzz_legal_notice',
+        'cover_image_path',
         'title',
         'slug',
         'salary_min',
@@ -93,6 +96,10 @@ class Job extends Model
             if (empty($job->slug)) {
                 $job->slug = static::generateUniqueSlug($job->title);
             }
+
+            if (empty($job->preview_token)) {
+                $job->preview_token = static::generateUniquePreviewToken();
+            }
         });
 
         static::updating(function ($job) {
@@ -111,6 +118,9 @@ class Job extends Model
             $parseInput = implode("\n\n", array_filter([
                 (string) ($job->application_instructions ?? ''),
                 strip_tags((string) ($job->description ?? '')),
+                strip_tags((string) ($job->responsibilities ?? '')),
+                strip_tags((string) ($job->requirements ?? '')),
+                strip_tags((string) ($job->benefits ?? '')),
                 (string) ($job->hzz_legal_notice ?? ''),
             ], fn ($value) => trim((string) $value) !== ''));
 
@@ -130,6 +140,19 @@ class Job extends Model
             $job->source_system = $job->source_system ?: 'hzz';
             $job->hzz_is_official = true;
         });
+
+        static::saved(function (Job $job): void {
+            if (! $job->wasChanged('cover_image_path')) {
+                return;
+            }
+
+            $coverPath = trim((string) $job->cover_image_path);
+            if ($coverPath === '') {
+                return;
+            }
+
+            app(ImageSanitizerService::class)->sanitizeAndOptimize('public', $coverPath, 2200, 1400);
+        });
     }
 
     protected static function generateUniqueSlug(string $title): string
@@ -144,6 +167,38 @@ class Job extends Model
         }
 
         return $slug;
+    }
+
+    protected static function generateUniquePreviewToken(): string
+    {
+        do {
+            $token = Str::random(64);
+        } while (static::where('preview_token', $token)->exists());
+
+        return $token;
+    }
+
+    public function ensurePreviewToken(): string
+    {
+        if (filled((string) $this->preview_token)) {
+            return (string) $this->preview_token;
+        }
+
+        $this->preview_token = static::generateUniquePreviewToken();
+        $this->save();
+
+        return (string) $this->preview_token;
+    }
+
+    public function getPreviewUrlAttribute(): ?string
+    {
+        $token = trim((string) $this->preview_token);
+
+        if ($token === '') {
+            return null;
+        }
+
+        return route('jobs.preview.shared', ['token' => $token]);
     }
 
     public function scopePublished($query)
@@ -209,7 +264,9 @@ class Job extends Model
 
     public function isImportedFromHzz(): bool
     {
-        return $this->source_type === 'hzz';
+        return $this->source_type === 'hzz'
+            || strtolower((string) $this->source_system) === 'hzz'
+            || (bool) $this->hzz_is_official;
     }
 
     public function getLocationAttribute(): ?string

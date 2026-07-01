@@ -8,7 +8,11 @@ use App\Models\Job;
 use App\Services\ApprovalService;
 use App\Services\EmployerCandidateDataAccessService;
 use App\Models\Setting;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class JobController extends Controller
 {
@@ -24,18 +28,30 @@ class JobController extends Controller
     {
         $employer = $this->currentEmployer();
 
-        $jobs = $employer->jobs()
-            ->where(function ($query): void {
+        $jobsQuery = $employer->jobs();
+
+        if (Schema::hasColumn('job_postings', 'source_system')) {
+            $jobsQuery->where(function ($query): void {
                 $query->whereNull('source_system')
                     ->orWhere('source_system', '!=', 'hzz');
-            })
-            ->where(function ($query): void {
+            });
+        }
+
+        if (Schema::hasColumn('job_postings', 'hzz_is_official')) {
+            $jobsQuery->where(function ($query): void {
                 $query->whereNull('hzz_is_official')
                     ->orWhere('hzz_is_official', false);
-            })
+            });
+        }
+
+        $jobs = $jobsQuery
             ->withCount('applications')
             ->orderByDesc('created_at')
             ->paginate(10);
+
+        $jobs->getCollection()->each(function (Job $job): void {
+            $job->ensurePreviewToken();
+        });
 
         return view('employer.jobs.index', [
             'jobs' => $jobs,
@@ -81,6 +97,10 @@ class JobController extends Controller
             'working_hours' => ['nullable', 'string', 'max:120'],
             'shift_details' => ['nullable', 'string', 'max:5000'],
             'application_instructions' => ['nullable', 'string', 'max:5000'],
+            'cover_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:12288', 'dimensions:min_width=1200,min_height=600'],
+            'cover_crop_zoom' => ['nullable', 'numeric', 'min:1', 'max:3'],
+            'cover_crop_x' => ['nullable', 'numeric', 'min:-100', 'max:100'],
+            'cover_crop_y' => ['nullable', 'numeric', 'min:-100', 'max:100'],
         ]);
 
         $approvalService = app(ApprovalService::class);
@@ -121,6 +141,15 @@ class JobController extends Controller
             'expires_at' => now()->addDays(max(1, Setting::getInt('default_job_expiry_days', 30))),
         ]);
 
+        if ($request->hasFile('cover_image')) {
+            $job->cover_image_path = $this->storeProcessedCoverImage(
+                $request->file('cover_image'),
+                (string) $job->id,
+                $this->extractCropMeta($request, 'cover_crop')
+            );
+            $job->save();
+        }
+
         return redirect()
             ->route('employer.jobs.edit', $job)
             ->with('success', 'Job created successfully.');
@@ -132,6 +161,7 @@ class JobController extends Controller
     public function show(Job $job)
     {
         $this->authorizeEmployerJob($job);
+        $job->ensurePreviewToken();
 
         $job->load(['applications.worker']);
         $applications = $job->applications()->with('worker')->latest()->get();
@@ -154,6 +184,7 @@ class JobController extends Controller
     public function edit(Job $job)
     {
         $this->authorizeEmployerJob($job);
+        $job->ensurePreviewToken();
 
         return view('employer.jobs.edit', [
             'job' => $job,
@@ -191,12 +222,16 @@ class JobController extends Controller
             'working_hours' => ['nullable', 'string', 'max:120'],
             'shift_details' => ['nullable', 'string', 'max:5000'],
             'application_instructions' => ['nullable', 'string', 'max:5000'],
+            'cover_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:12288', 'dimensions:min_width=1200,min_height=600'],
+            'cover_crop_zoom' => ['nullable', 'numeric', 'min:1', 'max:3'],
+            'cover_crop_x' => ['nullable', 'numeric', 'min:-100', 'max:100'],
+            'cover_crop_y' => ['nullable', 'numeric', 'min:-100', 'max:100'],
         ]);
 
         $approvalService = app(ApprovalService::class);
         $nextStatus = $approvalService->getInitialStatus($job->employer, 'job');
 
-        $job->update([
+        $payload = [
             'title' => $validated['title'],
             'description' => $validated['description'],
             'responsibilities' => $validated['responsibilities'] ?? null,
@@ -222,7 +257,21 @@ class JobController extends Controller
             'application_instructions' => $validated['application_instructions'] ?? null,
             'status' => $nextStatus,
             'published_at' => $nextStatus === 'published' ? ($job->published_at ?? now()) : null,
-        ]);
+        ];
+
+        if ($request->hasFile('cover_image')) {
+            if ($job->cover_image_path) {
+                Storage::disk('public')->delete($job->cover_image_path);
+            }
+
+            $payload['cover_image_path'] = $this->storeProcessedCoverImage(
+                $request->file('cover_image'),
+                (string) $job->id,
+                $this->extractCropMeta($request, 'cover_crop')
+            );
+        }
+
+        $job->update($payload);
 
         return redirect()
             ->route('employer.jobs.edit', $job)
@@ -257,5 +306,104 @@ class JobController extends Controller
         abort_unless($employer instanceof Employer, 403);
 
         return $employer;
+    }
+
+    /**
+     * @return array{zoom: float, x: float, y: float}
+     */
+    private function extractCropMeta(Request $request, string $prefix): array
+    {
+        return [
+            'zoom' => max(1.0, min(3.0, (float) $request->input($prefix . '_zoom', 1))),
+            'x' => max(-100.0, min(100.0, (float) $request->input($prefix . '_x', 0))),
+            'y' => max(-100.0, min(100.0, (float) $request->input($prefix . '_y', 0))),
+        ];
+    }
+
+    /**
+     * @param array{zoom: float, x: float, y: float} $crop
+     */
+    private function storeProcessedCoverImage(UploadedFile $file, string $jobId, array $crop): string
+    {
+        $directory = 'job-covers';
+        $extension = function_exists('imagewebp') ? 'webp' : 'jpg';
+        $relativePath = $directory . '/' . $jobId . '_' . time() . '_' . Str::random(6) . '.' . $extension;
+        $absolutePath = Storage::disk('public')->path($relativePath);
+
+        $dirPath = dirname($absolutePath);
+        if (! is_dir($dirPath)) {
+            mkdir($dirPath, 0755, true);
+        }
+
+        if (! function_exists('imagecreatefromstring') || ! function_exists('imagecreatetruecolor') || ! function_exists('imagecopyresampled')) {
+            return (string) $file->storeAs($directory, basename($relativePath), 'public');
+        }
+
+        $raw = @file_get_contents($file->getRealPath());
+        $source = $raw ? @imagecreatefromstring($raw) : false;
+        if (! $source) {
+            return (string) $file->storeAs($directory, basename($relativePath), 'public');
+        }
+
+        $sourceWidth = imagesx($source);
+        $sourceHeight = imagesy($source);
+        $targetAspect = 2.0;
+        $targetWidth = 1800;
+        $targetHeight = 900;
+
+        $sourceAspect = $sourceWidth / max(1, $sourceHeight);
+        if ($sourceAspect >= $targetAspect) {
+            $baseCropHeight = $sourceHeight;
+            $baseCropWidth = $sourceHeight * $targetAspect;
+        } else {
+            $baseCropWidth = $sourceWidth;
+            $baseCropHeight = $sourceWidth / $targetAspect;
+        }
+
+        $zoom = max(1.0, min(3.0, (float) ($crop['zoom'] ?? 1.0)));
+        $cropWidth = max(1.0, $baseCropWidth / $zoom);
+        $cropHeight = max(1.0, $baseCropHeight / $zoom);
+
+        $maxShiftX = max(0.0, ($sourceWidth - $cropWidth) / 2);
+        $maxShiftY = max(0.0, ($sourceHeight - $cropHeight) / 2);
+
+        $shiftX = (($crop['x'] ?? 0.0) / 100.0) * $maxShiftX;
+        $shiftY = (($crop['y'] ?? 0.0) / 100.0) * $maxShiftY;
+
+        $centerX = $sourceWidth / 2;
+        $centerY = $sourceHeight / 2;
+
+        $cropX = (int) round(max(0.0, min($sourceWidth - $cropWidth, $centerX - ($cropWidth / 2) + $shiftX)));
+        $cropY = (int) round(max(0.0, min($sourceHeight - $cropHeight, $centerY - ($cropHeight / 2) + $shiftY)));
+
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+        imagefill($canvas, 0, 0, $transparent);
+
+        imagecopyresampled(
+            $canvas,
+            $source,
+            0,
+            0,
+            $cropX,
+            $cropY,
+            $targetWidth,
+            $targetHeight,
+            (int) round($cropWidth),
+            (int) round($cropHeight)
+        );
+
+        if ($extension === 'webp' && function_exists('imagewebp')) {
+            imagewebp($canvas, $absolutePath, 84);
+        } else {
+            imagejpeg($canvas, $absolutePath, 84);
+        }
+
+        imagedestroy($canvas);
+        imagedestroy($source);
+
+        return $relativePath;
     }
 }

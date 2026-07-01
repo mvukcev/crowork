@@ -46,7 +46,7 @@ return [
     ],
 
     'hzz' => [
-        'feed_url' => env('HZZ_FEED_URL', 'https://burzarada.hzz.hr/rss/0xADAA044C9A86446096022A136750DD8F.xml?AspxAutoDetectCookieSupport=1'),
+        'feed_url' => env('HZZ_FEED_URL', 'http://burzarada.hzz.hr/rss/0xADAA044C9A86446096022A136750DD8F.xml'),
         'logo_url' => env('HZZ_LOGO_URL', 'https://www.hzz.hr/app/uploads/2022/11/logo_hzz.svg'),
     ],
 

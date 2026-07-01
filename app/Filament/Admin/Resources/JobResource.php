@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class JobResource extends Resource
@@ -28,15 +29,23 @@ class JobResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->where(function (Builder $query): void {
-                $query->whereNull('source_system')
+        $query = parent::getEloquentQuery();
+
+        if (Schema::hasColumn('job_postings', 'source_system')) {
+            $query->where(function (Builder $nested): void {
+                $nested->whereNull('source_system')
                     ->orWhere('source_system', '!=', 'hzz');
-            })
-            ->where(function (Builder $query): void {
-                $query->whereNull('hzz_is_official')
+            });
+        }
+
+        if (Schema::hasColumn('job_postings', 'hzz_is_official')) {
+            $query->where(function (Builder $nested): void {
+                $nested->whereNull('hzz_is_official')
                     ->orWhere('hzz_is_official', false);
             });
+        }
+
+        return $query;
     }
 
     public static function form(Form $form): Form
@@ -338,6 +347,15 @@ class JobResource extends Resource
                         $approvalService->publish($record);
                     })
                     ->visible(fn (Job $record) => $record->status === 'delisted'),
+                Tables\Actions\Action::make('preview_link')
+                    ->label('Preview')
+                    ->icon('heroicon-o-link')
+                    ->url(function (Job $record): string {
+                        $token = $record->ensurePreviewToken();
+
+                        return route('jobs.preview.shared', ['token' => $token]);
+                    }, shouldOpenInNewTab: true)
+                    ->color('gray'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

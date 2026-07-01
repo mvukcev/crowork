@@ -276,6 +276,7 @@ return [
         'fact_employment_type' => 'Tip zaposlenja',
         'fact_category' => 'Kategorija',
         'fact_city' => 'Grad',
+        'fact_positions_available' => 'Broj traženih radnika',
         'fact_experience_level' => 'Razina iskustva',
         'fact_education_required' => 'Tražena kvalifikacija',
         'fact_contract_duration' => 'Trajanje ugovora',
@@ -298,6 +299,9 @@ return [
         'hzz_source_transfer' => 'Izvorni oglas i pripadajući podaci dostupni su na službenim stranicama HZZ-a.',
         'hzz_source_disclaimer' => 'CroWork ne odgovara za točnost, potpunost niti ažurnost podataka preuzetih iz HZZ sustava.',
         'hzz_source_link_label' => 'Otvori izvorni oglas na HZZ-u',
+        'preview_mode_title' => 'Pretpregled oglasa',
+        'preview_mode_body' => 'Ovo je dijeljeni pretpregled. Koristi ga za internu provjeru i odobrenje prije javne objave oglasa.',
+        'preview_apply_disabled' => 'Pretpregled mode - prijava je onemogućena',
     ],
     'educations_apply' => [
         'page_title' => 'Prijava - :title',

@@ -41,6 +41,7 @@
 
                     <div class="border border-neutral-200 rounded-xl p-5 bg-white/70 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/70">
                         <h3 class="cw-heading-3 mb-4">{{ __('employer.settings.branding') }}</h3>
+                        <p class="text-sm text-neutral-600 mb-4 dark:text-gray-400">{{ __('employer.settings.branding_intro') }}</p>
 
                         <div>
                             <label class="cw-label">{{ __('employer.settings.company_display_name') }}</label>
@@ -54,15 +55,20 @@
 
                         <div class="mt-5">
                             <label class="cw-label">{{ __('employer.settings.company_logo') }}</label>
-                            <input type="file" name="logo" accept="image/jpeg,image/png" class="cw-field" data-logo-input>
+                            <input type="file" name="logo" accept="image/jpeg,image/png,image/webp" class="cw-field" data-crop-file-input="logo">
                             <p class="text-xs text-neutral-600 mt-1 dark:text-gray-400">{{ __('employer.settings.company_logo_help') }}</p>
+                            <p class="text-xs text-neutral-600 mt-1 dark:text-gray-400">{{ __('employer.settings.crop_help') }}</p>
+
+                            <input type="hidden" name="logo_crop_zoom" value="1" data-crop-zoom-input="logo">
+                            <input type="hidden" name="logo_crop_x" value="0" data-crop-x-input="logo">
+                            <input type="hidden" name="logo_crop_y" value="0" data-crop-y-input="logo">
 
                             <div class="mt-3 flex items-center gap-4">
-                                <div class="h-20 w-20 rounded-full border border-slate-200 overflow-hidden bg-slate-50 shadow-sm dark:border-gray-700 dark:bg-gray-800" data-logo-preview>
+                                <div class="h-20 w-20 rounded-full border border-slate-200 overflow-hidden bg-slate-50 shadow-sm dark:border-gray-700 dark:bg-gray-800" data-crop-preview="logo" data-crop-aspect="1">
                                     @if($employer->logo_path)
-                                        <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover" data-logo-preview-image data-cw-logo-image data-cw-fallback-text="{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}" data-cw-fallback-label="{{ $employer->company_name }}" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
+                                        <img src="{{ asset('storage/' . $employer->logo_path) }}" alt="{{ $employer->company_name }} logo" class="h-full w-full object-cover" data-crop-preview-image="logo" data-cw-logo-image data-cw-fallback-text="{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}" data-cw-fallback-label="{{ $employer->company_name }}" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
                                     @else
-                                        <div class="h-full w-full grid place-items-center text-sm font-semibold text-slate-500" data-logo-preview-fallback>
+                                        <div class="h-full w-full grid place-items-center text-sm font-semibold text-slate-500" data-crop-preview-fallback="logo">
                                             {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($employer->company_display_name ?: $employer->company_name, 0, 2)) }}
                                         </div>
                                     @endif
@@ -70,6 +76,64 @@
                                 <div class="text-xs text-neutral-600 dark:text-gray-400">
                                     <p>{{ __('employer.settings.logo_preview_help') }}</p>
                                 </div>
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3" data-crop-controls="logo">
+                                <label class="text-xs text-neutral-600 dark:text-gray-400">{{ __('employer.settings.zoom') }}
+                                    <input type="range" min="1" max="3" step="0.05" value="1" class="w-full" data-crop-zoom="logo">
+                                </label>
+                                <label class="text-xs text-neutral-600 dark:text-gray-400">{{ __('employer.settings.horizontal_position') }}
+                                    <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-crop-x="logo">
+                                </label>
+                                <label class="text-xs text-neutral-600 dark:text-gray-400">{{ __('employer.settings.vertical_position') }}
+                                    <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-crop-y="logo">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="cw-label">{{ __('employer.settings.brand_color') }}</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" value="{{ old('brand_color', $employer->brand_color ?? '#0F274D') }}" class="h-10 w-14 rounded border border-slate-300 p-1" data-brand-color-picker>
+                                    <input type="text" name="brand_color" value="{{ old('brand_color', $employer->brand_color ?? '#0F274D') }}" class="cw-field" pattern="^#[A-Fa-f0-9]{6}$" placeholder="#0F274D" data-brand-color-text>
+                                </div>
+                                <p class="text-xs text-neutral-600 mt-1 dark:text-gray-400">{{ __('employer.settings.brand_color_help') }}</p>
+                            </div>
+                            <div class="rounded-lg border border-slate-200 p-3 bg-white/80 dark:border-gray-700 dark:bg-gray-800/60" data-brand-preview-card>
+                                <p class="text-xs text-slate-500 mb-2">{{ __('employer.settings.brand_preview') }}</p>
+                                <div class="h-12 rounded-md" data-brand-preview-fill style="background: linear-gradient(135deg, {{ old('brand_color', $employer->brand_color ?? '#0F274D') }}22, {{ old('brand_color', $employer->brand_color ?? '#0F274D') }}55);"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <label class="cw-label">{{ __('employer.settings.cover_image') }}</label>
+                            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" class="cw-field" data-crop-file-input="cover">
+                            <p class="text-xs text-neutral-600 mt-1 dark:text-gray-400">{{ __('employer.settings.cover_image_help') }}</p>
+                            <p class="text-xs text-neutral-600 mt-1 dark:text-gray-400">{{ __('employer.settings.crop_help') }}</p>
+
+                            <input type="hidden" name="cover_crop_zoom" value="1" data-crop-zoom-input="cover">
+                            <input type="hidden" name="cover_crop_x" value="0" data-crop-x-input="cover">
+                            <input type="hidden" name="cover_crop_y" value="0" data-crop-y-input="cover">
+
+                            <div class="mt-3 aspect-[13/5] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-gray-700 dark:bg-gray-800" data-crop-preview="cover" data-crop-aspect="2.6">
+                                @if($employer->cover_image_path)
+                                    <img src="{{ asset('storage/' . $employer->cover_image_path) }}" alt="{{ $employer->company_name }} cover" class="h-full w-full object-cover" data-crop-preview-image="cover">
+                                @else
+                                    <div class="h-full w-full grid place-items-center text-sm text-slate-500" data-crop-preview-fallback="cover">{{ __('employer.settings.cover_placeholder') }}</div>
+                                @endif
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3" data-crop-controls="cover">
+                                <label class="text-xs text-neutral-600 dark:text-gray-400">{{ __('employer.settings.zoom') }}
+                                    <input type="range" min="1" max="3" step="0.05" value="1" class="w-full" data-crop-zoom="cover">
+                                </label>
+                                <label class="text-xs text-neutral-600 dark:text-gray-400">{{ __('employer.settings.horizontal_position') }}
+                                    <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-crop-x="cover">
+                                </label>
+                                <label class="text-xs text-neutral-600 dark:text-gray-400">{{ __('employer.settings.vertical_position') }}
+                                    <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-crop-y="cover">
+                                </label>
                             </div>
                         </div>
 
@@ -303,40 +367,110 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const fileInput = document.querySelector('[data-logo-input]');
-            const preview = document.querySelector('[data-logo-preview]');
+            const initCropUploader = function (key) {
+                const fileInput = document.querySelector('[data-crop-file-input="' + key + '"]');
+                const preview = document.querySelector('[data-crop-preview="' + key + '"]');
+                const zoomRange = document.querySelector('[data-crop-zoom="' + key + '"]');
+                const xRange = document.querySelector('[data-crop-x="' + key + '"]');
+                const yRange = document.querySelector('[data-crop-y="' + key + '"]');
+                const zoomInput = document.querySelector('[data-crop-zoom-input="' + key + '"]');
+                const xInput = document.querySelector('[data-crop-x-input="' + key + '"]');
+                const yInput = document.querySelector('[data-crop-y-input="' + key + '"]');
 
-            if (!fileInput || !preview) {
-                return;
-            }
-
-            fileInput.addEventListener('change', function (event) {
-                const file = event.target.files?.[0];
-                if (!file) {
+                if (!fileInput || !preview || !zoomRange || !xRange || !yRange || !zoomInput || !xInput || !yInput) {
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const existingImage = preview.querySelector('[data-logo-preview-image]');
-                    const fallback = preview.querySelector('[data-logo-preview-fallback]');
-
-                    if (existingImage) {
-                        existingImage.remove();
-                    }
-                    if (fallback) {
-                        fallback.remove();
+                const applyTransform = function () {
+                    const img = preview.querySelector('img');
+                    if (!img) {
+                        return;
                     }
 
-                    const img = document.createElement('img');
-                    img.src = String(e.target?.result || '');
-                    img.alt = @js(__('employer.settings.logo_preview_alt'));
-                    img.className = 'h-full w-full object-cover';
-                    img.setAttribute('data-logo-preview-image', 'true');
-                    preview.appendChild(img);
+                    const zoom = Number(zoomRange.value || 1);
+                    const x = Number(xRange.value || 0);
+                    const y = Number(yRange.value || 0);
+
+                    // Keep pan movement inside the frame and disable it when zoom is 1.
+                    const panFactor = zoom > 1 ? ((zoom - 1) / zoom) : 0;
+                    const translateX = x * panFactor;
+                    const translateY = y * panFactor;
+
+                    preview.style.position = 'relative';
+                    img.style.position = 'absolute';
+                    img.style.inset = '0';
+                    img.style.transform = 'translate(' + translateX + '%, ' + translateY + '%) scale(' + zoom + ')';
+                    img.style.transformOrigin = 'center center';
+
+                    zoomInput.value = String(zoom);
+                    xInput.value = String(x);
+                    yInput.value = String(y);
                 };
-                reader.readAsDataURL(file);
-            });
+
+                fileInput.addEventListener('change', function (event) {
+                    const file = event.target.files?.[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const existingImage = preview.querySelector('img');
+                        const fallback = preview.querySelector('[data-crop-preview-fallback="' + key + '"]');
+
+                        if (existingImage) {
+                            existingImage.remove();
+                        }
+                        if (fallback) {
+                            fallback.remove();
+                        }
+
+                        const img = document.createElement('img');
+                        img.src = String(e.target?.result || '');
+                        img.alt = @js(__('employer.settings.logo_preview_alt'));
+                        img.className = 'h-full w-full object-cover block';
+                        preview.appendChild(img);
+
+                        zoomRange.value = '1';
+                        xRange.value = '0';
+                        yRange.value = '0';
+                        applyTransform();
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                zoomRange.addEventListener('input', applyTransform);
+                xRange.addEventListener('input', applyTransform);
+                yRange.addEventListener('input', applyTransform);
+            };
+
+            initCropUploader('logo');
+            initCropUploader('cover');
+
+            const brandPicker = document.querySelector('[data-brand-color-picker]');
+            const brandText = document.querySelector('[data-brand-color-text]');
+            const brandPreview = document.querySelector('[data-brand-preview-fill]');
+
+            if (brandPicker && brandText && brandPreview) {
+                const syncPreview = function (value) {
+                    const normalized = /^#[A-Fa-f0-9]{6}$/.test(value) ? value : '#0F274D';
+                    brandPreview.style.background = 'linear-gradient(135deg, ' + normalized + '22, ' + normalized + '55)';
+                };
+
+                brandPicker.addEventListener('input', function () {
+                    brandText.value = brandPicker.value;
+                    syncPreview(brandPicker.value);
+                });
+
+                brandText.addEventListener('input', function () {
+                    if (/^#[A-Fa-f0-9]{6}$/.test(brandText.value)) {
+                        brandPicker.value = brandText.value;
+                    }
+                    syncPreview(brandText.value);
+                });
+
+                syncPreview(brandText.value);
+            }
         });
     </script>
 @endpush

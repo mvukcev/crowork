@@ -5,9 +5,25 @@
         <div class="cw-container max-w-4xl">
             <h1 class="cw-display text-4xl md:text-6xl mb-6">{{ __('ui.jobs.edit_heading') }}</h1>
 
-            <form method="POST" action="{{ route('employer.jobs.update', $job) }}" class="cw-surface p-6 md:p-8 space-y-6">
+            <form method="POST" action="{{ route('employer.jobs.update', $job) }}" enctype="multipart/form-data" class="cw-surface p-6 md:p-8 space-y-6">
                 @csrf
                 @method('PUT')
+
+                <div class="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-slate-700 space-y-3">
+                    <p class="font-semibold text-slate-900">{{ __('employer.job_preview.title') }}</p>
+                    <p>{{ __('employer.job_preview.help') }}</p>
+                    <div class="flex flex-col md:flex-row gap-2">
+                        <input id="persistent-preview-link" type="text" class="cw-field w-full" readonly value="{{ route('jobs.preview.shared', ['token' => $job->preview_token]) }}">
+                        <button
+                            type="button"
+                            class="cw-button-secondary"
+                            data-copy-target="persistent-preview-link"
+                            data-copy-label-default="{{ __('employer.job_preview.copy') }}"
+                            data-copy-label-success="{{ __('employer.job_preview.copied') }}"
+                        >{{ __('employer.job_preview.copy') }}</button>
+                        <a href="{{ route('jobs.preview.shared', ['token' => $job->preview_token]) }}" target="_blank" rel="noopener" class="cw-button-secondary">{{ __('employer.job_preview.open') }}</a>
+                    </div>
+                </div>
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                     <p class="font-semibold text-slate-900">{{ __('employer.job_form.required_fields_notice') }}</p>
@@ -144,6 +160,36 @@
                     <textarea id="application_instructions" name="application_instructions" rows="4" class="cw-field w-full">{{ old('application_instructions', $job->application_instructions) }}</textarea>
                 </div>
 
+                <div class="space-y-3">
+                    <label class="cw-label" for="cover_image">{{ __('employer.job_form.cover_image') }}</label>
+                    <input id="cover_image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" class="cw-field" data-job-cover-file>
+                    <p class="text-xs text-slate-500">{{ __('employer.job_form.cover_image_help') }}</p>
+
+                    <input type="hidden" name="cover_crop_zoom" value="1" data-job-cover-zoom-input>
+                    <input type="hidden" name="cover_crop_x" value="0" data-job-cover-x-input>
+                    <input type="hidden" name="cover_crop_y" value="0" data-job-cover-y-input>
+
+                    <div class="aspect-[2/1] overflow-hidden rounded-xl border border-slate-200 bg-slate-100" data-job-cover-preview>
+                        @if($job->cover_image_path)
+                            <img src="{{ asset('storage/' . $job->cover_image_path) }}" alt="{{ $job->title }} cover" class="h-full w-full object-cover" data-job-cover-image>
+                        @else
+                            <div class="h-full w-full grid place-items-center text-sm text-slate-500" data-job-cover-fallback>{{ __('employer.job_form.cover_placeholder') }}</div>
+                        @endif
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <label class="text-xs text-slate-500">{{ __('employer.settings.zoom') }}
+                            <input type="range" min="1" max="3" step="0.05" value="1" class="w-full" data-job-cover-zoom>
+                        </label>
+                        <label class="text-xs text-slate-500">{{ __('employer.settings.horizontal_position') }}
+                            <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-job-cover-x>
+                        </label>
+                        <label class="text-xs text-slate-500">{{ __('employer.settings.vertical_position') }}
+                            <input type="range" min="-100" max="100" step="1" value="0" class="w-full" data-job-cover-y>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="flex gap-2">
                     <button type="submit" class="cw-button-primary">{{ __('employer.job_form.save_changes') }}</button>
                     <a href="{{ route('employer.jobs.index') }}" class="cw-button-secondary">{{ __('common.cancel') }}</a>
@@ -151,4 +197,112 @@
             </form>
         </div>
     </section>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const fileInput = document.querySelector('[data-job-cover-file]');
+                const preview = document.querySelector('[data-job-cover-preview]');
+                const zoomRange = document.querySelector('[data-job-cover-zoom]');
+                const xRange = document.querySelector('[data-job-cover-x]');
+                const yRange = document.querySelector('[data-job-cover-y]');
+                const zoomInput = document.querySelector('[data-job-cover-zoom-input]');
+                const xInput = document.querySelector('[data-job-cover-x-input]');
+                const yInput = document.querySelector('[data-job-cover-y-input]');
+
+                const applyCoverTransform = function () {
+                    const image = preview?.querySelector('img');
+                    if (!image) {
+                        return;
+                    }
+
+                    const zoom = Number(zoomRange?.value || 1);
+                    const x = Number(xRange?.value || 0);
+                    const y = Number(yRange?.value || 0);
+
+                    const panFactor = zoom > 1 ? ((zoom - 1) / zoom) : 0;
+                    const translateX = x * panFactor;
+                    const translateY = y * panFactor;
+
+                    preview.style.position = 'relative';
+                    image.style.position = 'absolute';
+                    image.style.inset = '0';
+                    image.style.transform = 'translate(' + translateX + '%, ' + translateY + '%) scale(' + zoom + ')';
+                    image.style.transformOrigin = 'center center';
+
+                    if (zoomInput) zoomInput.value = String(zoom);
+                    if (xInput) xInput.value = String(x);
+                    if (yInput) yInput.value = String(y);
+                };
+
+                if (fileInput && preview && zoomRange && xRange && yRange) {
+                    fileInput.addEventListener('change', function (event) {
+                        const file = event.target.files?.[0];
+                        if (!file) {
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = function (loadEvent) {
+                            const oldImage = preview.querySelector('img');
+                            const fallback = preview.querySelector('[data-job-cover-fallback]');
+                            if (oldImage) oldImage.remove();
+                            if (fallback) fallback.remove();
+
+                            const image = document.createElement('img');
+                            image.src = String(loadEvent.target?.result || '');
+                            image.alt = 'Job cover preview';
+                            image.className = 'h-full w-full object-cover block';
+                            preview.appendChild(image);
+
+                            zoomRange.value = '1';
+                            xRange.value = '0';
+                            yRange.value = '0';
+                            applyCoverTransform();
+                        };
+                        reader.readAsDataURL(file);
+                    });
+
+                    zoomRange.addEventListener('input', applyCoverTransform);
+                    xRange.addEventListener('input', applyCoverTransform);
+                    yRange.addEventListener('input', applyCoverTransform);
+                }
+
+                document.querySelectorAll('[data-copy-target]').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const input = document.getElementById(button.dataset.copyTarget);
+                        if (!input) {
+                            return;
+                        }
+
+                        input.focus();
+                        input.select();
+
+                        const copiedLabel = button.dataset.copyLabelSuccess || 'Copied';
+                        const defaultLabel = button.dataset.copyLabelDefault || button.textContent;
+
+                        const onSuccess = function () {
+                            button.textContent = copiedLabel;
+                            setTimeout(function () {
+                                button.textContent = defaultLabel;
+                            }, 1400);
+                        };
+
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.writeText(input.value).then(onSuccess).catch(function () {
+                                if (document.execCommand('copy')) {
+                                    onSuccess();
+                                }
+                            });
+                            return;
+                        }
+
+                        if (document.execCommand('copy')) {
+                            onSuccess();
+                        }
+                    });
+                });
+            });
+        </script>
+    @endpush
 </x-app-layout>

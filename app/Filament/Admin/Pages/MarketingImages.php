@@ -68,12 +68,11 @@ class MarketingImages extends Page implements HasForms
                             ->label('Upload override')
                             ->image()
                             ->imageEditor()
-                            ->imageEditorAspectRatios(array_values(array_unique(array_filter([
-                                $this->dimensionToAspectRatio((string) ($slot['dimensions'] ?? '')),
-                                '16:9',
-                                '4:3',
-                                '1:1',
-                            ]))))
+                            ->rules(function () use ($slot): array {
+                                [$minWidth, $minHeight] = $this->parseDimensions((string) ($slot['dimensions'] ?? ''));
+
+                                return ["dimensions:min_width={$minWidth},min_height={$minHeight}"];
+                            })
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(5120)
                             ->disk('public')
@@ -85,7 +84,7 @@ class MarketingImages extends Page implements HasForms
 
                                 return trim($slug !== '' ? $slug : 'marketing-image').'-'.strtolower(Str::random(8)).'.'.$ext;
                             })
-                            ->helperText('Accepted: JPG, PNG, WEBP. Max size: 5MB. Use crop editor for recommended aspect ratio.'),
+                            ->helperText('Accepted: JPG, PNG, WEBP. Max size: 5MB. Minimum slot dimensions are enforced; any larger aspect ratio is accepted and can be cropped in preview.'),
                         Forms\Components\TextInput::make("{$field}.alt_text")
                             ->label('Alt text')
                             ->maxLength(255),

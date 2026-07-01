@@ -65,55 +65,33 @@ class JobController extends Controller
             abort(404);
         }
 
-        // Load employer relationship for company info
-        $job->load('employer');
-
         if ($job->isHzzOfficial()) {
             app(HzzAnalyticsTracker::class)->trackView($job, request());
         }
 
-        $baseSimilarQuery = Job::query()
+        $similarJobs = $this->getSimilarJobs($job);
+
+        return view('jobs.show', [
+            'job' => $job,
+            'similarJobs' => $similarJobs,
+            'isPreview' => false,
+        ]);
+    }
+
+    public function previewByToken(string $token)
+    {
+        $job = Job::query()
             ->with('employer')
-            ->active()
-            ->where('id', '!=', $job->id);
+            ->where('preview_token', trim($token))
+            ->firstOrFail();
 
-        $similarQuery = (clone $baseSimilarQuery);
+        $similarJobs = $this->getSimilarJobs($job);
 
-        if (!empty($job->category) || !empty($job->location_city)) {
-            $similarQuery->where(function ($query) use ($job) {
-                if (!empty($job->category)) {
-                    $query->orWhere('category', $job->category);
-                }
-
-                if (!empty($job->location_city)) {
-                    $query->orWhere('location_city', $job->location_city);
-                }
-            });
-        }
-
-        $similarJobs = $similarQuery
-            ->orderBy('published_at', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get();
-
-        if ($similarJobs->count() < 3) {
-            $missing = 3 - $similarJobs->count();
-            $excludeIds = $similarJobs->pluck('id')->push($job->id)->values();
-
-            $fallbackJobs = Job::query()
-                ->with('employer')
-                ->active()
-                ->whereNotIn('id', $excludeIds)
-                ->orderBy('published_at', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->limit($missing)
-                ->get();
-
-            $similarJobs = $similarJobs->concat($fallbackJobs);
-        }
-
-        return view('jobs.show', compact('job', 'similarJobs'));
+        return view('jobs.show', [
+            'job' => $job,
+            'similarJobs' => $similarJobs,
+            'isPreview' => true,
+        ]);
     }
 
     public function trackHzzCtaClick(Job $job, Request $request): Response
@@ -141,6 +119,8 @@ class JobController extends Controller
             $search = trim((string) $request->input('q'));
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('external_company_name', 'like', '%' . $search . '%')
+                  ->orWhere('location_city', 'like', '%' . $search . '%')
                   ->orWhereHas('employer', function ($q) use ($search) {
                       $q->where('company_name', 'like', '%' . $search . '%')
                           ->orWhere('company_display_name', 'like', '%' . $search . '%');
@@ -221,7 +201,56 @@ class JobController extends Controller
               ->orderBy('created_at', 'desc');
 
         // Paginate and preserve query string
-        return $query->paginate(12)->withQueryString();
+        return $query->paginate(18)->withQueryString();
+    }
+
+    protected function getSimilarJobs(Job $job)
+    {
+        // Load employer relationship for company info
+        $job->loadMissing('employer');
+
+        $baseSimilarQuery = Job::query()
+            ->with('employer')
+            ->active()
+            ->where('id', '!=', $job->id);
+
+        $similarQuery = (clone $baseSimilarQuery);
+
+        if (! empty($job->category) || ! empty($job->location_city)) {
+            $similarQuery->where(function ($query) use ($job) {
+                if (! empty($job->category)) {
+                    $query->orWhere('category', $job->category);
+                }
+
+                if (! empty($job->location_city)) {
+                    $query->orWhere('location_city', $job->location_city);
+                }
+            });
+        }
+
+        $similarJobs = $similarQuery
+            ->orderBy('published_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+
+        if ($similarJobs->count() < 3) {
+            $missing = 3 - $similarJobs->count();
+            $excludeIds = $similarJobs->pluck('id')->push($job->id)->values();
+
+            $fallbackJobs = Job::query()
+                ->with('employer')
+                ->active()
+                ->whereNotIn('id', $excludeIds)
+                ->orderBy('published_at', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->limit($missing)
+                ->get();
+
+            $similarJobs = $similarJobs->concat($fallbackJobs);
+        }
+
+        return $similarJobs;
     }
 
     /**

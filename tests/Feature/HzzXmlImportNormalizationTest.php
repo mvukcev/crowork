@@ -58,8 +58,12 @@ XML;
         $this->assertSame('Varaždinske toplice', $job->location_city);
         $this->assertSame('HZZ EU programi', $job->category);
 
-        // Duplicate text from posebniZahtjevi should be removed when mostly equal to opis.
-        $this->assertNull($job->responsibilities);
+        // Duplicate text from opis/posebniZahtjevi should be kept once in responsibilities.
+        $this->assertSame(
+          'Od vas se očekuje: aktivna uloga u prodaji proizvoda iz našeg bogatog asortimana.',
+          $job->responsibilities
+        );
+        $this->assertSame('HZZ imported listing.', $job->description);
 
         // nacinPrijave should be normalized to pure email (without "Email:" prefix)
         $this->assertSame('pridruzise@ina.hr', $job->application_instructions);

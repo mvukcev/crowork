@@ -197,6 +197,16 @@ class HzzJobImportService
             $this->normalizeSentenceCase($instructionsCombined),
         ]);
 
+        if ($requirementsText !== '' && $this->isMostlyDuplicate($description, $requirementsText)) {
+            // For HZZ imports the responsibilities/requirements section is more useful than a duplicated generic description.
+            $description = '';
+        }
+
+        if ($requirementsText === '' && preg_match('/\bod\s+vas\s+se\s+očekuje\b/iu', $description) === 1) {
+            $requirementsText = $description;
+            $description = '';
+        }
+
         $sourceUrl = (string) (
             Arr::get($item, 'url')
             ?? Arr::get($item, 'apply_url')
@@ -204,12 +214,33 @@ class HzzJobImportService
             ?? $fallbackUrl
         );
 
+        $sourceLogoUrl = (string) (
+            Arr::get($item, 'trackback')
+            ?? Arr::get($item, 'logo')
+            ?? Arr::get($item, 'logo_url')
+            ?? config('services.hzz.logo_url')
+            ?? ''
+        );
+
+        $externalCompanyName = $this->normalizeSentenceCase(trim($this->flattenToText(
+            Arr::get($item, 'poslodavac')
+            ?? Arr::get($item, 'company_name')
+            ?? Arr::get($item, 'company')
+            ?? ''
+        )));
+
         $contactInput = implode("\n\n", array_filter([
             $instructionsText,
             $nacinPrijaveNormalized,
+            $nacinPrijaveRaw,
+            $descriptionRaw,
+            $requirementsRaw,
+            $benefitsRaw,
             trim((string) Arr::get($item, 'contact')),
             trim((string) Arr::get($item, 'email')),
             trim((string) Arr::get($item, 'kontakt')),
+            trim((string) Arr::get($item, 'kontaktOsoba')),
+            trim((string) Arr::get($item, 'telefon')),
         ], fn ($value) => trim((string) $value) !== ''));
 
         $parsedContact = $this->contactParser->parse($contactInput, $sourceUrl);
@@ -264,6 +295,44 @@ class HzzJobImportService
             ?? ''
         )));
 
+        $shiftDetails = $this->normalizeSentenceCase(trim($this->flattenToText(
+            Arr::get($item, 'nacinRada')
+            ?? Arr::get($item, 'vrstaZaposlenja')
+            ?? ''
+        )));
+
+        $accommodationRaw = $this->normalizeSentenceCase(trim($this->flattenToText(
+            Arr::get($item, 'smjestaj')
+            ?? Arr::get($item, 'accommodation')
+            ?? ''
+        )));
+
+        $transportRaw = $this->normalizeSentenceCase(trim($this->flattenToText(
+            Arr::get($item, 'prijevoz')
+            ?? Arr::get($item, 'transport')
+            ?? ''
+        )));
+
+        $additionalConditions = $this->normalizeSentenceCase(trim($this->flattenToText(
+            Arr::get($item, 'uvjeti')
+            ?? ''
+        )));
+
+        if ($additionalConditions !== '' && ! $this->isMostlyDuplicate($requirementsText, $additionalConditions)) {
+            $requirementsText = trim(implode("\n", array_filter([
+                $requirementsText,
+                $additionalConditions,
+            ], fn ($value) => trim((string) $value) !== '')));
+        }
+
+        $mobilityDetails = array_values(array_filter([
+            $accommodationRaw !== '' ? 'Smještaj: ' . $accommodationRaw : null,
+            $transportRaw !== '' ? 'Prijevoz: ' . $transportRaw : null,
+        ]));
+
+        $accommodationDetails = implode("\n", $mobilityDetails);
+        $accommodationProvided = $accommodationRaw !== '' && preg_match('/\bnema\b/iu', $accommodationRaw) !== 1;
+
         $positionsAvailable = (int) (
             Arr::get($item, 'positions_available')
             ?? Arr::get($item, 'trazenoRadnika')
@@ -289,8 +358,10 @@ class HzzJobImportService
             'hzz_is_official' => true,
             'source_reference' => $externalId,
             'source_url' => $sourceUrl,
+            'source_logo_url' => $sourceLogoUrl !== '' ? $sourceLogoUrl : null,
             'source_payload' => $item,
             'source_imported_at' => now(),
+            'external_company_name' => $externalCompanyName !== '' ? $externalCompanyName : null,
             'title' => $title,
             'description' => $description !== '' ? $description : 'HZZ imported listing.',
             'responsibilities' => $requirementsText !== '' ? $requirementsText : null,
@@ -302,7 +373,10 @@ class HzzJobImportService
             'experience_level' => $experienceLevel !== '' ? $experienceLevel : null,
             'education_required' => $educationRequired !== '' ? $educationRequired : null,
             'working_hours' => $workingHours !== '' ? $workingHours : null,
+            'shift_details' => $shiftDetails !== '' ? $shiftDetails : null,
             'positions_available' => $positionsAvailable,
+            'accommodation_provided' => $accommodationProvided,
+            'accommodation_details' => $accommodationDetails !== '' ? $accommodationDetails : null,
             'application_instructions' => $instructionsText !== '' ? $instructionsText : null,
             'hzz_apply_email' => $parsedContact['email'],
             'hzz_apply_contact_type' => $parsedContact['contact_type'] ?? 'unknown',
@@ -476,6 +550,43 @@ class HzzJobImportService
     }
 
     private function normalizeSentenceCase(string $value): string
+    {
+        $text = trim($value);
+        if ($text === '') {
+            return '';
+        }
+
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+        $lines = preg_split('/\n+/u', $text) ?: [];
+
+        if (count($lines) > 1) {
+            $normalizedLines = [];
+
+            foreach ($lines as $line) {
+                $line = trim((string) $line);
+                if ($line === '') {
+                    continue;
+                }
+
+                $bulletPrefix = '';
+                if (str_starts_with($line, '- ')) {
+                    $bulletPrefix = '- ';
+                    $line = trim(substr($line, 2));
+                }
+
+                $normalizedLine = $this->normalizeSentenceCaseLine($line);
+                if ($normalizedLine !== '') {
+                    $normalizedLines[] = $bulletPrefix . $normalizedLine;
+                }
+            }
+
+            return trim(implode("\n", $normalizedLines));
+        }
+
+        return $this->normalizeSentenceCaseLine($text);
+    }
+
+    private function normalizeSentenceCaseLine(string $value): string
     {
         $text = trim($value);
         if ($text === '') {

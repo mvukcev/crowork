@@ -1,5 +1,5 @@
 @if($jobs->count() > 0)
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-stretch">
+    <div class="cw-jobs-grid">
         @foreach($jobs as $job)
             <div class="cw-listing-card-wrap" style="--cw-card-delay: {{ min($loop->index * 55, 385) }}ms;">
                 <x-job-card
@@ -7,6 +7,7 @@
                     :company="$job->employer?->company_display_name ?? $job->employer?->company_name"
                     :company_href="$job->employer?->slug ? route('companies.show', $job->employer) : null"
                     :employer_logo_url="$job->employer?->logo_path ? asset('storage/' . $job->employer->logo_path) : null"
+                    :job_cover_url="$job->cover_image_path ? asset('storage/' . $job->cover_image_path) : null"
                     :city="$job->location_city"
                     :salary_min="$job->salary_min"
                     :salary_max="$job->salary_max"

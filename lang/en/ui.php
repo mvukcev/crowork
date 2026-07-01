@@ -276,6 +276,7 @@ return [
         'fact_employment_type' => 'Employment type',
         'fact_category' => 'Category',
         'fact_city' => 'City',
+        'fact_positions_available' => 'Open positions',
         'fact_experience_level' => 'Experience level',
         'fact_education_required' => 'Education required',
         'fact_contract_duration' => 'Contract duration',
@@ -298,6 +299,9 @@ return [
         'hzz_source_transfer' => 'The original listing and related source data are available on official HZZ pages.',
         'hzz_source_disclaimer' => 'CroWork is not responsible for the accuracy, completeness, or timeliness of data imported from the HZZ system.',
         'hzz_source_link_label' => 'Open original listing on HZZ',
+        'preview_mode_title' => 'Job preview',
+        'preview_mode_body' => 'This is a shared preview page. Use it for internal review and approval before public publishing.',
+        'preview_apply_disabled' => 'Preview mode - apply is disabled',
     ],
     'educations_apply' => [
         'page_title' => 'Apply - :title',

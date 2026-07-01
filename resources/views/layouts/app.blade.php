@@ -28,9 +28,17 @@
 
         $baseCanonical = trim($__env->yieldContent('canonical')) ?: ($canonical ?? url()->current());
         $canonicalParts = parse_url($baseCanonical);
-        $canonicalQuery = [];
+        $canonicalRawQuery = [];
         if (! empty($canonicalParts['query'])) {
-            parse_str($canonicalParts['query'], $canonicalQuery);
+            parse_str($canonicalParts['query'], $canonicalRawQuery);
+        }
+
+        $canonicalQuery = [];
+        if (isset($canonicalRawQuery['lang']) && is_string($canonicalRawQuery['lang'])) {
+            $canonicalLang = strtolower(trim($canonicalRawQuery['lang']));
+            if (in_array($canonicalLang, $enabledLocales, true) && $canonicalLang !== $defaultLocale) {
+                $canonicalQuery['lang'] = $canonicalLang;
+            }
         }
 
         $buildLocaleUrl = function (string $locale) use ($canonicalParts, $canonicalQuery, $defaultLocale): string {
@@ -312,38 +320,6 @@ x-data>
     </div>
 
     @stack('scripts')
-    
-    <!-- Scroll Fade-In Animation -->
-    <script>
-        // Simple scroll-based fade-in animation
-        if ('IntersectionObserver' in window) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            });
-
-            // Observe all elements with scroll-fade-in class
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('.scroll-fade-in').forEach(el => {
-                    observer.observe(el);
-                });
-            });
-        } else {
-            // Fallback for older browsers: just show everything
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('.scroll-fade-in').forEach(el => {
-                    el.classList.add('visible');
-                });
-            });
-        }
-    </script>
 
     @include('components.analytics-noscript')
 </body>

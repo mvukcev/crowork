@@ -8,6 +8,8 @@
         $locationParts = array_values(array_filter([$company->city, $company->country]));
         $locationText = count($locationParts) ? implode(', ', $locationParts) : __('employer.public_company.default_country');
         $logoUrl = $company->logo_path ? asset('storage/' . $company->logo_path) : null;
+        $coverUrl = $company->cover_image_path ? asset('storage/' . $company->cover_image_path) : null;
+        $brandColor = preg_match('/^#[A-Fa-f0-9]{6}$/', (string) $company->brand_color) === 1 ? strtoupper((string) $company->brand_color) : '#0F274D';
         $openJobsCount = $openJobs->count();
         $descriptionText = trim((string) ($company->description ?? ''));
 
@@ -65,7 +67,14 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <div class="lg:col-span-2 space-y-6">
-                    <article class="cw-surface p-6 md:p-8">
+                    <article class="cw-surface overflow-hidden" style="background: linear-gradient(140deg, {{ $brandColor }}14, transparent 38%), var(--cw-surface); border: 1px solid color-mix(in srgb, {{ $brandColor }} 22%, var(--cw-hairline));">
+                        @if($coverUrl)
+                            <div class="aspect-[13/5] w-full overflow-hidden">
+                                <img src="{{ $coverUrl }}" alt="{{ $displayName }} cover" class="h-full w-full object-cover" loading="eager" fetchpriority="high" decoding="async">
+                            </div>
+                        @endif
+
+                        <div class="p-6 md:p-8">
                         <div class="flex flex-col md:flex-row md:items-start gap-5">
                             <div class="h-20 w-20 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden grid place-items-center flex-shrink-0">
                                 @if($logoUrl)
@@ -104,6 +113,7 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </article>
 
                     @if($descriptionText !== '')
@@ -130,6 +140,7 @@
                                         :company="$displayName"
                                         :company_href="route('companies.show', $company)"
                                         :employer_logo_url="$logoUrl"
+                                        :job_cover_url="$job->cover_image_path ? asset('storage/' . $job->cover_image_path) : null"
                                         :city="$job->location_city"
                                         :salary_min="$job->salary_min"
                                         :salary_max="$job->salary_max"
@@ -160,7 +171,7 @@
                 </div>
 
                 <aside class="space-y-4 lg:sticky lg:top-24">
-                    <div class="cw-surface p-5">
+                    <div class="cw-surface p-5" style="background: linear-gradient(135deg, {{ $brandColor }}10, transparent 45%), var(--cw-surface); border: 1px solid color-mix(in srgb, {{ $brandColor }} 18%, var(--cw-hairline));">
                         <h2 class="text-lg font-semibold text-slate-900 mb-3">{{ __('employer.public_company.profile_title') }}</h2>
                         <p class="text-sm text-slate-700 mb-2"><strong>{{ __('employer.public_company.location') }}:</strong> {{ $locationText }}</p>
                         @if($company->company_address)

@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources;
 use App\Filament\Admin\Resources\HzzJobResource\Pages;
 use App\Models\Job;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 
 class HzzJobResource extends JobResource
 {
@@ -22,10 +23,26 @@ class HzzJobResource extends JobResource
 
     public static function getEloquentQuery(): Builder
     {
-        return Job::query()->where(function (Builder $query): void {
-            $query->where('source_system', 'hzz')
-                ->orWhere('hzz_is_official', true);
-        });
+        $query = Job::query();
+
+        $hasSourceSystem = Schema::hasColumn('job_postings', 'source_system');
+        $hasHzzOfficial = Schema::hasColumn('job_postings', 'hzz_is_official');
+
+        if ($hasSourceSystem || $hasHzzOfficial) {
+            $query->where(function (Builder $nested) use ($hasSourceSystem, $hasHzzOfficial): void {
+                if ($hasSourceSystem) {
+                    $nested->orWhere('source_system', 'hzz');
+                }
+
+                if ($hasHzzOfficial) {
+                    $nested->orWhere('hzz_is_official', true);
+                }
+            });
+
+            return $query;
+        }
+
+        return $query->where('source_type', 'hzz');
     }
 
     public static function getPages(): array

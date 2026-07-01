@@ -24,6 +24,7 @@
             <x-job-card :title="$job->title"
                         :company="$employer?->company_name"
                         :company_href="$company_href"
+                        :job_cover_url="$job->cover_image_path ? asset('storage/' . $job->cover_image_path) : null"
                         :city="$job->location_city"
                         :salary_min="$job->salary_min"
                         :salary_max="$job->salary_max"

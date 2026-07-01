@@ -3,6 +3,7 @@
     'company' => null,
     'company_href' => null,
     'employer_logo_url' => null,
+    'job_cover_url' => null,
     'city' => null,
     'salary_min' => null,
     'salary_max' => null,
@@ -83,6 +84,12 @@
 
 <article class="cw-listing-card cw-listing-card-job h-full">
     <div class="cw-listing-card-inner">
+        @if($job_cover_url)
+            <div class="cw-job-cover-strip">
+                <img src="{{ $job_cover_url }}" alt="{{ $title }}" class="h-full w-full object-cover" loading="lazy" decoding="async">
+            </div>
+        @endif
+
         <div class="cw-listing-card-top">
             <div class="min-w-0">
                 <p class="cw-listing-company">
@@ -95,7 +102,7 @@
                 <p class="cw-listing-location">{{ $city ?: __('jobs.location_not_specified') }}</p>
             </div>
             @if($company_href)
-                <a href="{{ $company_href }}" class="cw-employer-logo" aria-label="{{ $companyName }}" data-cw-track-click="employer_logo_click" data-cw-item-type="company" data-cw-item-slug="{{ $company }}">
+                <a href="{{ $company_href }}" class="cw-employer-logo {{ $job_cover_url ? 'cw-employer-logo-float' : '' }}" aria-label="{{ $companyName }}" data-cw-track-click="employer_logo_click" data-cw-item-type="company" data-cw-item-slug="{{ $company }}">
                     @if($employer_logo_url)
                         <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72" data-cw-logo-image data-cw-fallback-text="{{ $logoInitials }}" data-cw-fallback-label="{{ $companyName }}" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
                     @else
@@ -103,7 +110,7 @@
                     @endif
                 </a>
             @else
-                <div class="cw-employer-logo" aria-label="{{ $companyName }}">
+                <div class="cw-employer-logo {{ $job_cover_url ? 'cw-employer-logo-float' : '' }}" aria-label="{{ $companyName }}">
                     @if($employer_logo_url)
                         <img src="{{ $employer_logo_url }}" alt="{{ $companyName }} logo" class="h-full w-full object-cover" loading="lazy" decoding="async" width="72" height="72" data-cw-logo-image data-cw-fallback-text="{{ $logoInitials }}" data-cw-fallback-label="{{ $companyName }}" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">
                     @else

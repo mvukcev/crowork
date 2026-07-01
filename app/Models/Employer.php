@@ -16,6 +16,8 @@ class Employer extends Model
         'company_display_name',
         'slug',
         'logo_path',
+        'cover_image_path',
+        'brand_color',
         'city',
         'country',
         'industry',
@@ -61,16 +63,19 @@ class Employer extends Model
         });
 
         static::saved(function (Employer $employer): void {
-            if (! $employer->wasChanged('logo_path')) {
-                return;
+            if ($employer->wasChanged('logo_path')) {
+                $logoPath = trim((string) $employer->logo_path);
+                if ($logoPath !== '') {
+                    app(ImageSanitizerService::class)->sanitizeAndOptimize('public', $logoPath, 1200, 1200);
+                }
             }
 
-            $logoPath = trim((string) $employer->logo_path);
-            if ($logoPath === '') {
-                return;
+            if ($employer->wasChanged('cover_image_path')) {
+                $coverPath = trim((string) $employer->cover_image_path);
+                if ($coverPath !== '') {
+                    app(ImageSanitizerService::class)->sanitizeAndOptimize('public', $coverPath, 2200, 1400);
+                }
             }
-
-            app(ImageSanitizerService::class)->sanitizeAndOptimize('public', $logoPath, 1200, 1200);
         });
     }
 
@@ -106,6 +111,7 @@ class Employer extends Model
         $checks = [
             !empty($this->company_name),
             !empty($this->company_display_name),
+            !empty($this->brand_color),
             !empty($this->city),
             !empty($this->country),
             !empty($this->industry),
@@ -115,6 +121,7 @@ class Employer extends Model
             !empty($this->company_address),
             !empty($this->description),
             !empty($this->logo_path),
+            !empty($this->cover_image_path),
         ];
 
         $completed = count(array_filter($checks));
