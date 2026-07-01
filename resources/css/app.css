@@ -2075,6 +2075,24 @@
         margin: 0;
     }
 
+    .cw-rich-text a {
+        color: color-mix(in srgb, var(--cw-secondary) 84%, #0b5fff 16%);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        word-break: break-word;
+    }
+
+    .cw-rich-text img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.9rem;
+        margin-top: 0.3rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: #fff;
+    }
+
     .cw-rich-list {
         margin: 0.15rem 0 0;
         padding-left: 1.2rem;

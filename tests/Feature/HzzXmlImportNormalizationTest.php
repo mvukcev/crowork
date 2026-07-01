@@ -129,4 +129,34 @@ XML;
         $this->assertNull($job->hzz_apply_url);
         $this->assertSame('unknown', $job->hzz_apply_contact_type);
       }
+
+      public function test_hzz_xml_import_extracts_email_from_alternate_contact_fields_and_mailto(): void
+      {
+        $xml = <<<'XML'
+    <?xml version="1.0" encoding="UTF-8"?>
+    <radnaMjesta>
+      <radnoMjesto>
+        <id>2002</id>
+        <url>http://burzarada.hzz.hr/RadnoMjesto_Ispis.aspx?WebSifra=2002</url>
+        <nazivRadnogMjesta>KUHAR/ICA</nazivRadnogMjesta>
+        <opis>Prijavite se prema uputi u nastavku.</opis>
+        <mjestoRada>ZAGREB</mjestoRada>
+        <nacin_prijave>mailto:jobs (at) example dot hr</nacin_prijave>
+      </radnoMjesto>
+    </radnaMjesta>
+    XML;
+
+        Http::fake([
+          'https://example.test/hzz-alt-email.xml' => Http::response($xml, 200, ['Content-Type' => 'application/xml']),
+        ]);
+
+        $summary = app(HzzJobImportService::class)->importFromUrl('https://example.test/hzz-alt-email.xml', false, false);
+
+        $this->assertSame(1, $summary['created']);
+
+        $job = Job::query()->firstOrFail();
+        $this->assertSame('jobs@example.hr', $job->hzz_apply_email);
+        $this->assertSame('email', $job->hzz_apply_contact_type);
+        $this->assertTrue($job->hzz_apply_method_available);
+      }
 }

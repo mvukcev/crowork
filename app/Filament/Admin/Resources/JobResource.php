@@ -236,6 +236,25 @@ class JobResource extends Resource
             ]);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public static function sanitizeFormDataForExistingColumns(array $data): array
+    {
+        if (! Schema::hasTable('job_postings')) {
+            return $data;
+        }
+
+        $availableColumns = array_flip(Schema::getColumnListing('job_postings'));
+
+        return array_filter(
+            $data,
+            static fn (string $key): bool => isset($availableColumns[$key]),
+            ARRAY_FILTER_USE_KEY,
+        );
+    }
+
     public static function table(Table $table): Table
     {
         return $table

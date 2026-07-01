@@ -275,7 +275,14 @@ class HzzJobImportService
             ?? ''
         ));
 
-        $nacinPrijaveRaw = $this->cleanRichText($this->flattenToText(Arr::get($item, 'nacinPrijave', '')));
+        $nacinPrijaveRaw = $this->cleanRichText($this->flattenToText(
+            Arr::get($item, 'nacinPrijave')
+            ?? Arr::get($item, 'nacin_prijave')
+            ?? Arr::get($item, 'nacinPrijaveOpis')
+            ?? Arr::get($item, 'tekstPrijave')
+            ?? Arr::get($item, 'napomenaPrijava')
+            ?? ''
+        ));
         $nacinPrijaveNormalized = $this->normalizeApplicationChannelText($nacinPrijaveRaw);
 
         $instructionsRaw = $this->cleanRichText($this->flattenToText(
@@ -338,9 +345,27 @@ class HzzJobImportService
             $benefitsRaw,
             trim((string) Arr::get($item, 'contact')),
             trim((string) Arr::get($item, 'email')),
+            trim((string) Arr::get($item, 'eMail')),
+            trim((string) Arr::get($item, 'eposta')),
+            trim((string) Arr::get($item, 'ePosta')),
+            trim((string) Arr::get($item, 'emailAdresa')),
+            trim((string) Arr::get($item, 'adresaEPoste')),
+            trim((string) Arr::get($item, 'adresa_e_poste')),
             trim((string) Arr::get($item, 'kontakt')),
             trim((string) Arr::get($item, 'kontaktOsoba')),
+            trim((string) Arr::get($item, 'kontakt_osoba')),
+            trim((string) Arr::get($item, 'kontaktEmail')),
+            trim((string) Arr::get($item, 'kontakt_email')),
+            trim((string) Arr::get($item, 'emailPoslodavca')),
+            trim((string) Arr::get($item, 'email_poslodavca')),
+            trim((string) Arr::get($item, 'mailPoslodavca')),
+            trim((string) Arr::get($item, 'mail_poslodavca')),
+            trim((string) Arr::get($item, 'nacin_prijave')),
+            trim((string) Arr::get($item, 'nacinPrijaveOpis')),
+            trim((string) Arr::get($item, 'tekstPrijave')),
+            trim((string) Arr::get($item, 'napomenaPrijava')),
             trim((string) Arr::get($item, 'telefon')),
+            $this->flattenToText($item),
         ], fn ($value) => trim((string) $value) !== ''));
 
         $parsedContact = $this->contactParser->parse($contactInput, $sourceUrl);

@@ -34,7 +34,20 @@ class HzzApplicationContactParser
             return null;
         }
 
-        preg_match('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', $content, $matches);
+        $normalized = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Handle common obfuscations like "name (at) domain dot hr" in imported feeds.
+        $normalized = preg_replace('/\s*(\[at\]|\(at\)|\bat\b)\s*/iu', '@', $normalized) ?? $normalized;
+        $normalized = preg_replace('/\s*(\[dot\]|\(dot\)|\bdot\b)\s*/iu', '.', $normalized) ?? $normalized;
+
+        preg_match('/mailto:\s*([A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})/iu', $normalized, $mailtoMatches);
+        if (isset($mailtoMatches[1])) {
+            $email = strtolower(trim((string) $mailtoMatches[1]));
+
+            return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : null;
+        }
+
+        preg_match('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/iu', $normalized, $matches);
 
         if (! isset($matches[0])) {
             return null;

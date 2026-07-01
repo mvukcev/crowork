@@ -80,7 +80,9 @@
         $workingHoursText = cw_localize_job_value('working_hours', $workingHoursText);
         $shiftDetailsText = cw_localize_job_value('shift_details', $shiftDetailsText);
 
-        $aboutText = trim((string) ($job->description ?? ''));
+        $aboutTextRaw = trim((string) ($job->description ?? ''));
+        $aboutTextHasHtml = $aboutTextRaw !== strip_tags($aboutTextRaw);
+        $aboutText = $aboutTextRaw;
         $responsibilitiesText = trim((string) ($job->responsibilities ?? ''));
         $requirementsText = trim((string) ($job->requirements ?? ''));
         $benefitsText = trim((string) ($job->benefits ?? ''));
@@ -197,16 +199,19 @@
             return trim(implode("\n", $kept));
         };
 
-        $aboutText = $normalizeBlock($aboutText);
+        $aboutTextPlain = $normalizeBlock($aboutTextRaw);
+        if (! $aboutTextHasHtml) {
+            $aboutText = $aboutTextPlain;
+        }
         $responsibilitiesText = $normalizeBlock($responsibilitiesText);
         $requirementsText = $normalizeBlock($requirementsText);
         $benefitsText = $normalizeBlock($benefitsText);
         $applicationInstructionsText = $normalizeBlock($applicationInstructionsText);
 
-        $responsibilitiesText = $dedupeLinesAgainst($responsibilitiesText, [$aboutText]);
-        $requirementsText = $dedupeLinesAgainst($requirementsText, [$aboutText, $responsibilitiesText]);
-        $benefitsText = $dedupeLinesAgainst($benefitsText, [$aboutText, $responsibilitiesText, $requirementsText]);
-        $applicationInstructionsText = $dedupeLinesAgainst($applicationInstructionsText, [$aboutText, $responsibilitiesText, $requirementsText, $benefitsText]);
+        $responsibilitiesText = $dedupeLinesAgainst($responsibilitiesText, [$aboutTextPlain]);
+        $requirementsText = $dedupeLinesAgainst($requirementsText, [$aboutTextPlain, $responsibilitiesText]);
+        $benefitsText = $dedupeLinesAgainst($benefitsText, [$aboutTextPlain, $responsibilitiesText, $requirementsText]);
+        $applicationInstructionsText = $dedupeLinesAgainst($applicationInstructionsText, [$aboutTextPlain, $responsibilitiesText, $requirementsText, $benefitsText]);
 
         $renderStructuredBlock = static function (?string $value): string {
             $lines = preg_split('/\r\n|\r|\n/', (string) $value) ?: [];
@@ -239,6 +244,69 @@
                 }
                 $html .= '</ul>';
             }
+
+            return $html;
+        };
+
+        $renderRichEditorBlock = static function (?string $value): string {
+            $html = trim((string) $value);
+            if ($html === '') {
+                return '';
+            }
+
+            $html = preg_replace('/<(script|style|iframe|object|embed|form)[^>]*>.*?<\/\1>/is', '', $html) ?? $html;
+            $html = preg_replace('/\son[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html) ?? $html;
+
+            $html = preg_replace_callback(
+                '/<figure[^>]*data-trix-attachment=("|\')(.*?)\1[^>]*>.*?<\/figure>/is',
+                static function (array $matches): string {
+                    $json = html_entity_decode((string) ($matches[2] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $attachment = json_decode($json, true);
+
+                    if (!is_array($attachment)) {
+                        return '';
+                    }
+
+                    $contentType = strtolower((string) ($attachment['contentType'] ?? ''));
+                    $url = trim((string) ($attachment['url'] ?? $attachment['href'] ?? ''));
+                    if ($url === '' || !preg_match('/^(https?:\/\/|\/)/i', $url)) {
+                        return '';
+                    }
+
+                    if (str_starts_with($contentType, 'image/')) {
+                        $safeUrl = e($url);
+                        $alt = e((string) ($attachment['filename'] ?? ''));
+
+                        return '<p><img src="' . $safeUrl . '" alt="' . $alt . '" loading="lazy" decoding="async"></p>';
+                    }
+
+                    $name = trim((string) ($attachment['filename'] ?? $url));
+
+                    return '<p><a href="' . e($url) . '" target="_blank" rel="noopener noreferrer">' . e($name) . '</a></p>';
+                },
+                $html
+            ) ?? $html;
+
+            $allowedTags = '<p><br><strong><em><b><i><u><s><ul><ol><li><a><blockquote><h3><h4><img><figure><figcaption>';
+            $html = strip_tags($html, $allowedTags);
+
+            $html = preg_replace_callback('/<a\b[^>]*href=("|\')(.*?)\1[^>]*>/i', static function (array $matches): string {
+                $href = trim((string) ($matches[2] ?? ''));
+                if ($href === '' || !preg_match('/^(https?:\/\/|mailto:|tel:|\/)/i', $href)) {
+                    return '<a>';
+                }
+
+                return '<a href="' . e($href) . '" target="_blank" rel="noopener noreferrer">';
+            }, $html) ?? $html;
+
+            $html = preg_replace_callback('/<img\b[^>]*src=("|\')(.*?)\1[^>]*>/i', static function (array $matches): string {
+                $src = trim((string) ($matches[2] ?? ''));
+                if ($src === '' || !preg_match('/^(https?:\/\/|\/)/i', $src)) {
+                    return '';
+                }
+
+                return '<img src="' . e($src) . '" alt="" loading="lazy" decoding="async">';
+            }, $html) ?? $html;
 
             return $html;
         };
@@ -319,19 +387,19 @@
             $applicationInstructionsText = '';
         }
 
-        if ($isHzzOfficial && $isMostlyDuplicate($aboutText, $applicationInstructionsText)) {
+        if ($isHzzOfficial && $isMostlyDuplicate($aboutTextPlain, $applicationInstructionsText)) {
             $applicationInstructionsText = '';
         }
 
-        if ($isMostlyDuplicate($responsibilitiesText, $aboutText)) {
+        if ($isMostlyDuplicate($responsibilitiesText, $aboutTextPlain)) {
             $responsibilitiesText = '';
         }
 
-        if ($isMostlyDuplicate($requirementsText, $aboutText) || $isMostlyDuplicate($requirementsText, $responsibilitiesText)) {
+        if ($isMostlyDuplicate($requirementsText, $aboutTextPlain) || $isMostlyDuplicate($requirementsText, $responsibilitiesText)) {
             $requirementsText = '';
         }
 
-        if ($isMostlyDuplicate($benefitsText, $aboutText) || $isMostlyDuplicate($benefitsText, $responsibilitiesText)) {
+        if ($isMostlyDuplicate($benefitsText, $aboutTextPlain) || $isMostlyDuplicate($benefitsText, $responsibilitiesText)) {
             $benefitsText = '';
         }
 
@@ -515,7 +583,13 @@
                     @if($aboutText !== '')
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.about_this_job') }}</h2>
-                            <div class="cw-rich-text text-slate-700">{!! $renderStructuredBlock($aboutText) !!}</div>
+                            <div class="cw-rich-text text-slate-700">
+                                @if($aboutTextHasHtml)
+                                    {!! $renderRichEditorBlock($aboutText) !!}
+                                @else
+                                    {!! $renderStructuredBlock($aboutText) !!}
+                                @endif
+                            </div>
                         </article>
                     @endif
 
@@ -670,14 +744,14 @@
                     </div>
 
                     @if($aboutEmployerText !== '' || $job->employer)
-                        <div class="cw-surface p-5">
+                        <div class="cw-surface p-5" style="background: linear-gradient(145deg, {{ $brandColor }}2a 0%, {{ $brandColor }}1a 36%, rgba(255, 255, 255, 0.96) 100%); border: 1px solid color-mix(in srgb, {{ $brandColor }} 28%, var(--cw-hairline));">
                             @if($employerCoverUrl)
                                 <div class="-mx-5 -mt-5 mb-4 aspect-[13/5] overflow-hidden rounded-t-[inherit] border-b border-slate-200">
                                     <img src="{{ $employerCoverUrl }}" alt="{{ $companyName }} cover" class="h-full w-full object-cover" loading="lazy" decoding="async">
                                 </div>
                             @endif
 
-                            <div class="flex gap-3" style="background: linear-gradient(140deg, {{ $brandColor }}10, transparent 45%); border-radius: 0.75rem; padding: 0.75rem;">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
                                 <div class="flex-1">
                                     <h3 class="text-base font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.about_employer') }}</h3>
                                     @if($aboutEmployerText !== '')
@@ -691,7 +765,7 @@
                                     @endif
                                 </div>
                                 @if($employerLogoUrl || $job->employer)
-                                    <div class="flex-shrink-0">
+                                    <div class="flex-shrink-0 self-start">
                                         <div class="w-14 h-14 rounded-full border border-slate-300 bg-gradient-to-br from-white to-slate-50 flex items-center justify-center overflow-hidden">
                                             @if($employerLogoUrl)
                                                 <img src="{{ $employerLogoUrl }}" alt="{{ $companyName }} logo" class="w-full h-full object-cover" loading="lazy" decoding="async" width="56" height="56" onerror="this.onerror=null;this.src='{{ asset('assets/placeholders/shared/company-logo-placeholder-400x400.jpg') }}';">

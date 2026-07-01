@@ -109,6 +109,20 @@ class Job extends Model
         });
 
         static::saving(function ($job) {
+            $job->source_system = filled((string) $job->source_system)
+                ? trim((string) $job->source_system)
+                : null;
+
+            $job->hzz_is_official = (bool) $job->hzz_is_official;
+            $job->hzz_apply_contact_type = filled(trim((string) $job->hzz_apply_contact_type))
+                ? trim((string) $job->hzz_apply_contact_type)
+                : 'unknown';
+            $job->hzz_apply_method_available = (bool) $job->hzz_apply_method_available;
+
+            if ($job->status === 'published' && empty($job->published_at)) {
+                $job->published_at = now();
+            }
+
             if (! $job->isHzzOfficial()) {
                 return;
             }
@@ -116,6 +130,7 @@ class Job extends Model
             $parser = app(HzzApplicationContactParser::class);
 
             $parseInput = implode("\n\n", array_filter([
+                (string) ($job->hzz_apply_contact_raw ?? ''),
                 (string) ($job->application_instructions ?? ''),
                 strip_tags((string) ($job->description ?? '')),
                 strip_tags((string) ($job->responsibilities ?? '')),
@@ -135,7 +150,13 @@ class Job extends Model
             }
 
             $job->hzz_apply_contact_raw = $job->hzz_apply_contact_raw ?: $parsed['contact_raw'];
-            $job->hzz_apply_contact_type = $parsed['contact_type'] ?? 'unknown';
+            if (filled($job->hzz_apply_email)) {
+                $job->hzz_apply_contact_type = 'email';
+            } elseif (filled($job->hzz_apply_url)) {
+                $job->hzz_apply_contact_type = 'external_url';
+            } else {
+                $job->hzz_apply_contact_type = $parsed['contact_type'] ?? 'unknown';
+            }
             $job->hzz_apply_method_available = ! empty($job->hzz_apply_email);
             $job->source_system = $job->source_system ?: 'hzz';
             $job->hzz_is_official = true;
