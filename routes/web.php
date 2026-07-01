@@ -235,7 +235,7 @@ Route::get('/user/export', [\App\Http\Controllers\UserDataExportController::clas
     ->middleware(['auth', 'legal.consent', 'throttle:3,1440'])
     ->name('user.export');
 
-Route::middleware(['auth', 'legal.consent', 'admin', 'admin.modules'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'legal.consent', 'admin.access', 'admin.modules'])->prefix('admin')->group(function () {
     Route::get('/privacy-requests', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'index'])->name('admin.privacy_requests.index');
     Route::put('/privacy-requests/{deletionRequest}', [\App\Http\Controllers\AdminPrivacyRequestController::class, 'update'])->name('admin.privacy_requests.update');
 

@@ -438,11 +438,10 @@ class ApplicationController extends Controller
         $validated['accommodation_support'] = $request->boolean('accommodation_support');
         $validated['brand_color'] = $this->normalizeHexColor($validated['brand_color'] ?? null);
 
-        if ($request->hasFile('logo')) {
-            if ($employer->logo_path) {
-                Storage::disk('public')->delete($employer->logo_path);
-            }
+        $previousLogoPath = $employer->logo_path;
+        $previousCoverImagePath = $employer->cover_image_path;
 
+        if ($request->hasFile('logo')) {
             $validated['logo_path'] = $this->storeProcessedImage(
                 $request->file('logo'),
                 'company-logos',
@@ -455,10 +454,6 @@ class ApplicationController extends Controller
         }
 
         if ($request->hasFile('cover_image')) {
-            if ($employer->cover_image_path) {
-                Storage::disk('public')->delete($employer->cover_image_path);
-            }
-
             $validated['cover_image_path'] = $this->storeProcessedImage(
                 $request->file('cover_image'),
                 'company-covers',
@@ -482,6 +477,14 @@ class ApplicationController extends Controller
         );
 
         $employer->update($validated);
+
+        if ($request->hasFile('logo') && filled($previousLogoPath) && $previousLogoPath !== ($validated['logo_path'] ?? null)) {
+            Storage::disk('public')->delete((string) $previousLogoPath);
+        }
+
+        if ($request->hasFile('cover_image') && filled($previousCoverImagePath) && $previousCoverImagePath !== ($validated['cover_image_path'] ?? null)) {
+            Storage::disk('public')->delete((string) $previousCoverImagePath);
+        }
 
         return redirect()->route('employer.settings.profile')
             ->with('success', __('employer.settings.profile_updated_success'));

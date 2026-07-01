@@ -6,11 +6,14 @@ use App\Models\Job;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
 
 class HzzJobImportService
 {
+    private const MAX_FEED_BYTES = 5242880;
+
     /**
      * Common acronyms that should remain uppercase after sentence-case normalization.
      *
@@ -35,25 +38,48 @@ class HzzJobImportService
     ) {
     }
 
-    public function importFromUrl(string $url, bool $dryRun = false, bool $allowUpdates = false): array
+    public function importFromUrl(string $url, bool $dryRun = false, bool $allowUpdates = false, bool $deactivateMissing = false): array
     {
-        $response = Http::timeout(30)->get($url);
+        $response = Http::accept('application/xml, text/xml;q=0.9, application/rss+xml;q=0.9, */*;q=0.1')
+            ->connectTimeout(10)
+            ->timeout(30)
+            ->retry(3, 1000, throw: false)
+            ->get($url);
+
         if (! $response->ok()) {
             throw new RuntimeException('HZZ import failed with HTTP status ' . $response->status());
         }
 
-        $payload = $this->decodePayload($response->body());
+        $contentLength = (int) ($response->header('Content-Length') ?? 0);
+        $maxFeedBytes = (int) config('services.hzz.max_feed_bytes', self::MAX_FEED_BYTES);
+        if ($contentLength > 0 && $contentLength > $maxFeedBytes) {
+            throw new RuntimeException('HZZ import failed because the XML feed is too large.');
+        }
+
+        $body = $response->body();
+        if (strlen($body) > $maxFeedBytes) {
+            throw new RuntimeException('HZZ import failed because the XML feed exceeds the maximum allowed size.');
+        }
+
+        $payload = $this->decodePayload($body);
         $items = $this->normalizeItems($payload);
 
         $created = 0;
         $updated = 0;
         $skippedExisting = 0;
+        $skippedInvalid = 0;
+        $deactivated = 0;
+        $preservedManualRecords = 0;
+        $seenReferences = [];
 
         foreach ($items as $item) {
             $mapped = $this->mapItem($item, $url);
             if (! $mapped) {
+                $skippedInvalid++;
                 continue;
             }
+
+            $seenReferences[] = (string) $mapped['source_reference'];
 
             if ($dryRun) {
                 continue;
@@ -70,7 +96,11 @@ class HzzJobImportService
                     continue;
                 }
 
-                $existing->fill($mapped)->save();
+                [$payload, $preservedManualEdit] = $this->mergeExistingRecord($existing, $mapped);
+                $existing->fill($payload)->save();
+                if ($preservedManualEdit) {
+                    $preservedManualRecords++;
+                }
                 $updated++;
                 continue;
             }
@@ -79,14 +109,84 @@ class HzzJobImportService
             $created++;
         }
 
+        if (! $dryRun && $deactivateMissing && $seenReferences !== []) {
+            $deactivated = Job::query()
+                ->where('source_system', 'hzz')
+                ->whereNotNull('source_reference')
+                ->whereNotIn('source_reference', array_values(array_unique($seenReferences)))
+                ->whereIn('status', ['published', 'pending'])
+                ->update([
+                    'status' => 'delisted',
+                    'source_imported_at' => now(),
+                ]);
+        }
+
+        Log::info('HZZ import summary', [
+            'url' => $url,
+            'total_items' => count($items),
+            'created' => $created,
+            'updated' => $updated,
+            'skipped_existing' => $skippedExisting,
+            'skipped_invalid' => $skippedInvalid,
+            'deactivated' => $deactivated,
+            'preserved_manual_records' => $preservedManualRecords,
+            'dry_run' => $dryRun,
+            'allow_updates' => $allowUpdates,
+            'deactivate_missing' => $deactivateMissing,
+        ]);
+
         return [
             'total_items' => count($items),
             'created' => $created,
             'updated' => $updated,
             'skipped_existing' => $skippedExisting,
+            'skipped_invalid' => $skippedInvalid,
+            'deactivated' => $deactivated,
+            'preserved_manual_records' => $preservedManualRecords,
             'dry_run' => $dryRun,
             'allow_updates' => $allowUpdates,
         ];
+    }
+
+    /**
+     * @return array{0: array<string, mixed>, 1: bool}
+     */
+    private function mergeExistingRecord(Job $existing, array $mapped): array
+    {
+        $preserveManualEdits = $existing->source_imported_at !== null
+            && $existing->updated_at !== null
+            && $existing->updated_at->gt($existing->source_imported_at->copy()->addMinutes(5));
+
+        if (! $preserveManualEdits) {
+            return [$mapped, false];
+        }
+
+        foreach ([
+            'external_company_name',
+            'title',
+            'description',
+            'responsibilities',
+            'requirements',
+            'benefits',
+            'location_city',
+            'category',
+            'contract_type',
+            'experience_level',
+            'education_required',
+            'working_hours',
+            'shift_details',
+            'positions_available',
+            'accommodation_provided',
+            'accommodation_details',
+            'application_instructions',
+            'hzz_legal_notice',
+        ] as $field) {
+            if (filled($existing->{$field})) {
+                $mapped[$field] = $existing->{$field};
+            }
+        }
+
+        return [$mapped, true];
     }
 
     private function normalizeItems(mixed $payload): array
@@ -406,17 +506,25 @@ class HzzJobImportService
             return [];
         }
 
+        if (preg_match('/<!DOCTYPE|<!ENTITY/i', $trimmed) === 1) {
+            throw new RuntimeException('HZZ XML contains unsupported DOCTYPE/ENTITY declarations.');
+        }
+
         try {
-            $xml = @simplexml_load_string($trimmed, 'SimpleXMLElement', LIBXML_NOCDATA);
+            $previous = libxml_use_internal_errors(true);
+            $xml = simplexml_load_string($trimmed, 'SimpleXMLElement', LIBXML_NONET | LIBXML_NOCDATA | LIBXML_NOWARNING | LIBXML_NOERROR);
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+
             if ($xml === false) {
-                return [];
+                throw new RuntimeException('Unable to parse HZZ XML feed.');
             }
 
             $encoded = json_encode($xml, JSON_UNESCAPED_UNICODE);
 
             return is_string($encoded) ? (json_decode($encoded, true) ?? []) : [];
-        } catch (\Throwable) {
-            return [];
+        } catch (\Throwable $exception) {
+            throw new RuntimeException('Unable to parse HZZ XML feed.', previous: $exception);
         }
     }
 

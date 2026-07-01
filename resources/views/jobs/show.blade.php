@@ -373,7 +373,7 @@
                     'unitText' => strtoupper((string) ($job->salary_period ?? 'MONTH')),
                 ],
             ] : null,
-            'directApply' => true,
+            'directApply' => $job->canApplyViaCroWork(),
             'url' => route('jobs.show', $job),
             'inLanguage' => app()->getLocale(),
         ];

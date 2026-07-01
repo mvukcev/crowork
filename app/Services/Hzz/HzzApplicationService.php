@@ -6,6 +6,7 @@ use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\User;
 use App\Models\WorkerProfile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -17,6 +18,12 @@ class HzzApplicationService
         $targetEmail = strtolower(trim((string) $job->hzz_apply_email));
 
         if ($targetEmail === '' || ! filter_var($targetEmail, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('HZZ application send skipped due to missing/invalid employer email.', [
+                'application_id' => $application->id,
+                'job_id' => $job->id,
+                'target_email' => $targetEmail,
+            ]);
+
             return [
                 'success' => false,
                 'status' => 'failed',
@@ -64,6 +71,13 @@ class HzzApplicationService
                 'log' => 'Application forwarded to employer email successfully.',
             ];
         } catch (Throwable $exception) {
+            Log::warning('HZZ application email send failed.', [
+                'application_id' => $application->id,
+                'job_id' => $job->id,
+                'target_email' => $targetEmail,
+                'error' => $exception->getMessage(),
+            ]);
+
             return [
                 'success' => false,
                 'status' => 'failed',

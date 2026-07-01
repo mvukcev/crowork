@@ -259,11 +259,9 @@ class JobController extends Controller
             'published_at' => $nextStatus === 'published' ? ($job->published_at ?? now()) : null,
         ];
 
-        if ($request->hasFile('cover_image')) {
-            if ($job->cover_image_path) {
-                Storage::disk('public')->delete($job->cover_image_path);
-            }
+        $previousCoverImagePath = $job->cover_image_path;
 
+        if ($request->hasFile('cover_image')) {
             $payload['cover_image_path'] = $this->storeProcessedCoverImage(
                 $request->file('cover_image'),
                 (string) $job->id,
@@ -272,6 +270,10 @@ class JobController extends Controller
         }
 
         $job->update($payload);
+
+        if ($request->hasFile('cover_image') && filled($previousCoverImagePath) && $previousCoverImagePath !== ($payload['cover_image_path'] ?? null)) {
+            Storage::disk('public')->delete((string) $previousCoverImagePath);
+        }
 
         return redirect()
             ->route('employer.jobs.edit', $job)

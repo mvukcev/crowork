@@ -15,8 +15,12 @@ class ForceHttpsInProduction
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $forwardedProto = strtolower(trim((string) $request->headers->get('x-forwarded-proto', '')));
+        $cfVisitor = strtolower((string) $request->headers->get('cf-visitor', ''));
+        $proxyMarkedSecure = $forwardedProto === 'https' || str_contains($cfVisitor, '"scheme":"https"');
+
         // In production, enforce HTTPS
-        if (app()->environment('production') && !$request->isSecure() && config('app.url') && str_starts_with(config('app.url'), 'https://')) {
+        if (app()->environment('production') && ! $request->isSecure() && ! $proxyMarkedSecure && config('app.url') && str_starts_with(config('app.url'), 'https://')) {
             $url = 'https://' . $request->getHost() . $request->getRequestUri();
             return redirect($url, 301);
         }

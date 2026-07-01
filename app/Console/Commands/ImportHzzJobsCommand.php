@@ -13,7 +13,7 @@ class ImportHzzJobsCommand extends Command
         {--url= : HZZ feed URL in JSON format}
         {--write : Persist new records (default behavior is dry-run)}
         {--allow-updates : Allow updating existing HZZ records matched by source_reference}
-        {--deactivate-missing : Backward-compatible no-op option for legacy scheduler usage}';
+        {--deactivate-missing : Mark HZZ records missing from current feed as delisted}';
 
     protected $aliases = [
         'crowork:import-hzz-jobs',
@@ -40,6 +40,7 @@ class ImportHzzJobsCommand extends Command
 
         $write = (bool) $this->option('write');
         $allowUpdates = (bool) $this->option('allow-updates');
+        $deactivateMissing = (bool) $this->option('deactivate-missing');
         $dryRun = ! $write;
 
         Setting::setValue('hzz_feed_url', $url);
@@ -49,8 +50,13 @@ class ImportHzzJobsCommand extends Command
             $allowUpdates = false;
         }
 
+        if (! $write && $deactivateMissing) {
+            $this->warn('Ignoring --deactivate-missing because --write was not provided (dry-run mode).');
+            $deactivateMissing = false;
+        }
+
         try {
-            $summary = $service->importFromUrl($url, $dryRun, $allowUpdates);
+            $summary = $service->importFromUrl($url, $dryRun, $allowUpdates, $deactivateMissing);
         } catch (\Throwable $exception) {
             $this->error('HZZ import failed: ' . $exception->getMessage());
             return self::FAILURE;
@@ -61,6 +67,9 @@ class ImportHzzJobsCommand extends Command
         $this->line('Created: ' . $summary['created']);
         $this->line('Updated: ' . $summary['updated']);
         $this->line('Skipped existing: ' . $summary['skipped_existing']);
+        $this->line('Skipped invalid: ' . ($summary['skipped_invalid'] ?? 0));
+        $this->line('Delisted missing: ' . ($summary['deactivated'] ?? 0));
+        $this->line('Preserved manually edited records: ' . ($summary['preserved_manual_records'] ?? 0));
         $this->line('Dry run: ' . ($summary['dry_run'] ? 'yes' : 'no'));
         $this->line('Existing records updated: ' . ($summary['allow_updates'] ? 'yes' : 'no'));
 

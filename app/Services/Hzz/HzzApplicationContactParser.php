@@ -2,6 +2,8 @@
 
 namespace App\Services\Hzz;
 
+use App\Support\HzzUrlGuard;
+
 class HzzApplicationContactParser
 {
     public function parse(string $content, ?string $fallbackUrl = null): array
@@ -69,6 +71,10 @@ class HzzApplicationContactParser
             return null;
         }
 
-        return filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return HzzUrlGuard::isAllowedApplyUrl($url) ? $url : null;
     }
 }

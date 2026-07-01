@@ -14,7 +14,9 @@ use App\Services\Hzz\HzzApplicationService;
 use App\Support\HzzUrlGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\File;
 
 class JobApplicationController extends Controller
 {
@@ -121,7 +123,13 @@ class JobApplicationController extends Controller
         $validated = $request->validate([
             'message' => 'nullable|string|max:1000',
             'cv_choice' => 'nullable|in:profile,upload',
-            'cv_file' => 'nullable|required_if:cv_choice,upload|file|mimes:pdf,doc,docx|max:10240',
+            'cv_file' => [
+                'nullable',
+                'required_if:cv_choice,upload',
+                File::types(['pdf', 'doc', 'docx'])
+                    ->max(10240),
+                'mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ],
             'cover_letter_mode' => 'nullable|in:none,preset,custom',
             'cover_letter_preset' => 'nullable|required_if:cover_letter_mode,preset|in:short,standard,detailed',
             'cover_letter_text' => 'nullable|string|max:5000',
@@ -140,7 +148,19 @@ class JobApplicationController extends Controller
 
         $cvFilePath = null;
         if ($cvChoice === 'upload' && $request->hasFile('cv_file')) {
-            $cvFilePath = $request->file('cv_file')->store('job-applications/cv');
+            try {
+                $cvFilePath = $request->file('cv_file')->store('job-applications/cv', 'local');
+            } catch (\Throwable $exception) {
+                Log::error('CV upload failed during job application.', [
+                    'job_id' => $job->id,
+                    'worker_id' => Auth::id(),
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return redirect()
+                    ->route('jobs.apply', $job)
+                    ->with('error', __('ui.jobs_apply.hzz_submit_failed'));
+            }
         }
 
         $cvSnapshot = [
@@ -191,10 +211,27 @@ class JobApplicationController extends Controller
         }
 
         $application->loadMissing('job.employer.user', 'worker');
-        $application->worker?->notify(new JobApplicationSubmitted($application));
+
+        try {
+            $application->worker?->notify(new JobApplicationSubmitted($application));
+        } catch (\Throwable $exception) {
+            Log::warning('Worker application confirmation notification failed.', [
+                'application_id' => $application->id,
+                'worker_id' => $application->worker_id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
 
         if (! $isHzzFlow) {
-            $application->job?->employer?->user?->notify(new NewJobApplicationReceived($application));
+            try {
+                $application->job?->employer?->user?->notify(new NewJobApplicationReceived($application));
+            } catch (\Throwable $exception) {
+                Log::warning('Employer application notification failed.', [
+                    'application_id' => $application->id,
+                    'job_id' => $job->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
         }
 
         $metaEventId = null;
@@ -303,7 +340,7 @@ class JobApplicationController extends Controller
     {
         return [
             'title' => $job->title,
-            'company_name' => $job->employer?->company_name,
+            'company_name' => $job->employer?->company_display_name ?? $job->employer?->company_name ?? $job->external_company_name,
             'location_city' => $job->location_city,
             'category' => $job->category,
             'contract_type' => $job->contract_type,

@@ -75,4 +75,58 @@ XML;
         // Preserve known acronyms in uppercase after sentence-case conversion.
         $this->assertStringContainsString('HZZ EU', $job->category);
     }
+
+      public function test_hzz_xml_import_handles_empty_xml_without_creating_records(): void
+      {
+        Http::fake([
+          'https://example.test/hzz-empty.xml' => Http::response("<?xml version=\"1.0\" encoding=\"UTF-8\"?><radnaMjesta></radnaMjesta>", 200),
+        ]);
+
+        $summary = app(HzzJobImportService::class)->importFromUrl('https://example.test/hzz-empty.xml', false, false);
+
+        $this->assertSame(0, $summary['total_items']);
+        $this->assertSame(0, $summary['created']);
+        $this->assertDatabaseCount('job_postings', 0);
+      }
+
+      public function test_hzz_xml_import_rejects_malformed_xml(): void
+      {
+        Http::fake([
+          'https://example.test/hzz-bad.xml' => Http::response('<radnaMjesta><radnoMjesto>', 200),
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to parse HZZ XML feed.');
+
+        app(HzzJobImportService::class)->importFromUrl('https://example.test/hzz-bad.xml', false, false);
+      }
+
+      public function test_hzz_xml_import_strips_non_hzz_apply_url_and_keeps_email_empty_when_missing(): void
+      {
+        $xml = <<<'XML'
+    <?xml version="1.0" encoding="UTF-8"?>
+    <radnaMjesta>
+      <radnoMjesto>
+      <id>2001</id>
+      <url>https://evil.example/phish</url>
+      <nazivRadnogMjesta>MEDICINSKA SESTRA</nazivRadnogMjesta>
+      <opis>Prijava preko vanjskog obrasca.</opis>
+      <mjestoRada>ZAGREB</mjestoRada>
+      </radnoMjesto>
+    </radnaMjesta>
+    XML;
+
+        Http::fake([
+          'https://example.test/hzz-unsafe.xml' => Http::response($xml, 200, ['Content-Type' => 'application/xml']),
+        ]);
+
+        $summary = app(HzzJobImportService::class)->importFromUrl('https://example.test/hzz-unsafe.xml', false, false);
+
+        $this->assertSame(1, $summary['created']);
+
+        $job = Job::query()->firstOrFail();
+        $this->assertNull($job->hzz_apply_email);
+        $this->assertNull($job->hzz_apply_url);
+        $this->assertSame('unknown', $job->hzz_apply_contact_type);
+      }
 }

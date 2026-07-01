@@ -310,7 +310,19 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
 
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify((new AuthResetPasswordNotification($token))->locale($this->preferredLocale()));
+        try {
+            $this->notify((new AuthResetPasswordNotification($token))->locale($this->preferredLocale()));
+        } catch (Throwable $exception) {
+            if (! app()->environment(['local', 'testing'])) {
+                throw $exception;
+            }
+
+            Log::warning('Password reset notification failed in local/testing environment.', [
+                'user_id' => $this->id,
+                'email' => $this->email,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 
     public function sendEmailVerificationNotification(): void
