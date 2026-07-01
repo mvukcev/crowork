@@ -1,11 +1,8 @@
 {{-- Featured Jobs Section --}}
 @php
-    // Fetch featured jobs with employer relationship eagerly loaded
-    $featuredJobs = \App\Models\Job::where('is_featured', true)
-        ->with('employer')
-        ->latest()
-        ->take(6)
-        ->get();
+    $featuredJobs = isset($featuredJobs) && $featuredJobs instanceof \Illuminate\Support\Collection
+        ? $featuredJobs
+        : collect();
 @endphp
 
 @if($featuredJobs->isEmpty())
@@ -27,12 +24,12 @@
             <x-job-card :title="$job->title"
                         :company="$employer?->company_name"
                         :company_href="$company_href"
-                        :city="$job->city"
+                        :city="$job->location_city"
                         :salary_min="$job->salary_min"
                         :salary_max="$job->salary_max"
                         :salary_currency="$job->salary_currency"
                         :salary_period="$job->salary_period"
-                        :employment_type="$job->employment_type"
+                        :employment_type="$job->contract_type"
                         :experience_level="$job->experience_level"
                         :education_required="$job->education_required"
                         :positions_available="$job->positions_available"
@@ -44,7 +41,7 @@
                         :is_featured="$job->is_featured"
                         :is_urgent="$job->is_urgent"
                         :languages="$job->languages"
-                        :posted_at="$job->created_at"
+                        :posted_at="$job->published_at ?? $job->created_at"
                         :href="route('jobs.show', $job)"
             />
         @endforeach

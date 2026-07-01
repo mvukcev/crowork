@@ -109,9 +109,61 @@
 
         $aboutEmployerText = trim((string) ($job->employer?->description ?? ''));
         $employerLogoUrl = $job->employer?->logo_path ? asset('storage/' . $job->employer->logo_path) : null;
-        $isHzzImported = $job->source_type === 'hzz';
+        $isHzzImported = $job->isImportedFromHzz();
         $hzzSourceUrl = trim((string) ($job->source_url ?? '')) ?: null;
-        $hzzLogoUrl = trim((string) ($job->source_logo_url ?? '')) ?: config('services.hzz.logo_url');
+        $isHzzOfficial = $job->isHzzOfficial();
+        $hzzLegalNotice = trim((string) ($job->hzz_legal_notice ?? ''));
+        $normalizeCompareText = function (?string $value): string {
+            $value = trim((string) $value);
+            if ($value === '') {
+                return '';
+            }
+
+            $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $value = strip_tags($value);
+            $value = mb_strtolower($value, 'UTF-8');
+            $value = preg_replace('/[^\pL\pN\s]/u', ' ', $value) ?? $value;
+            $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+            return trim((string) $value);
+        };
+
+        $isMostlyDuplicate = function (?string $left, ?string $right) use ($normalizeCompareText): bool {
+            $a = $normalizeCompareText($left);
+            $b = $normalizeCompareText($right);
+
+            if ($a === '' || $b === '') {
+                return false;
+            }
+
+            $short = min(strlen($a), strlen($b));
+            $long = max(strlen($a), strlen($b));
+            if ($long === 0) {
+                return false;
+            }
+
+            if (str_contains($a, $b) || str_contains($b, $a)) {
+                return ($short / $long) >= 0.67;
+            }
+
+            similar_text($a, $b, $percent);
+
+            return ($percent / 100) >= 0.67;
+        };
+
+        if ($isHzzOfficial && $isMostlyDuplicate($hzzLegalNotice, $applicationInstructionsText)) {
+            $applicationInstructionsText = '';
+        }
+
+        if ($isHzzOfficial && $isMostlyDuplicate($aboutText, $applicationInstructionsText)) {
+            $applicationInstructionsText = '';
+        }
+
+        $showHzzApplicationInstructions = ! $isHzzOfficial || (auth()->check() && auth()->user()?->isWorker());
+        $hzzLogoPath = public_path('assets/branding/hzz-logo.svg');
+    $hzzLogoUrl = file_exists($hzzLogoPath)
+        ? asset('assets/branding/hzz-logo.svg')
+        : (trim((string) ($job->source_logo_url ?? '')) ?: config('services.hzz.logo_url'));
 
         $jobPostingSchema = [
             '@context' => 'https://schema.org',
@@ -185,6 +237,28 @@
 
     <section class="cw-section">
         <div class="cw-container">
+            @if($isHzzOfficial)
+                <article class="cw-surface p-5 md:p-6 mb-6 border border-slate-200">
+                    <div class="flex items-start gap-4">
+                        @if($hzzLogoUrl)
+                            <img src="{{ $hzzLogoUrl }}" alt="HZZ logo" class="w-11 h-11 shrink-0 rounded-xl border border-slate-200 bg-white object-contain p-1" loading="lazy" decoding="async">
+                        @else
+                            <div class="w-11 h-11 shrink-0 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-sm font-bold text-slate-700">
+                                HZZ
+                            </div>
+                        @endif
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 mb-1">Službeni izvor</p>
+                            <h2 class="text-base font-semibold text-slate-900 mb-1">Hrvatski zavod za zapošljavanje</h2>
+                            <p class="text-sm text-slate-700 mb-2">Oglas je preuzet iz HZZ sustava.</p>
+                            @if($hzzLegalNotice !== '')
+                                <div class="text-sm text-slate-600 whitespace-pre-line">{{ $hzzLegalNotice }}</div>
+                            @endif
+                        </div>
+                    </div>
+                </article>
+            @endif
+
             <div class="mb-6 text-sm text-slate-500">
                 <a href="{{ route('home') }}" class="hover:text-slate-900">{{ __('navigation.home') }}</a>
                 <span class="mx-1">/</span>
@@ -288,7 +362,7 @@
                         </article>
                     @endif
 
-                    @if($applicationInstructionsText !== '')
+                    @if($applicationInstructionsText !== '' && $showHzzApplicationInstructions)
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.application_instructions') }}</h2>
                             <div class="prose max-w-none text-slate-700 leading-relaxed whitespace-pre-line">{{ $applicationInstructionsText }}</div>
@@ -391,7 +465,16 @@
                         @endif
 
                         <div class="flex flex-col gap-2 mt-3">
-                            <a href="{{ route('jobs.apply', $job) }}" class="cw-button-violet w-full text-center" data-cw-track-click="job_apply_click" data-cw-item-type="job" data-cw-item-slug="{{ $job->slug }}">{{ __('ui.jobs_show.apply_now') }}</a>
+                            <a
+                                href="{{ route('jobs.apply', $job) }}"
+                                class="{{ $isHzzOfficial ? 'cw-button-primary' : 'cw-button-violet' }} w-full text-center"
+                                @if($isHzzOfficial) data-hzz-primary-cta="1" @endif
+                                data-cw-track-click="job_apply_click"
+                                data-cw-item-type="job"
+                                data-cw-item-slug="{{ $job->slug }}"
+                            >
+                                {{ $isHzzOfficial ? __('ui.jobs_show.apply_via_crowork') : __('ui.jobs_show.apply_now') }}
+                            </a>
                         </div>
                     </div>
 
@@ -442,6 +525,35 @@
                     company_slug: @json($job->employer?->slug),
                     has_salary: {{ (!is_null($job->salary_min) || !is_null($job->salary_max)) ? 'true' : 'false' }}
                 });
+
+                const hzzCta = document.querySelector('[data-hzz-primary-cta="1"]');
+                if (hzzCta) {
+                    const endpoint = @json(route('jobs.hzz.cta-click', $job));
+
+                    hzzCta.addEventListener('click', function () {
+                        const body = new URLSearchParams();
+                        body.append('_token', @json(csrf_token()));
+
+                        if (navigator.sendBeacon) {
+                            const blob = new Blob([body.toString()], {
+                                type: 'application/x-www-form-urlencoded;charset=UTF-8',
+                            });
+                            navigator.sendBeacon(endpoint, blob);
+                            return;
+                        }
+
+                        fetch(endpoint, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                                'X-CSRF-TOKEN': @json(csrf_token()),
+                            },
+                            body: body.toString(),
+                            keepalive: true,
+                        }).catch(() => {});
+                    });
+                }
             });
         </script>
     @endpush

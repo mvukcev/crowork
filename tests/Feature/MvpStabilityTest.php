@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureLatestLegalConsentAccepted;
 use App\Models\Education;
 use App\Models\EducationApplication;
 use App\Models\Employer;
@@ -23,6 +24,7 @@ class MvpStabilityTest extends TestCase
 
     public function test_job_application_notifies_worker_and_employer(): void
     {
+        $this->withoutMiddleware(EnsureLatestLegalConsentAccepted::class);
         Notification::fake();
         $worker = User::factory()->create(['role' => User::ROLE_WORKER]);
         $employerUser = User::factory()->create(['role' => User::ROLE_EMPLOYER]);
@@ -37,6 +39,7 @@ class MvpStabilityTest extends TestCase
 
         $response = $this->actingAs($worker)->post(route('jobs.apply.store', $job), [
             'message' => 'I am interested.',
+            'consent' => '1',
         ]);
 
         $response->assertRedirect(route('jobs.show', $job->slug));
@@ -80,6 +83,7 @@ class MvpStabilityTest extends TestCase
 
     public function test_worker_application_tracking_pages_render(): void
     {
+        $this->withoutMiddleware(EnsureLatestLegalConsentAccepted::class);
         $worker = User::factory()->create(['role' => User::ROLE_WORKER]);
         $employerUser = User::factory()->create(['role' => User::ROLE_EMPLOYER]);
         $employer = Employer::create([

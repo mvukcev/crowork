@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
+use App\Services\Hzz\HzzAnalyticsTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response;
 
 class JobController extends Controller
 {
@@ -66,6 +68,10 @@ class JobController extends Controller
         // Load employer relationship for company info
         $job->load('employer');
 
+        if ($job->isHzzOfficial()) {
+            app(HzzAnalyticsTracker::class)->trackView($job, request());
+        }
+
         $baseSimilarQuery = Job::query()
             ->with('employer')
             ->active()
@@ -110,6 +116,17 @@ class JobController extends Controller
         return view('jobs.show', compact('job', 'similarJobs'));
     }
 
+    public function trackHzzCtaClick(Job $job, Request $request): Response
+    {
+        if (! $job->isHzzOfficial()) {
+            return response()->noContent();
+        }
+
+        app(HzzAnalyticsTracker::class)->trackCtaClick($job, $request);
+
+        return response()->noContent();
+    }
+
     /**
      * Get filtered and paginated jobs
      */
@@ -121,11 +138,12 @@ class JobController extends Controller
 
         // Search by title or company
         if ($request->filled('q')) {
-            $search = $request->input('q');
+            $search = trim((string) $request->input('q'));
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', '%' . $search . '%')
                   ->orWhereHas('employer', function ($q) use ($search) {
-                      $q->where('company_name', 'like', '%' . $search . '%');
+                      $q->where('company_name', 'like', '%' . $search . '%')
+                          ->orWhere('company_display_name', 'like', '%' . $search . '%');
                   });
             });
         }

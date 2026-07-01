@@ -13,20 +13,22 @@ class RegistrationTest extends TestCase
     {
         $response = $this->get('/register');
 
-        $response->assertStatus(200);
+        $response->assertRedirect(route('access.show'));
     }
 
-    public function test_new_users_can_register(): void
+    public function test_direct_register_without_verified_email_session_is_rejected(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
-            'role' => 'worker',
+            'account_type' => 'worker',
+            'accept_terms' => '1',
+            'accept_privacy' => '1',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect('/jobs');
+        $this->assertGuest();
+        $response->assertRedirect(route('access.show'));
     }
 }

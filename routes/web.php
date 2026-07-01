@@ -21,6 +21,7 @@ use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\Worker\ApplicationController as WorkerApplicationController;
 use App\Http\Controllers\Auth\AccessController;
 use App\Http\Controllers\FrontendPreferenceController;
+use App\Http\Controllers\Admin\HzzAnalyticsExportController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Models\Job;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
@@ -66,6 +67,9 @@ Route::middleware('guest')->group(function () {
 
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/partial', [JobController::class, 'partial'])->name('jobs.partial');
+Route::post('/jobs/{job}/hzz/cta-click', [JobController::class, 'trackHzzCtaClick'])
+    ->middleware('throttle:120,60')
+    ->name('jobs.hzz.cta-click');
 Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 Route::get('/companies/{company:slug}', [CompanyController::class, 'show'])->name('companies.show');
 
@@ -103,6 +107,7 @@ Route::middleware('auth')->prefix('legal')->name('legal.')->group(function () {
 Route::middleware(['auth', 'legal.consent'])->group(function () {
     Route::get('/jobs/{job}/apply', [JobApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job}/apply', [JobApplicationController::class, 'store'])->name('jobs.apply.store');
+    Route::get('/jobs/{job}/hzz/open', [JobApplicationController::class, 'openExternal'])->name('jobs.hzz.open');
     Route::get('/educations/{education:slug}/apply', [EducationApplicationController::class, 'create'])->name('educations.apply');
     Route::post('/educations/{education:slug}/apply', [EducationApplicationController::class, 'store'])->name('educations.apply.store');
 });
@@ -266,3 +271,12 @@ Route::middleware(['auth', 'legal.consent', 'admin.strict', 'admin.modules'])->p
     Route::get('/breach-incidents/{gdprBreachIncident}', [AdminGdprController::class, 'breachIncidentsShow'])->name('breaches.show');
     Route::patch('/breach-incidents/{gdprBreachIncident}', [AdminGdprController::class, 'breachIncidentsUpdate'])->name('breaches.update');
 });
+
+Route::middleware(['auth', 'legal.consent', 'admin.strict', 'admin.modules'])
+    ->prefix('admin/hzz-analytics')
+    ->name('admin.hzz-analytics.')
+    ->group(function () {
+        Route::get('/export/{format}', [HzzAnalyticsExportController::class, 'export'])
+            ->whereIn('format', ['csv', 'xlsx'])
+            ->name('export');
+    });

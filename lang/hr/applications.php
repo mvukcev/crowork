@@ -2,9 +2,16 @@
 
 return [
     'new' => 'Novo',
+    'reviewing' => 'U pregledu',
     'reviewed' => 'Pregledano',
     'shortlisted' => 'U užem izboru',
+    'interview' => 'Intervju',
+    'offer' => 'Ponuda',
+    'hired' => 'Zaposlen',
     'rejected' => 'Odbijeno',
+    'pending' => 'Na čekanju',
+    'sent' => 'Poslano',
+    'failed' => 'Neuspješno',
     'status' => 'Status',
     'first_name' => 'Ime',
     'last_name' => 'Prezime',

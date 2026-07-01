@@ -275,6 +275,8 @@ return [
         'featured_job' => 'Istaknuti posao',
         'urgent_job' => 'Hitan posao',
         'publish_immediately' => 'Objavi odmah',
+        'required_fields_notice' => 'Polja označena zvjezdicom (*) su obavezna.',
+        'submission_policy_notice' => 'Nakon spremanja oglas se šalje na provjeru, osim ako vam je u administraciji uključena automatska objava.',
         'create_job' => 'Kreiraj posao',
         'save_changes' => 'Spremi izmjene',
     ],

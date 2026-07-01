@@ -2,32 +2,61 @@
 
 namespace App\Console\Commands;
 
-use App\Services\HzzJobImportService;
+use App\Services\Hzz\HzzJobImportService;
+use App\Support\HzzUrlGuard;
 use Illuminate\Console\Command;
 
 class ImportHzzJobsCommand extends Command
 {
-    protected $signature = 'crowork:import-hzz-jobs {--deactivate-missing : Mark imported HZZ jobs that no longer exist in feed as delisted}';
+    protected $signature = 'crowork:hzz-import
+        {--url= : HZZ feed URL in JSON format}
+        {--write : Persist new records (default behavior is dry-run)}
+        {--allow-updates : Allow updating existing HZZ records matched by source_reference}
+        {--deactivate-missing : Backward-compatible no-op option for legacy scheduler usage}';
 
-    protected $description = 'Import published jobs from HZZ XML feed into local job postings.';
+    protected $aliases = [
+        'crowork:import-hzz-jobs',
+    ];
 
-    public function handle(HzzJobImportService $importService): int
+    protected $description = 'Import or refresh HZZ listings and parse application contact details.';
+
+    public function handle(HzzJobImportService $service): int
     {
-        try {
-            $result = $importService->import((bool) $this->option('deactivate-missing'));
-
-            $this->info('HZZ import completed successfully.');
-            $this->line('Created: '.$result['created']);
-            $this->line('Updated: '.$result['updated']);
-            $this->line('Skipped: '.$result['skipped']);
-            $this->line('Deactivated: '.$result['deactivated']);
-
-            return self::SUCCESS;
-        } catch (\Throwable $e) {
-            report($e);
-            $this->error('HZZ import failed: '.$e->getMessage());
-
+        $url = trim((string) $this->option('url'));
+        if ($url === '') {
+            $this->error('Missing --url option.');
             return self::FAILURE;
         }
+
+        if (! HzzUrlGuard::isAllowedFeedUrl($url)) {
+            $this->error('Invalid HZZ feed URL. Only official HZZ domains are allowed.');
+            return self::FAILURE;
+        }
+
+        $write = (bool) $this->option('write');
+        $allowUpdates = (bool) $this->option('allow-updates');
+        $dryRun = ! $write;
+
+        if (! $write && $allowUpdates) {
+            $this->warn('Ignoring --allow-updates because --write was not provided (dry-run mode).');
+            $allowUpdates = false;
+        }
+
+        try {
+            $summary = $service->importFromUrl($url, $dryRun, $allowUpdates);
+        } catch (\Throwable $exception) {
+            $this->error('HZZ import failed: ' . $exception->getMessage());
+            return self::FAILURE;
+        }
+
+        $this->info('HZZ import completed.');
+        $this->line('Total feed items: ' . $summary['total_items']);
+        $this->line('Created: ' . $summary['created']);
+        $this->line('Updated: ' . $summary['updated']);
+        $this->line('Skipped existing: ' . $summary['skipped_existing']);
+        $this->line('Dry run: ' . ($summary['dry_run'] ? 'yes' : 'no'));
+        $this->line('Existing records updated: ' . ($summary['allow_updates'] ? 'yes' : 'no'));
+
+        return self::SUCCESS;
     }
 }

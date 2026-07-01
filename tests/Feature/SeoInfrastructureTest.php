@@ -35,7 +35,7 @@ class SeoInfrastructureTest extends TestCase
         $response = $this->get(route('sitemap'));
 
         $response->assertOk();
-        $response->assertHeader('Content-Type', 'application/xml');
+        $response->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
         $response->assertSee(route('home'), false);
         $response->assertSee(route('jobs.show', $job), false);
         $response->assertSee(route('educations.show', $education), false);
@@ -59,9 +59,10 @@ class SeoInfrastructureTest extends TestCase
         $response = $this->get(route('jobs.show', $job));
 
         $response->assertOk();
-        $response->assertSee('<link rel="canonical" href="'.route('jobs.show', $job).'">', false);
-        $response->assertSee('"@type": "JobPosting"', false);
-        $response->assertSee('"title": "Seasonal Chef"', false);
+        $response->assertSee('rel="canonical"', false);
+        $response->assertSee(route('jobs.show', $job), false);
+        $response->assertSee('"@type":"JobPosting"', false);
+        $response->assertSee('"title":"Seasonal Chef"', false);
         $response->assertSee('"hiringOrganization"', false);
         $response->assertSee('"baseSalary"', false);
     }

@@ -275,6 +275,8 @@ return [
         'featured_job' => 'Featured job',
         'urgent_job' => 'Urgent job',
         'publish_immediately' => 'Publish immediately',
+        'required_fields_notice' => 'Fields marked with an asterisk (*) are required.',
+        'submission_policy_notice' => 'After saving, the listing is submitted for review unless auto-publish is enabled for your employer account in admin settings.',
         'create_job' => 'Create job',
         'save_changes' => 'Save changes',
     ],

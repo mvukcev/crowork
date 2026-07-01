@@ -8,20 +8,25 @@
             <form method="POST" action="{{ route('employer.jobs.store') }}" class="cw-surface p-6 space-y-4" data-cw-track-submit="employer_job_create">
                 @csrf
 
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                    <p class="font-semibold text-slate-900">{{ __('employer.job_form.required_fields_notice') }}</p>
+                    <p class="mt-1">{{ __('employer.job_form.submission_policy_notice') }}</p>
+                </div>
+
                 <div>
-                    <label class="cw-label" for="title">{{ __('ui.jobs.title') }}</label>
+                    <label class="cw-label" for="title">{{ __('ui.jobs.title') }} <span class="text-rose-600" aria-hidden="true">*</span></label>
                     <input id="title" name="title" class="cw-field" value="{{ old('title') }}" required>
                     <x-input-error :messages="$errors->get('title')" class="mt-1" />
                 </div>
 
                 <div>
-                    <label class="cw-label" for="company_name">{{ __('ui.employer.company_name') }}</label>
+                    <label class="cw-label" for="company_name">{{ __('ui.employer.company_name') }} <span class="text-rose-600" aria-hidden="true">*</span></label>
                     <input id="company_name" name="company_name" class="cw-field" value="{{ old('company_name') }}" required>
                     <x-input-error :messages="$errors->get('company_name')" class="mt-1" />
                 </div>
 
                 <div>
-                    <label class="cw-label" for="description">{{ __('ui.jobs.description') }}</label>
+                    <label class="cw-label" for="description">{{ __('ui.jobs.description') }} <span class="text-rose-600" aria-hidden="true">*</span></label>
                     <textarea id="description" name="description" rows="7" class="cw-field" required>{{ old('description') }}</textarea>
                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
                 </div>
@@ -43,12 +48,12 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="cw-label" for="location">{{ __('ui.jobs.location') }}</label>
+                        <label class="cw-label" for="location">{{ __('ui.jobs.location') }} <span class="text-rose-600" aria-hidden="true">*</span></label>
                         <input id="location" name="location" class="cw-field" value="{{ old('location') }}" required>
                         <x-input-error :messages="$errors->get('location')" class="mt-1" />
                     </div>
                     <div>
-                        <label class="cw-label" for="job_type">{{ __('ui.jobs.type') }}</label>
+                        <label class="cw-label" for="job_type">{{ __('ui.jobs.type') }} <span class="text-rose-600" aria-hidden="true">*</span></label>
                         <select id="job_type" name="job_type" class="cw-field" required>
                             <option value="full_time" @selected(old('job_type') === 'full_time')>{{ __('ui.jobs.full_time') }}</option>
                             <option value="part_time" @selected(old('job_type') === 'part_time')>{{ __('ui.jobs.part_time') }}</option>
@@ -143,22 +148,6 @@
                     <label class="cw-label" for="application_instructions">{{ __('employer.job_form.application_instructions') }}</label>
                     <textarea id="application_instructions" name="application_instructions" rows="4" class="cw-field">{{ old('application_instructions') }}</textarea>
                 </div>
-
-                <div class="flex flex-wrap gap-4">
-                    <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                        <input type="checkbox" name="is_featured" value="1" class="rounded border-slate-300" @checked(old('is_featured'))>
-                        {{ __('employer.job_form.featured_job') }}
-                    </label>
-                    <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                        <input type="checkbox" name="is_urgent" value="1" class="rounded border-slate-300" @checked(old('is_urgent'))>
-                        {{ __('employer.job_form.urgent_job') }}
-                    </label>
-                </div>
-
-                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                    <input type="checkbox" name="is_active" value="1" class="rounded border-slate-300" @checked(old('is_active', true))>
-                    {{ __('employer.job_form.publish_immediately') }}
-                </label>
 
                 <div class="flex gap-2">
                     <button type="submit" class="cw-button-primary">{{ __('employer.job_form.create_job') }}</button>

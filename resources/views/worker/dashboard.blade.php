@@ -76,7 +76,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
                     <article class="cw-surface p-5 lg:col-span-2">
                         <h2 class="text-lg font-semibold text-slate-900 mb-3">{{ __('worker.dashboard.applications_overview') }}</h2>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                 <p class="text-xs uppercase tracking-wide text-slate-500">{{ __('worker.dashboard.active_applications') }}</p>
                                 <p class="text-xl font-semibold text-slate-900 mt-1">{{ $activeApplicationsCount }}</p>
@@ -89,10 +89,15 @@
                                 <p class="text-xs uppercase tracking-wide text-slate-500">{{ __('worker.dashboard.education_applications') }}</p>
                                 <p class="text-xl font-semibold text-slate-900 mt-1">{{ $totalEducationApplications }}</p>
                             </div>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <p class="text-xs uppercase tracking-wide text-slate-500">{{ __('worker.dashboard.hzz_job_applications') }}</p>
+                                <p class="text-xl font-semibold text-slate-900 mt-1">{{ $hzzJobApplications }}</p>
+                            </div>
                         </div>
 
                         <div class="mt-4 flex flex-wrap gap-2">
                             <a href="{{ route('worker.applications.index') }}" class="cw-button-primary">{{ __('worker.dashboard.actions.view_all_applications') }}</a>
+                            <a href="{{ route('worker.applications.index', ['channel' => 'hzz']) }}" class="cw-button-secondary">{{ __('worker.dashboard.actions.view_hzz_applications') }}</a>
                             <a href="{{ route('jobs.index') }}" class="cw-button-secondary">{{ __('worker.dashboard.actions.find_jobs') }}</a>
                             <a href="{{ route('educations.index') }}" class="cw-button-secondary">{{ __('worker.dashboard.actions.find_educations') }}</a>
                         </div>

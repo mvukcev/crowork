@@ -17,6 +17,30 @@ CroWork is a Laravel 11 platform that combines public SEO pages, authenticated w
 - Content: legal pages, resource posts, translation overrides.
 - Notifications/mail: template-driven messages with queue delivery.
 - Governance: audit logs, failed jobs, system health, GDPR/retention.
+- HZZ integration: official-source jobs, dual application flow, contractual analytics/reporting.
+
+## HZZ Module (CroWork-first Apply)
+- Source metadata on jobs: `source_system`, `source_reference`, `source_url`, parsed apply contact fields.
+- Contact parser service: `App\\Services\\Hzz\\HzzApplicationContactParser` extracts employer email and fallback apply URL.
+- Import pipeline: `crowork:hzz-import --url=...` maps external feed items into `job_postings` with parser enrichment.
+- Dual apply runtime:
+	- Scenario 1 (`hzz_apply_email` exists): candidate applies inside CroWork, application sent by email via `HzzApplicationService`.
+	- Scenario 2 (no email): candidate completes profile first, then controlled external redirect (`jobs.hzz.open`).
+- Application persistence: `job_applications` stores channel (`internal`, `hzz_email`, `hzz_external`), CV metadata, cover-letter metadata, submission status/log.
+
+## HZZ Analytics and Reporting
+- Event store table: `hzz_job_analytics_events` for `view`, `cta_click`, `external_open`, `application_sent`.
+- Tracker service: `App\\Services\\Hzz\\HzzAnalyticsTracker` records server-side events with session and user context.
+- Admin analytics: Filament page `HzzAnalytics` for overview, per-day metrics, per-job metrics.
+- Quality control: Filament page `HzzQualityCheck` for missing-email/missing-source validation and quick admin correction.
+- Exports:
+	- CSV/XLSX monthly detailed report via `admin/hzz-analytics/export/{format}`.
+	- Includes job id/title/slug, date/time of views, total & unique views, CTA clicks, external opens, sent-via-CroWork count, CTR.
+
+## Extensibility Path
+- Apply channels are explicit (`JobApplication::CHANNEL_*`) to support future modes: Easy Apply, LinkedIn Apply, API apply, ATS connectors.
+- Submission statuses are explicit (`JobApplication::SUBMISSION_*`) for future delivery lifecycle (queued, delivered, bounced, etc.).
+- HZZ module is service-based (`App\\Services\\Hzz\\*`) so new providers can follow the same parser/tracker/application interfaces.
 
 ## Key Technical Decisions
 - SSR Blade + Tailwind for predictable performance and SEO.

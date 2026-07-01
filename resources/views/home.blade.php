@@ -135,7 +135,7 @@
             <div class="cw-container">
                 <h2 class="cw-display text-3xl md:text-5xl text-center mb-12">{{ __('ui.homepage.featured_jobs_title') }}</h2>
                 {{-- Featured jobs component/partial goes here --}}
-                @include('components.featured-jobs')
+                @include('components.featured-jobs', ['featuredJobs' => $featuredJobs])
             </div>
         </section>
 

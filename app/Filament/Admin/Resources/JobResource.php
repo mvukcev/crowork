@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class JobResource extends Resource
 {
@@ -21,19 +22,51 @@ class JobResource extends Resource
 
     protected static ?string $navigationGroup = 'Job Management';
 
+    protected static ?string $navigationLabel = 'Jobs';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where(function (Builder $query): void {
+                $query->whereNull('source_system')
+                    ->orWhere('source_system', '!=', 'hzz');
+            })
+            ->where(function (Builder $query): void {
+                $query->whereNull('hzz_is_official')
+                    ->orWhere('hzz_is_official', false);
+            });
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Section::make(__('jobs.basic_information'))
+                    ->description('Fields marked with * are required before saving.')
                     ->schema([
                         Forms\Components\TextInput::make('title')
+                            ->label('Title *')
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state, ?string $old): void {
+                                $currentSlug = (string) ($get('slug') ?? '');
+                                $oldSlug = Str::slug((string) ($old ?? ''));
+
+                                if ($currentSlug === '' || $currentSlug === $oldSlug) {
+                                    $set('slug', Str::slug((string) ($state ?? '')));
+                                }
+                            })
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('slug')
+                            ->required()
+                            ->helperText('Auto-generated from title; you can still adjust it if needed.')
                             ->maxLength(255),
                         Forms\Components\Select::make('employer_id')
+                            ->label('Employer *')
                             ->relationship('employer', 'company_name')
+                            ->required()
                             ->searchable()
                             ->preload(),
                         Forms\Components\TextInput::make('location_city')
@@ -42,6 +75,7 @@ class JobResource extends Resource
                         Forms\Components\TextInput::make('category')
                             ->maxLength(255),
                         Forms\Components\Select::make('status')
+                            ->label('Status *')
                             ->options([
                                 'draft' => __('jobs.draft'),
                                 'pending' => __('jobs.pending'),
@@ -59,7 +93,7 @@ class JobResource extends Resource
                 Forms\Components\Section::make(__('jobs.job_content'))
                     ->schema([
                         Forms\Components\RichEditor::make('description')
-                            ->label(__('jobs.about_this_job'))
+                            ->label(__('jobs.about_this_job') . ' *')
                             ->required()
                             ->columnSpanFull(),
                         Forms\Components\Textarea::make('responsibilities')
@@ -154,6 +188,36 @@ class JobResource extends Resource
                         Forms\Components\DateTimePicker::make('published_at'),
                         Forms\Components\DateTimePicker::make('expires_at'),
                     ])->columns(2),
+                Forms\Components\Section::make('Source & HZZ')
+                    ->schema([
+                        Forms\Components\Select::make('source_system')
+                            ->options([
+                                'manual' => 'Manual',
+                                'hzz' => 'HZZ',
+                            ])
+                            ->native(false),
+                        Forms\Components\Toggle::make('hzz_is_official')
+                            ->label('Official HZZ source')
+                            ->default(false),
+                        Forms\Components\TextInput::make('source_reference')
+                            ->maxLength(190),
+                        Forms\Components\TextInput::make('source_url')
+                            ->url()
+                            ->maxLength(2000)
+                            ->columnSpanFull(),
+                        Forms\Components\TextInput::make('hzz_apply_email')
+                            ->email()
+                            ->maxLength(190),
+                        Forms\Components\TextInput::make('hzz_apply_contact_type')
+                            ->maxLength(40),
+                        Forms\Components\TextInput::make('hzz_apply_url')
+                            ->url()
+                            ->maxLength(2000)
+                            ->columnSpanFull(),
+                        Forms\Components\Textarea::make('hzz_legal_notice')
+                            ->rows(4)
+                            ->columnSpanFull(),
+                    ])->columns(2),
                 Forms\Components\Section::make(__('jobs.publishing'))
                     ->schema([
                         Forms\Components\Placeholder::make('status_hint')
@@ -177,6 +241,12 @@ class JobResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('category')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('source_system')
+                    ->badge()
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('hzz_is_official')
+                    ->label('HZZ')
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('contract_type')
                     ->label(__('jobs.employment_type'))
                     ->formatStateUsing(fn (?string $state): string => $state ? str($state)->replace(['-', '_'], ' ')->title() : '-')
@@ -227,6 +297,13 @@ class JobResource extends Resource
                     ->options(fn () => Job::query()->distinct()->pluck('location_city', 'location_city')->toArray()),
                 Tables\Filters\SelectFilter::make('category')
                     ->options(fn () => Job::query()->distinct()->pluck('category', 'category')->toArray()),
+                Tables\Filters\SelectFilter::make('source_system')
+                    ->options([
+                        'manual' => 'Manual',
+                        'hzz' => 'HZZ',
+                    ]),
+                Tables\Filters\TernaryFilter::make('hzz_is_official')
+                    ->label('Official HZZ'),
                 Tables\Filters\SelectFilter::make('contract_type')
                     ->label(__('jobs.employment_type'))
                     ->options(fn () => Job::query()->whereNotNull('contract_type')->distinct()->pluck('contract_type', 'contract_type')->toArray()),

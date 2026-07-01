@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Hzz\HzzApplicationContactParser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -18,6 +19,16 @@ class Job extends Model
         'source_logo_url',
         'source_imported_at',
         'external_company_name',
+        'source_system',
+        'source_reference',
+        'source_payload',
+        'hzz_is_official',
+        'hzz_apply_email',
+        'hzz_apply_contact_type',
+        'hzz_apply_contact_raw',
+        'hzz_apply_url',
+        'hzz_apply_method_available',
+        'hzz_legal_notice',
         'title',
         'slug',
         'salary_min',
@@ -64,7 +75,10 @@ class Job extends Model
             'start_date' => 'date',
             'expires_at' => 'datetime',
             'published_at' => 'datetime',
+            'source_payload' => 'array',
             'source_imported_at' => 'datetime',
+            'hzz_is_official' => 'boolean',
+            'hzz_apply_method_available' => 'boolean',
         ];
     }
 
@@ -85,6 +99,36 @@ class Job extends Model
             if ($job->isDirty('title') && empty($job->slug)) {
                 $job->slug = static::generateUniqueSlug($job->title);
             }
+        });
+
+        static::saving(function ($job) {
+            if (! $job->isHzzOfficial()) {
+                return;
+            }
+
+            $parser = app(HzzApplicationContactParser::class);
+
+            $parseInput = implode("\n\n", array_filter([
+                (string) ($job->application_instructions ?? ''),
+                strip_tags((string) ($job->description ?? '')),
+                (string) ($job->hzz_legal_notice ?? ''),
+            ], fn ($value) => trim((string) $value) !== ''));
+
+            $parsed = $parser->parse($parseInput, $job->source_url ?? null);
+
+            if (empty($job->hzz_apply_email) && ! empty($parsed['email'])) {
+                $job->hzz_apply_email = $parsed['email'];
+            }
+
+            if (empty($job->hzz_apply_url) && ! empty($parsed['apply_url'])) {
+                $job->hzz_apply_url = $parsed['apply_url'];
+            }
+
+            $job->hzz_apply_contact_raw = $job->hzz_apply_contact_raw ?: $parsed['contact_raw'];
+            $job->hzz_apply_contact_type = $parsed['contact_type'] ?? 'unknown';
+            $job->hzz_apply_method_available = ! empty($job->hzz_apply_email);
+            $job->source_system = $job->source_system ?: 'hzz';
+            $job->hzz_is_official = true;
         });
     }
 
@@ -202,5 +246,15 @@ class Job extends Model
         if (! $isActive) {
             $this->attributes['published_at'] = null;
         }
+    }
+
+    public function isHzzOfficial(): bool
+    {
+        return (bool) $this->hzz_is_official || strtolower((string) $this->source_system) === 'hzz';
+    }
+
+    public function canApplyViaCroWork(): bool
+    {
+        return $this->isHzzOfficial() && filled((string) $this->hzz_apply_email);
     }
 }

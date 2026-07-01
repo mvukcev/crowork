@@ -25,6 +25,14 @@ class JobController extends Controller
         $employer = $this->currentEmployer();
 
         $jobs = $employer->jobs()
+            ->where(function ($query): void {
+                $query->whereNull('source_system')
+                    ->orWhere('source_system', '!=', 'hzz');
+            })
+            ->where(function ($query): void {
+                $query->whereNull('hzz_is_official')
+                    ->orWhere('hzz_is_official', false);
+            })
             ->withCount('applications')
             ->orderByDesc('created_at')
             ->paginate(10);
@@ -73,16 +81,10 @@ class JobController extends Controller
             'working_hours' => ['nullable', 'string', 'max:120'],
             'shift_details' => ['nullable', 'string', 'max:5000'],
             'application_instructions' => ['nullable', 'string', 'max:5000'],
-            'is_featured' => ['nullable', 'boolean'],
-            'is_urgent' => ['nullable', 'boolean'],
-            'is_active' => ['nullable', 'boolean'],
         ]);
 
         $approvalService = app(ApprovalService::class);
-        $publishImmediately = (bool) ($validated['is_active'] ?? false);
-        $initialStatus = $publishImmediately
-            ? $approvalService->getInitialStatus($employer, 'job')
-            : 'draft';
+        $initialStatus = $approvalService->getInitialStatus($employer, 'job');
 
         $job = Job::create([
             'employer_id' => $employer->id,
@@ -112,8 +114,8 @@ class JobController extends Controller
             'working_hours' => $validated['working_hours'] ?? null,
             'shift_details' => $validated['shift_details'] ?? null,
             'application_instructions' => $validated['application_instructions'] ?? null,
-            'is_featured' => $request->boolean('is_featured'),
-            'is_urgent' => $request->boolean('is_urgent'),
+            'is_featured' => false,
+            'is_urgent' => false,
             'status' => $initialStatus,
             'published_at' => $initialStatus === 'published' ? now() : null,
             'expires_at' => now()->addDays(max(1, Setting::getInt('default_job_expiry_days', 30))),
@@ -189,14 +191,10 @@ class JobController extends Controller
             'working_hours' => ['nullable', 'string', 'max:120'],
             'shift_details' => ['nullable', 'string', 'max:5000'],
             'application_instructions' => ['nullable', 'string', 'max:5000'],
-            'is_featured' => ['nullable', 'boolean'],
-            'is_urgent' => ['nullable', 'boolean'],
-            'is_active' => ['nullable', 'boolean'],
         ]);
 
         $approvalService = app(ApprovalService::class);
-        $publishImmediately = (bool) ($validated['is_active'] ?? false);
-        $shouldPublish = $publishImmediately && ! $approvalService->requiresApprovalForEmployer($job->employer, 'job');
+        $nextStatus = $approvalService->getInitialStatus($job->employer, 'job');
 
         $job->update([
             'title' => $validated['title'],
@@ -222,10 +220,8 @@ class JobController extends Controller
             'working_hours' => $validated['working_hours'] ?? null,
             'shift_details' => $validated['shift_details'] ?? null,
             'application_instructions' => $validated['application_instructions'] ?? null,
-            'is_featured' => $request->boolean('is_featured'),
-            'is_urgent' => $request->boolean('is_urgent'),
-            'status' => $publishImmediately ? ($shouldPublish ? 'published' : 'pending') : 'draft',
-            'published_at' => $publishImmediately && $shouldPublish ? ($job->published_at ?? now()) : null,
+            'status' => $nextStatus,
+            'published_at' => $nextStatus === 'published' ? ($job->published_at ?? now()) : null,
         ]);
 
         return redirect()
@@ -249,8 +245,9 @@ class JobController extends Controller
     private function authorizeEmployerJob(Job $job): void
     {
         $employerId = auth()->user()?->employer?->id;
+        $isHzz = ($job->source_system === 'hzz') || (bool) $job->hzz_is_official;
 
-        abort_unless((int) $job->employer_id === (int) $employerId, 403);
+        abort_unless((int) $job->employer_id === (int) $employerId && ! $isHzz, 404);
     }
 
     private function currentEmployer(): Employer

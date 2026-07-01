@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureLatestLegalConsentAccepted;
 use App\Services\NotificationPreferenceService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,6 +14,8 @@ class NotificationPreferencesTest extends TestCase
 
     public function test_authenticated_user_can_update_notification_preferences(): void
     {
+        $this->withoutMiddleware(EnsureLatestLegalConsentAccepted::class);
+
         $user = User::factory()->create();
 
         $response = $this

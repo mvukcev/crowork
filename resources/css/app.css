@@ -1060,12 +1060,16 @@
         width: auto;
         max-width: calc(100vw - max(0.75rem, env(safe-area-inset-left)) - max(0.75rem, env(safe-area-inset-right)));
         border: 1px solid var(--cw-hairline);
-        border-radius: 16px;
-        background: #ffffff;
-        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
-        padding: 1rem;
+        border-radius: 18px;
+        background:
+            linear-gradient(125deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 250, 252, 0.98) 100%);
+        box-shadow:
+            0 14px 34px rgba(15, 23, 42, 0.14),
+            0 2px 0 rgba(255, 255, 255, 0.82) inset;
+        padding: 1.1rem 1.2rem;
         box-sizing: border-box;
         overflow-x: clip;
+        backdrop-filter: blur(6px);
     }
 
     .cw-cookie-banner[hidden] {
@@ -1073,22 +1077,67 @@
     }
 
     .cw-cookie-inner {
-        @apply max-w-[980px] mx-auto flex flex-col lg:flex-row items-start lg:items-center gap-4;
+        @apply max-w-[1080px] mx-auto flex flex-col lg:flex-row items-start lg:items-center gap-4;
     }
 
     .cw-cookie-text {
         @apply text-sm leading-relaxed;
         color: var(--cw-muted);
+        font-size: 1.02rem;
+        line-height: 1.55;
+        max-width: 62ch;
+    }
+
+    .cw-cookie-text a {
+        color: var(--cw-ink);
+        font-weight: 650;
+        text-underline-offset: 3px;
     }
 
     .cw-cookie-actions {
         @apply flex flex-col sm:flex-row gap-2 sm:ml-auto w-full sm:w-auto;
+        align-items: stretch;
+        justify-content: flex-end;
     }
 
     .cw-cookie-actions .cw-button-secondary,
     .cw-cookie-actions .cw-button-primary,
     .cw-cookie-actions .cw-button-accent {
         @apply w-full sm:w-auto;
+        min-height: 3rem;
+        border-radius: 18px;
+        padding-inline: 1.15rem;
+        font-size: 0.96rem;
+        font-weight: 620;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        transition:
+            transform 180ms var(--cw-ease-out),
+            box-shadow 180ms var(--cw-ease-out),
+            border-color 180ms var(--cw-ease-out),
+            background-color 180ms var(--cw-ease-out),
+            color 180ms var(--cw-ease-out);
+    }
+
+    .cw-cookie-actions .cw-button-secondary {
+        border-color: color-mix(in srgb, var(--cw-hairline) 68%, #dbe6f2 32%);
+        background: color-mix(in srgb, var(--cw-surface) 86%, #eef4fb 14%);
+        color: var(--cw-secondary);
+    }
+
+    .cw-cookie-actions .cw-button-secondary:hover:not(:disabled) {
+        border-color: color-mix(in srgb, var(--cw-secondary) 18%, var(--cw-hairline));
+        background: color-mix(in srgb, var(--cw-surface-soft) 64%, #edf4fe 36%);
+        transform: translateY(-1px);
+    }
+
+    .cw-cookie-actions .cw-button-primary {
+        min-width: 7.8rem;
+        box-shadow: 0 8px 18px rgba(254, 80, 0, 0.24);
+    }
+
+    .cw-cookie-actions .cw-button-primary:hover:not(:disabled) {
+        box-shadow: 0 12px 22px rgba(254, 80, 0, 0.32);
     }
 
     .cw-cookie-modal {
@@ -2063,7 +2112,24 @@
             right: max(0.625rem, env(safe-area-inset-right));
             bottom: max(0.625rem, env(safe-area-inset-bottom));
             max-width: calc(100vw - max(0.625rem, env(safe-area-inset-left)) - max(0.625rem, env(safe-area-inset-right)));
-            padding: 0.85rem;
+            padding: 0.8rem 0.85rem;
+        }
+
+        .cw-cookie-text {
+            font-size: 0.94rem;
+            line-height: 1.45;
+        }
+
+        .cw-cookie-actions {
+            width: 100%;
+            grid-template-columns: 1fr;
+        }
+
+        .cw-cookie-actions .cw-button-secondary,
+        .cw-cookie-actions .cw-button-primary,
+        .cw-cookie-actions .cw-button-accent {
+            min-height: 2.8rem;
+            border-radius: 14px;
         }
 
         .cw-preview-card {
@@ -2382,6 +2448,32 @@
     .cw-theme-dark .cw-preview-input {
         background: color-mix(in srgb, var(--cw-surface-soft) 92%, transparent);
         border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .cw-theme-dark .cw-cookie-banner {
+        background: linear-gradient(128deg, rgba(8, 18, 34, 0.95) 0%, rgba(10, 24, 44, 0.92) 100%);
+        box-shadow:
+            0 18px 38px rgba(0, 0, 0, 0.45),
+            0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    }
+
+    .cw-theme-dark .cw-cookie-text a {
+        color: #f8fafc;
+    }
+
+    .cw-theme-dark .cw-cookie-actions .cw-button-secondary {
+        background: rgba(148, 163, 184, 0.12);
+        border-color: rgba(148, 163, 184, 0.4);
+        color: #e2e8f0;
+    }
+
+    .cw-theme-dark .cw-cookie-actions .cw-button-secondary:hover:not(:disabled) {
+        background: rgba(148, 163, 184, 0.2);
+        border-color: rgba(148, 163, 184, 0.58);
+    }
+
+    .cw-theme-dark .cw-cookie-actions .cw-button-primary {
+        box-shadow: 0 10px 24px rgba(254, 80, 0, 0.3);
     }
 
     .cw-theme-dark .cw-preview-error {

@@ -67,7 +67,7 @@ class ConsentConfigService
             return $historyValue;
         }
 
-        return self::hasImplicitTrackingConsentForAuthenticatedUser($user);
+        return false;
     }
 
     public static function hasMarketingConsent(?Request $request = null, ?User $user = null): bool
@@ -88,7 +88,7 @@ class ConsentConfigService
             return $historyValue;
         }
 
-        return self::hasImplicitTrackingConsentForAuthenticatedUser($user);
+        return false;
     }
 
     public static function hasImplicitTrackingConsentForAuthenticatedUser(?User $user): bool

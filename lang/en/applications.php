@@ -2,9 +2,16 @@
 
 return [
     'new' => 'New',
+    'reviewing' => 'Reviewing',
     'reviewed' => 'Reviewed',
     'shortlisted' => 'Shortlisted',
+    'interview' => 'Interview',
+    'offer' => 'Offer',
+    'hired' => 'Hired',
     'rejected' => 'Rejected',
+    'pending' => 'Pending',
+    'sent' => 'Sent',
+    'failed' => 'Failed',
     'status' => 'Status',
     'first_name' => 'First Name',
     'last_name' => 'Last Name',

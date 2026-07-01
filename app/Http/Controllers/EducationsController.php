@@ -68,12 +68,16 @@ class EducationsController extends Controller
 
         // Search by title, provider, or description
         if ($request->filled('q')) {
-            $search = $request->input('q');
+            $search = trim((string) $request->input('q'));
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', '%' . $search . '%')
                   ->orWhere('description', 'like', '%' . $search . '%')
-                  ->orWhereHas('createdByUser.employer', function ($q) use ($search) {
-                      $q->where('company_name', 'like', '%' . $search . '%');
+                  ->orWhereHas('createdByUser', function ($userQuery) use ($search) {
+                      $userQuery->where('name', 'like', '%' . $search . '%')
+                          ->orWhereHas('employer', function ($employerQuery) use ($search) {
+                              $employerQuery->where('company_name', 'like', '%' . $search . '%')
+                                  ->orWhere('company_display_name', 'like', '%' . $search . '%');
+                          });
                   });
             });
         }

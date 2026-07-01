@@ -8,6 +8,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class JobApplication extends Model
 {
     use SoftDeletes;
+
+    public const CHANNEL_INTERNAL = 'internal';
+    public const CHANNEL_HZZ_EMAIL = 'hzz_email';
+    public const CHANNEL_HZZ_EXTERNAL = 'hzz_external';
+
+    public const SUBMISSION_PENDING = 'pending';
+    public const SUBMISSION_SENT = 'sent';
+    public const SUBMISSION_FAILED = 'failed';
+
     public const STATUS_NEW = 'new';
     public const STATUS_REVIEWING = 'reviewing';
     public const STATUS_SHORTLISTED = 'shortlisted';
@@ -18,10 +27,19 @@ class JobApplication extends Model
 
     protected $fillable = [
         'job_id',
+        'apply_channel',
         'worker_id',
         'profile_snapshot',
         'job_snapshot',
+        'cv_snapshot',
+        'cv_file_path',
         'message',
+        'cover_letter_text',
+        'cover_letter_template_key',
+        'submitted_to_email',
+        'submission_status',
+        'submission_log',
+        'submitted_at',
         'status',
         'internal_note',
         'score',
@@ -35,7 +53,9 @@ class JobApplication extends Model
     protected $casts = [
         'profile_snapshot' => 'array',
         'job_snapshot' => 'array',
+        'cv_snapshot' => 'array',
         'interview_at' => 'datetime',
+        'submitted_at' => 'datetime',
         'status_updated_at' => 'datetime',
         'anonymized_at' => 'datetime',
         'retention_processed_at' => 'datetime',
@@ -52,6 +72,15 @@ class JobApplication extends Model
             self::STATUS_OFFER => 'Offer',
             self::STATUS_HIRED => 'Hired',
             self::STATUS_REJECTED => 'Rejected',
+        ];
+    }
+
+    public static function submissionStatusOptions(): array
+    {
+        return [
+            self::SUBMISSION_PENDING => 'Pending',
+            self::SUBMISSION_SENT => 'Sent',
+            self::SUBMISSION_FAILED => 'Failed',
         ];
     }
 

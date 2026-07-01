@@ -5,13 +5,16 @@ namespace App\Models;
 use App\Notifications\AuthResetPasswordNotification;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class User extends Authenticatable implements FilamentUser, HasLocalePreference
 {
@@ -308,5 +311,22 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
     public function sendPasswordResetNotification($token): void
     {
         $this->notify((new AuthResetPasswordNotification($token))->locale($this->preferredLocale()));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        try {
+            $this->notify((new VerifyEmail())->locale($this->preferredLocale()));
+        } catch (Throwable $exception) {
+            if (! app()->environment(['local', 'testing'])) {
+                throw $exception;
+            }
+
+            Log::warning('Email verification notification failed in local/testing environment.', [
+                'user_id' => $this->id,
+                'email' => $this->email,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 }

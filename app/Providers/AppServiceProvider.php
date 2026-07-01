@@ -32,6 +32,19 @@ class AppServiceProvider extends ServiceProvider
         $viteHotFile = storage_path('framework/vite.hot');
         $viteManifestPath = public_path('build/manifest.json');
 
+        if (app()->environment(['local', 'testing']) && is_file($viteHotFile)) {
+            $hotUrl = trim((string) @file_get_contents($viteHotFile));
+
+            if ($hotUrl !== '' && ! $this->isReachableViteDevServer($hotUrl) && is_file($viteManifestPath)) {
+                @unlink($viteHotFile);
+
+                Log::warning('Removed stale Vite hot file because dev server is unreachable; falling back to built assets.', [
+                    'path' => $viteHotFile,
+                    'hot_url' => $hotUrl,
+                ]);
+            }
+        }
+
         Vite::useHotFile($viteHotFile)->useBuildDirectory('build');
 
         if (app()->isProduction()) {
@@ -130,5 +143,29 @@ class AppServiceProvider extends ServiceProvider
                 'sent_at' => now(),
             ]);
         });
+    }
+
+    private function isReachableViteDevServer(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (! is_array($parts)) {
+            return false;
+        }
+
+        $host = $parts['host'] ?? null;
+        $port = isset($parts['port']) ? (int) $parts['port'] : null;
+
+        if (! is_string($host) || $host === '' || ! is_int($port) || $port <= 0) {
+            return false;
+        }
+
+        $connection = @fsockopen($host, $port, $errno, $errstr, 0.25);
+        if ($connection === false) {
+            return false;
+        }
+
+        fclose($connection);
+
+        return true;
     }
 }

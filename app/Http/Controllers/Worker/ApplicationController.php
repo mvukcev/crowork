@@ -72,6 +72,12 @@ class ApplicationController extends Controller
 
         $totalJobApplications = (clone $jobApplicationsQuery)->count();
         $totalEducationApplications = (clone $educationApplicationsQuery)->count();
+        $hzzJobApplications = (clone $jobApplicationsQuery)
+            ->whereIn('apply_channel', [
+                JobApplication::CHANNEL_HZZ_EMAIL,
+                JobApplication::CHANNEL_HZZ_EXTERNAL,
+            ])
+            ->count();
 
         $onboardingChecklist = [
             [
@@ -191,6 +197,7 @@ class ApplicationController extends Controller
             'latestEducationApplications',
             'totalJobApplications',
             'totalEducationApplications',
+            'hzzJobApplications',
             'onboardingChecklist',
             'recommendedNextActions',
             'applicationTimeline',
@@ -203,13 +210,57 @@ class ApplicationController extends Controller
     {
         $this->ensureWorker($request);
 
-        $applications = $request->user()
+        $channel = (string) $request->query('channel', 'all');
+        $allowedChannels = ['all', 'internal', 'hzz'];
+        if (! in_array($channel, $allowedChannels, true)) {
+            $channel = 'all';
+        }
+
+        $baseQuery = $request->user()
             ->jobApplications()
             ->with(['job.employer'])
-            ->latest()
-            ->paginate(10);
+            ->latest();
 
-        return view('worker.applications.jobs', compact('applications'));
+        if ($channel === 'internal') {
+            $baseQuery->where('apply_channel', JobApplication::CHANNEL_INTERNAL);
+        }
+
+        if ($channel === 'hzz') {
+            $baseQuery->whereIn('apply_channel', [
+                JobApplication::CHANNEL_HZZ_EMAIL,
+                JobApplication::CHANNEL_HZZ_EXTERNAL,
+            ]);
+        }
+
+        $applications = (clone $baseQuery)->paginate(10)->withQueryString();
+
+        $statsQuery = $request->user()->jobApplications();
+        $hzzEmailSentCount = (clone $statsQuery)
+            ->where('apply_channel', JobApplication::CHANNEL_HZZ_EMAIL)
+            ->where('submission_status', 'sent')
+            ->count();
+
+        $hzzEmailFailedCount = (clone $statsQuery)
+            ->where('apply_channel', JobApplication::CHANNEL_HZZ_EMAIL)
+            ->where('submission_status', 'failed')
+            ->count();
+
+        $hzzExternalOpenCount = (clone $statsQuery)
+            ->where('apply_channel', JobApplication::CHANNEL_HZZ_EXTERNAL)
+            ->count();
+
+        $internalCount = (clone $statsQuery)
+            ->where('apply_channel', JobApplication::CHANNEL_INTERNAL)
+            ->count();
+
+        return view('worker.applications.jobs', compact(
+            'applications',
+            'channel',
+            'hzzEmailSentCount',
+            'hzzEmailFailedCount',
+            'hzzExternalOpenCount',
+            'internalCount',
+        ));
     }
 
     public function educationApplications(Request $request)

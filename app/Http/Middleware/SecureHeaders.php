@@ -17,13 +17,13 @@ class SecureHeaders
 
         $isLocalEnvironment = app()->environment(['local', 'testing']);
         $viteScriptSources = $isLocalEnvironment
-            ? " 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net http://127.0.0.1:5173 http://localhost:5173 http://[::1]:5173"
+            ? " 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net http://127.0.0.1:5173 http://localhost:5173"
             : " 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net";
         $viteStyleSources = $isLocalEnvironment
-            ? " 'self' 'unsafe-inline' cdn.jsdelivr.net http://127.0.0.1:5173 http://localhost:5173 http://[::1]:5173"
+            ? " 'self' 'unsafe-inline' cdn.jsdelivr.net http://127.0.0.1:5173 http://localhost:5173"
             : " 'self' 'unsafe-inline' cdn.jsdelivr.net";
         $viteConnectSources = $isLocalEnvironment
-            ? " 'self' api.github.com http://127.0.0.1:5173 http://localhost:5173 http://[::1]:5173 ws://127.0.0.1:5173 ws://localhost:5173 ws://[::1]:5173"
+            ? " 'self' api.github.com http://127.0.0.1:5173 http://localhost:5173 ws://127.0.0.1:5173 ws://localhost:5173"
             : " 'self' api.github.com";
 
         // Prevent clickjacking attacks

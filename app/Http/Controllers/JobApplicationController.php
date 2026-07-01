@@ -9,6 +9,9 @@ use App\Models\WorkerProfile;
 use App\Notifications\JobApplicationSubmitted;
 use App\Notifications\NewJobApplicationReceived;
 use App\Services\ConsentConfigService;
+use App\Services\Hzz\HzzAnalyticsTracker;
+use App\Services\Hzz\HzzApplicationService;
+use App\Support\HzzUrlGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -21,6 +24,12 @@ class JobApplicationController extends Controller
      */
     public function create(Job $job)
     {
+        $isHzzFlow = $job->isHzzOfficial();
+
+        if ($isHzzFlow) {
+            app(HzzAnalyticsTracker::class)->trackCtaClick($job, request());
+        }
+
         // Authorization check: Only workers can apply
         if (Auth::user()->role !== 'worker') {
             abort(403, __('ui.jobs_apply.error_only_workers'));
@@ -54,6 +63,10 @@ class JobApplicationController extends Controller
         $profileSnapshot = $profile->toSnapshot();
         $profileSkills = is_array($profileSnapshot['skills'] ?? null) ? $profileSnapshot['skills'] : [];
 
+        if ($isHzzFlow && ! $job->canApplyViaCroWork()) {
+            return view('jobs.hzz-apply-gateway', compact('job', 'profileSnapshot', 'profileSkills'));
+        }
+
         return view('jobs.apply', compact(
             'job',
             'profile',
@@ -69,6 +82,8 @@ class JobApplicationController extends Controller
      */
     public function store(Request $request, Job $job)
     {
+        $isHzzFlow = $job->isHzzOfficial();
+
         // Authorization check: Only workers can apply
         if (Auth::user()->role !== 'worker') {
             abort(403, __('ui.jobs_apply.error_only_workers'));
@@ -77,7 +92,7 @@ class JobApplicationController extends Controller
         // Ensure job is still published and active
         if ($job->status !== 'published' || ($job->expires_at && $job->expires_at->isPast())) {
             return redirect()
-                ->route('jobs.show', $job->slug)
+                ->route('jobs.show', $job)
                 ->with('error', __('ui.jobs_apply.error_no_longer_available'));
         }
 
@@ -98,29 +113,89 @@ class JobApplicationController extends Controller
 
         if ($existingApplication) {
             return redirect()
-                ->route('jobs.apply', $job->slug)
+                ->route('jobs.apply', $job)
                 ->with('info', __('ui.jobs_apply.flash_already_applied'));
         }
 
         // Validate request
         $validated = $request->validate([
             'message' => 'nullable|string|max:1000',
+            'cv_choice' => 'nullable|in:profile,upload',
+            'cv_file' => 'nullable|required_if:cv_choice,upload|file|mimes:pdf,doc,docx|max:10240',
+            'cover_letter_mode' => 'nullable|in:none,preset,custom',
+            'cover_letter_preset' => 'nullable|required_if:cover_letter_mode,preset|in:short,standard,detailed',
+            'cover_letter_text' => 'nullable|string|max:5000',
             'consent' => 'accepted',
         ]);
+
+        $cvChoice = (string) ($validated['cv_choice'] ?? 'profile');
+        $coverLetterMode = (string) ($validated['cover_letter_mode'] ?? 'none');
+        $coverLetterText = $this->resolveCoverLetterText(
+            $coverLetterMode,
+            $validated['cover_letter_preset'] ?? null,
+            $validated['cover_letter_text'] ?? null,
+            $profile,
+            $job,
+        );
+
+        $cvFilePath = null;
+        if ($cvChoice === 'upload' && $request->hasFile('cv_file')) {
+            $cvFilePath = $request->file('cv_file')->store('job-applications/cv');
+        }
+
+        $cvSnapshot = [
+            'source' => $cvChoice,
+            'generated_at' => now()->toIso8601String(),
+        ];
+
+        if ($cvFilePath !== null) {
+            $cvSnapshot['file_path'] = $cvFilePath;
+            $cvSnapshot['original_name'] = (string) $request->file('cv_file')->getClientOriginalName();
+            $cvSnapshot['mime'] = (string) $request->file('cv_file')->getClientMimeType();
+        }
+
+        if ($cvChoice === 'profile') {
+            $cvSnapshot['profile_snapshot_version'] = $profile->toSnapshot()['snapshot_version'] ?? null;
+        }
 
         // Create job application with profile snapshot
         $application = JobApplication::create([
             'job_id' => $job->id,
+            'apply_channel' => $isHzzFlow ? JobApplication::CHANNEL_HZZ_EMAIL : JobApplication::CHANNEL_INTERNAL,
             'worker_id' => Auth::id(),
             'profile_snapshot' => $profile->toSnapshot(),
             'job_snapshot' => $this->jobSnapshot($job),
-            'message' => $validated['message'] ?? null,
+            'message' => $validated['message'] ?? $coverLetterText,
+            'cover_letter_text' => $coverLetterText,
+            'cover_letter_template_key' => $coverLetterMode === 'preset' ? ($validated['cover_letter_preset'] ?? null) : null,
+            'cv_snapshot' => $cvSnapshot,
+            'cv_file_path' => $cvFilePath,
+            'submitted_to_email' => $isHzzFlow ? $job->hzz_apply_email : null,
             'status' => 'new',
+            'submission_status' => $isHzzFlow ? 'pending' : 'sent',
         ]);
+
+        if ($isHzzFlow) {
+            $sendResult = app(HzzApplicationService::class)->sendToEmployer($application, $job, $request->user(), $profile);
+
+            $application->forceFill([
+                'submission_status' => $sendResult['status'] ?? 'failed',
+                'submission_log' => $sendResult['log'] ?? null,
+                'submitted_at' => now(),
+            ])->save();
+
+            app(HzzAnalyticsTracker::class)->trackApplicationSent($job, $request, (bool) ($sendResult['success'] ?? false), [
+                'application_id' => $application->id,
+                'submission_status' => $sendResult['status'] ?? 'failed',
+            ]);
+        }
 
         $application->loadMissing('job.employer.user', 'worker');
         $application->worker?->notify(new JobApplicationSubmitted($application));
-        $application->job?->employer?->user?->notify(new NewJobApplicationReceived($application));
+
+        if (! $isHzzFlow) {
+            $application->job?->employer?->user?->notify(new NewJobApplicationReceived($application));
+        }
 
         $metaEventId = null;
         if (ConsentConfigService::hasMarketingConsent($request, $request->user())) {
@@ -145,10 +220,71 @@ class JobApplicationController extends Controller
             'application_id' => $application->id,
         ]);
 
+        if ($isHzzFlow && $application->submission_status !== 'sent') {
+            return redirect()
+                ->route('jobs.apply', $job->slug)
+                ->with('error', __('ui.jobs_apply.hzz_submit_failed'));
+        }
+
         // Redirect to job detail with success message
         return redirect()
-            ->route('jobs.show', $job->slug)
+            ->route('jobs.show', $job)
             ->with('success', __('ui.jobs_apply.flash_submitted_success'));
+    }
+
+    public function openExternal(Job $job, Request $request)
+    {
+        if (! $job->isHzzOfficial()) {
+            abort(404);
+        }
+
+        if (Auth::user()->role !== 'worker') {
+            abort(403, __('ui.jobs_apply.error_only_workers'));
+        }
+
+        $profile = WorkerProfile::where('user_id', Auth::id())->first();
+        if (! $profile || ! $this->isProfileComplete($profile)) {
+            return redirect()
+                ->route('worker.profile.edit')
+                ->with('warning', __('ui.jobs_apply.flash_complete_profile'));
+        }
+
+        $target = $job->hzz_apply_url ?: $job->source_url;
+        if (! filled($target) || ! HzzUrlGuard::isAllowedApplyUrl((string) $target)) {
+            return redirect()
+                ->route('jobs.show', $job)
+                ->with('error', __('ui.jobs_apply.hzz_open_missing_url'));
+        }
+
+        $application = JobApplication::query()->firstOrCreate(
+            [
+                'job_id' => $job->id,
+                'worker_id' => Auth::id(),
+            ],
+            [
+                'apply_channel' => JobApplication::CHANNEL_HZZ_EXTERNAL,
+                'profile_snapshot' => $profile->toSnapshot(),
+                'job_snapshot' => $this->jobSnapshot($job),
+                'cv_snapshot' => $profile->toSnapshot(),
+                'status' => JobApplication::STATUS_NEW,
+                'submission_status' => 'pending',
+                'submission_log' => 'User opened external HZZ application link.',
+                'submitted_at' => now(),
+            ]
+        );
+
+        if ($application->wasRecentlyCreated === false && $application->apply_channel !== JobApplication::CHANNEL_HZZ_EXTERNAL) {
+            $application->forceFill([
+                'apply_channel' => JobApplication::CHANNEL_HZZ_EXTERNAL,
+                'submission_status' => $application->submission_status ?: 'pending',
+                'submission_log' => 'User opened external HZZ application link.',
+                'submitted_at' => now(),
+            ])->save();
+        }
+
+        app(HzzAnalyticsTracker::class)->trackExternalOpen($job, $request);
+
+        return redirect()->away($target);
     }
 
     /**
@@ -199,5 +335,31 @@ class JobApplicationController extends Controller
         ];
 
         session(['cw_track_queue' => $queue]);
+    }
+
+    private function resolveCoverLetterText(
+        string $mode,
+        ?string $preset,
+        ?string $customText,
+        WorkerProfile $profile,
+        Job $job,
+    ): ?string {
+        if ($mode === 'custom') {
+            return trim((string) $customText) !== '' ? trim((string) $customText) : null;
+        }
+
+        if ($mode !== 'preset') {
+            return null;
+        }
+
+        $candidateName = trim((string) ($profile->first_name . ' ' . $profile->last_name));
+        $city = trim((string) ($profile->current_city ?? ''));
+        $jobTitle = trim((string) $job->title);
+
+        return match ($preset) {
+            'short' => "Poštovani,\n\nzainteresiran/a sam za poziciju {$jobTitle}. Vjerujem da se moj profil i iskustvo dobro uklapaju u traženu ulogu.\n\nSrdačan pozdrav,\n{$candidateName}",
+            'detailed' => "Poštovani,\n\nprijavljujem se na poziciju {$jobTitle} putem CroWork platforme. Kroz dosadašnje iskustvo razvio/la sam odgovornost, timski rad i fokus na kvalitetu izvedbe. Posebno me motivira mogućnost rada i razvoja u profesionalnom okruženju.\n\nTrenutno sam dostupan/na" . ($city !== '' ? " iz grada {$city}" : '') . " te sam spreman/na za daljnje korake selekcije.\n\nHvala na vremenu i razmatranju moje prijave.\n\nSrdačan pozdrav,\n{$candidateName}",
+            default => "Poštovani,\n\novim putem šaljem prijavu za poziciju {$jobTitle}. Smatram da svojim iskustvom i pristupom radu mogu doprinijeti vašem timu.\n\nVeselim se mogućnosti daljnjeg razgovora.\n\nSrdačan pozdrav,\n{$candidateName}",
+        };
     }
 }
