@@ -12,7 +12,7 @@ use RuntimeException;
 
 class HzzJobImportService
 {
-    private const MAX_FEED_BYTES = 5242880;
+    private const MAX_FEED_BYTES = 12000000;
 
     /**
      * Common acronyms that should remain uppercase after sentence-case normalization.
@@ -38,7 +38,7 @@ class HzzJobImportService
     ) {
     }
 
-    public function importFromUrl(string $url, bool $dryRun = false, bool $allowUpdates = false, bool $deactivateMissing = false): array
+    public function importFromUrl(string $url, bool $dryRun = false, bool $allowUpdates = false, bool $deactivateMissing = false, bool $forceOverwrite = false): array
     {
         $response = Http::accept('application/xml, text/xml;q=0.9, application/rss+xml;q=0.9, */*;q=0.1')
             ->connectTimeout(10)
@@ -61,8 +61,12 @@ class HzzJobImportService
             throw new RuntimeException('HZZ import failed because the XML feed exceeds the maximum allowed size.');
         }
 
-        $payload = $this->decodePayload($body);
-        $items = $this->normalizeItems($payload);
+        $items = $this->extractXmlJobItems($body);
+
+        if (count($items) === 0) {
+            $payload = $this->decodePayload($body);
+            $items = $this->normalizeItems($payload);
+        }
 
         $created = 0;
         $updated = 0;
@@ -96,7 +100,7 @@ class HzzJobImportService
                     continue;
                 }
 
-                [$payload, $preservedManualEdit] = $this->mergeExistingRecord($existing, $mapped);
+                [$payload, $preservedManualEdit] = $this->mergeExistingRecord($existing, $mapped, $forceOverwrite);
                 $existing->fill($payload)->save();
                 if ($preservedManualEdit) {
                     $preservedManualRecords++;
@@ -133,6 +137,7 @@ class HzzJobImportService
             'dry_run' => $dryRun,
             'allow_updates' => $allowUpdates,
             'deactivate_missing' => $deactivateMissing,
+            'force_overwrite' => $forceOverwrite,
         ]);
 
         return [
@@ -145,14 +150,59 @@ class HzzJobImportService
             'preserved_manual_records' => $preservedManualRecords,
             'dry_run' => $dryRun,
             'allow_updates' => $allowUpdates,
+            'force_overwrite' => $forceOverwrite,
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function extractXmlJobItems(string $body): array
+    {
+        try {
+            $previous = libxml_use_internal_errors(true);
+            $xml = simplexml_load_string($body, 'SimpleXMLElement', LIBXML_NONET | LIBXML_NOCDATA | LIBXML_NOWARNING | LIBXML_NOERROR);
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+
+            if ($xml === false) {
+                return [];
+            }
+
+            $nodes = [];
+            foreach ($xml->radnoMjesto ?? [] as $node) {
+                $nodes[] = $node;
+            }
+
+            if (count($nodes) === 0) {
+                $nodes = $xml->xpath('//*[local-name()="radnoMjesto"]') ?: [];
+            }
+
+            $items = [];
+            foreach ($nodes as $node) {
+                $encoded = json_encode($node, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+                $decoded = is_string($encoded) ? json_decode($encoded, true) : null;
+
+                if (is_array($decoded) && $this->looksLikeJobItem($decoded)) {
+                    $items[] = $decoded;
+                }
+            }
+
+            return $items;
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**
      * @return array{0: array<string, mixed>, 1: bool}
      */
-    private function mergeExistingRecord(Job $existing, array $mapped): array
+    private function mergeExistingRecord(Job $existing, array $mapped, bool $forceOverwrite = false): array
     {
+        if ($forceOverwrite) {
+            return [$mapped, false];
+        }
+
         $preserveManualEdits = $existing->source_imported_at !== null
             && $existing->updated_at !== null
             && $existing->updated_at->gt($existing->source_imported_at->copy()->addMinutes(5));
@@ -203,10 +253,33 @@ class HzzJobImportService
                 Arr::get($payload, 'results', []),
                 Arr::get($payload, 'radnaMjesta.radnoMjesto', []),
                 Arr::get($payload, 'radnoMjesto', []),
+                Arr::get($payload, 'rss.channel.item', []),
+                Arr::get($payload, 'channel.item', []),
             ];
 
             foreach ($candidates as $candidate) {
                 if (is_array($candidate) && array_is_list($candidate) && count($candidate) > 0) {
+                    $normalized = [];
+
+                    foreach ($candidate as $entry) {
+                        if (! is_array($entry)) {
+                            continue;
+                        }
+
+                        $jobEntry = Arr::get($entry, 'radnoMjesto')
+                            ?? Arr::get($entry, 'job')
+                            ?? Arr::get($entry, 'item')
+                            ?? $entry;
+
+                        if (is_array($jobEntry) && $this->looksLikeJobItem($jobEntry)) {
+                            $normalized[] = $jobEntry;
+                        }
+                    }
+
+                    if (count($normalized) > 0) {
+                        return $normalized;
+                    }
+
                     return $candidate;
                 }
 
@@ -304,6 +377,11 @@ class HzzJobImportService
             $this->normalizeSentenceCase($instructionsCombined),
         ]);
 
+        $description = $this->deduplicateLinesInBlock($description);
+        $requirementsText = $this->deduplicateLinesInBlock($requirementsText);
+        $benefitsText = $this->deduplicateLinesInBlock($benefitsText);
+        $instructionsText = $this->deduplicateLinesInBlock($instructionsText);
+
         if ($requirementsText !== '' && $this->isMostlyDuplicate($description, $requirementsText)) {
             // For HZZ imports the responsibilities/requirements section is more useful than a duplicated generic description.
             $description = '';
@@ -314,12 +392,13 @@ class HzzJobImportService
             $description = '';
         }
 
-        $sourceUrl = (string) (
+        $sourceUrlRaw = (string) (
             Arr::get($item, 'url')
             ?? Arr::get($item, 'apply_url')
             ?? Arr::get($item, 'link')
             ?? $fallbackUrl
         );
+        $sourceUrl = $this->normalizeDuplicatedUrl($sourceUrlRaw) ?? $fallbackUrl;
 
         $sourceLogoUrl = (string) (
             Arr::get($item, 'trackback')
@@ -343,34 +422,36 @@ class HzzJobImportService
             $descriptionRaw,
             $requirementsRaw,
             $benefitsRaw,
-            trim((string) Arr::get($item, 'contact')),
-            trim((string) Arr::get($item, 'email')),
-            trim((string) Arr::get($item, 'eMail')),
-            trim((string) Arr::get($item, 'eposta')),
-            trim((string) Arr::get($item, 'ePosta')),
-            trim((string) Arr::get($item, 'emailAdresa')),
-            trim((string) Arr::get($item, 'adresaEPoste')),
-            trim((string) Arr::get($item, 'adresa_e_poste')),
-            trim((string) Arr::get($item, 'kontakt')),
-            trim((string) Arr::get($item, 'kontaktOsoba')),
-            trim((string) Arr::get($item, 'kontakt_osoba')),
-            trim((string) Arr::get($item, 'kontaktEmail')),
-            trim((string) Arr::get($item, 'kontakt_email')),
-            trim((string) Arr::get($item, 'emailPoslodavca')),
-            trim((string) Arr::get($item, 'email_poslodavca')),
-            trim((string) Arr::get($item, 'mailPoslodavca')),
-            trim((string) Arr::get($item, 'mail_poslodavca')),
-            trim((string) Arr::get($item, 'nacin_prijave')),
-            trim((string) Arr::get($item, 'nacinPrijaveOpis')),
-            trim((string) Arr::get($item, 'tekstPrijave')),
-            trim((string) Arr::get($item, 'napomenaPrijava')),
-            trim((string) Arr::get($item, 'telefon')),
+            trim($this->flattenToText(Arr::get($item, 'contact'))),
+            trim($this->flattenToText(Arr::get($item, 'email'))),
+            trim($this->flattenToText(Arr::get($item, 'eMail'))),
+            trim($this->flattenToText(Arr::get($item, 'eposta'))),
+            trim($this->flattenToText(Arr::get($item, 'ePosta'))),
+            trim($this->flattenToText(Arr::get($item, 'emailAdresa'))),
+            trim($this->flattenToText(Arr::get($item, 'adresaEPoste'))),
+            trim($this->flattenToText(Arr::get($item, 'adresa_e_poste'))),
+            trim($this->flattenToText(Arr::get($item, 'kontakt'))),
+            trim($this->flattenToText(Arr::get($item, 'kontaktOsoba'))),
+            trim($this->flattenToText(Arr::get($item, 'kontakt_osoba'))),
+            trim($this->flattenToText(Arr::get($item, 'kontaktEmail'))),
+            trim($this->flattenToText(Arr::get($item, 'kontakt_email'))),
+            trim($this->flattenToText(Arr::get($item, 'emailPoslodavca'))),
+            trim($this->flattenToText(Arr::get($item, 'email_poslodavca'))),
+            trim($this->flattenToText(Arr::get($item, 'mailPoslodavca'))),
+            trim($this->flattenToText(Arr::get($item, 'mail_poslodavca'))),
+            trim($this->flattenToText(Arr::get($item, 'nacin_prijave'))),
+            trim($this->flattenToText(Arr::get($item, 'nacinPrijaveOpis'))),
+            trim($this->flattenToText(Arr::get($item, 'tekstPrijave'))),
+            trim($this->flattenToText(Arr::get($item, 'napomenaPrijava'))),
+            trim($this->flattenToText(Arr::get($item, 'telefon'))),
             $this->flattenToText($item),
         ], fn ($value) => trim((string) $value) !== ''));
 
         $parsedContact = $this->contactParser->parse($contactInput, $sourceUrl);
+        $parsedApplyUrl = $this->normalizeDuplicatedUrl((string) ($parsedContact['apply_url'] ?? ''));
 
-        if (! empty($parsedContact['email']) && $this->looksLikeSingleEmailInstruction($instructionsText)) {
+        if (! empty($parsedContact['email'])) {
+            // HZZ instructions should keep a clean destination email when available.
             $instructionsText = (string) $parsedContact['email'];
         }
 
@@ -478,15 +559,33 @@ class HzzJobImportService
             $hzzLegalNotice = '';
         }
 
+        $sourceReference = $this->limitString($externalId, 190);
+        $externalCompanyName = $this->limitString($externalCompanyName !== '' ? $externalCompanyName : null, 255);
+        $title = $this->limitString($title, 255) ?? $title;
+        $city = $this->limitString($city, 255) ?? $city;
+        $category = $this->limitString($category, 255) ?? $category;
+        $contractType = $this->limitString($contractType !== '' ? $contractType : null, 255);
+        $experienceLevel = $this->limitString($experienceLevel !== '' ? $experienceLevel : null, 80);
+        $educationRequired = $this->limitString($educationRequired !== '' ? $educationRequired : null, 120);
+        $workingHours = $this->limitString($workingHours !== '' ? $workingHours : null, 120);
+
+        $applyEmail = $this->limitString($parsedContact['email'] ?? null, 190);
+        $applyContactType = $this->limitString((string) ($parsedContact['contact_type'] ?? 'unknown'), 40) ?? 'unknown';
+        $applyContactRaw = $this->limitString($parsedContact['contact_raw'] ?? null, 64000);
+
+        if ($instructionsText !== '') {
+            $instructionsText = $this->limitString($instructionsText, 64000) ?? '';
+        }
+
         return [
             'source_system' => 'hzz',
             'hzz_is_official' => true,
-            'source_reference' => $externalId,
+            'source_reference' => $sourceReference,
             'source_url' => $sourceUrl,
             'source_logo_url' => $sourceLogoUrl !== '' ? $sourceLogoUrl : null,
             'source_payload' => $item,
             'source_imported_at' => now(),
-            'external_company_name' => $externalCompanyName !== '' ? $externalCompanyName : null,
+            'external_company_name' => $externalCompanyName,
             'title' => $title,
             'description' => $description !== '' ? $description : 'HZZ imported listing.',
             'responsibilities' => $requirementsText !== '' ? $requirementsText : null,
@@ -494,25 +593,73 @@ class HzzJobImportService
             'benefits' => $benefitsText !== '' ? $benefitsText : null,
             'location_city' => $city,
             'category' => $category,
-            'contract_type' => $contractType !== '' ? $contractType : null,
-            'experience_level' => $experienceLevel !== '' ? $experienceLevel : null,
-            'education_required' => $educationRequired !== '' ? $educationRequired : null,
-            'working_hours' => $workingHours !== '' ? $workingHours : null,
+            'contract_type' => $contractType,
+            'experience_level' => $experienceLevel,
+            'education_required' => $educationRequired,
+            'working_hours' => $workingHours,
             'shift_details' => $shiftDetails !== '' ? $shiftDetails : null,
             'positions_available' => $positionsAvailable,
             'accommodation_provided' => $accommodationProvided,
             'accommodation_details' => $accommodationDetails !== '' ? $accommodationDetails : null,
             'application_instructions' => $instructionsText !== '' ? $instructionsText : null,
-            'hzz_apply_email' => $parsedContact['email'],
-            'hzz_apply_contact_type' => $parsedContact['contact_type'] ?? 'unknown',
-            'hzz_apply_contact_raw' => $parsedContact['contact_raw'],
-            'hzz_apply_url' => $parsedContact['apply_url'],
-            'hzz_apply_method_available' => (bool) ($parsedContact['has_automated_apply'] ?? false),
+            'hzz_apply_email' => $applyEmail,
+            'hzz_apply_contact_type' => $applyContactType,
+            'hzz_apply_contact_raw' => $applyContactRaw,
+            'hzz_apply_url' => $parsedApplyUrl,
+            'hzz_apply_method_available' => (bool) ($parsedContact['has_automated_apply'] ?? false) || ! empty($applyEmail),
             'hzz_legal_notice' => $hzzLegalNotice !== '' ? $hzzLegalNotice : null,
             'status' => 'published',
             'published_at' => $this->safeDateTime($publishedAt) ?? now(),
             'expires_at' => $this->safeDateTime($expiresAt),
         ];
+    }
+
+    private function limitString(?string $value, int $maxLength): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        if (mb_strlen($value, 'UTF-8') <= $maxLength) {
+            return $value;
+        }
+
+        return rtrim(mb_substr($value, 0, $maxLength, 'UTF-8'));
+    }
+
+    private function normalizeDuplicatedUrl(?string $value): ?string
+    {
+        $url = trim((string) $value);
+        if ($url === '') {
+            return null;
+        }
+
+        // Some feeds contain a duplicated URL concatenated directly into one string.
+        $lower = strtolower($url);
+        $nextHttp = strpos($lower, 'http://', 7);
+        $nextHttps = strpos($lower, 'https://', 8);
+
+        $splitAt = false;
+        if ($nextHttp !== false && $nextHttps !== false) {
+            $splitAt = min($nextHttp, $nextHttps);
+        } elseif ($nextHttp !== false) {
+            $splitAt = $nextHttp;
+        } elseif ($nextHttps !== false) {
+            $splitAt = $nextHttps;
+        }
+
+        if ($splitAt !== false) {
+            $url = substr($url, 0, $splitAt);
+        }
+
+        $url = trim((string) preg_split('/[\s;,]+/', $url)[0]);
+
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return $url;
     }
 
     private function decodePayload(string $body): mixed
@@ -545,9 +692,26 @@ class HzzJobImportService
                 throw new RuntimeException('Unable to parse HZZ XML feed.');
             }
 
-            $encoded = json_encode($xml, JSON_UNESCAPED_UNICODE);
+            $fallbackItems = [];
 
-            return is_string($encoded) ? (json_decode($encoded, true) ?? []) : [];
+            $nodes = [];
+            foreach ($xml->radnoMjesto ?? [] as $node) {
+                $nodes[] = $node;
+            }
+
+            if (count($nodes) === 0) {
+                $nodes = $xml->xpath('//*[local-name()="radnoMjesto"]') ?: [];
+            }
+
+            foreach ($nodes as $node) {
+                $encodedNode = json_encode($node, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+                $decodedNode = is_string($encodedNode) ? json_decode($encodedNode, true) : null;
+                if (is_array($decodedNode) && $this->looksLikeJobItem($decodedNode)) {
+                    $fallbackItems[] = $decodedNode;
+                }
+            }
+
+            return ['radnoMjesto' => $fallbackItems];
         } catch (\Throwable $exception) {
             throw new RuntimeException('Unable to parse HZZ XML feed.', previous: $exception);
         }
@@ -560,7 +724,20 @@ class HzzJobImportService
             return '';
         }
 
-        $decoded = html_entity_decode($normalized, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $decoded = $normalized;
+        // Some HZZ feeds contain double-encoded entities (e.g. &amp;NBSP;).
+        // Decode a few rounds so frontend never shows entity literals.
+        for ($i = 0; $i < 3; $i++) {
+            $next = html_entity_decode($decoded, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if ($next === $decoded) {
+                break;
+            }
+
+            $decoded = $next;
+        }
+
+        $decoded = preg_replace('/&(nbsp|NBSP|#160|#xA0);?/u', ' ', $decoded) ?? $decoded;
+        $decoded = preg_replace('/&(amp|AMP);?/u', '&', $decoded) ?? $decoded;
         $decoded = preg_replace('/<\s*\/?\s*p\b[^>]*>/i', "\n", $decoded) ?? $decoded;
         $decoded = preg_replace('/<\s*li\b[^>]*>/i', "\n- ", $decoded) ?? $decoded;
         $decoded = preg_replace('/<\s*\/\s*li\s*>/i', "\n", $decoded) ?? $decoded;
@@ -641,6 +818,38 @@ class HzzJobImportService
 
             $seenItems[] = $line;
             $kept[] = $line;
+        }
+
+        return trim(implode("\n", $kept));
+    }
+
+    private function deduplicateLinesInBlock(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        $lines = preg_split('/\R+/u', $value) ?: [];
+        $kept = [];
+
+        foreach ($lines as $line) {
+            $line = trim((string) $line);
+            if ($line === '') {
+                continue;
+            }
+
+            $duplicate = false;
+            foreach ($kept as $existingLine) {
+                if ($this->isMostlyDuplicate($line, $existingLine, 0.86)) {
+                    $duplicate = true;
+                    break;
+                }
+            }
+
+            if (! $duplicate) {
+                $kept[] = $line;
+            }
         }
 
         return trim(implode("\n", $kept));
@@ -791,6 +1000,10 @@ class HzzJobImportService
         $normalized = trim($value);
         if ($normalized === '') {
             return '';
+        }
+
+        if (preg_match('/\bemail\s*:\s*([A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})/iu', $normalized, $matches) === 1) {
+            return strtolower(trim((string) $matches[1]));
         }
 
         // HZZ usually sends "Email: user@example.com" in nacinPrijave.

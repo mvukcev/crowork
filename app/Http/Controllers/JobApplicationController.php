@@ -32,9 +32,12 @@ class JobApplicationController extends Controller
             app(HzzAnalyticsTracker::class)->trackCtaClick($job, request());
         }
 
-        // Authorization check: Only workers can apply
+        // Authorization check: only workers can apply directly.
+        // Non-worker sessions (admin/employer) get a soft redirect instead of a hard 403 screen.
         if (Auth::user()->role !== 'worker') {
-            abort(403, __('ui.jobs_apply.error_only_workers'));
+            return redirect()
+                ->route('jobs.show', $job)
+                ->with('warning', __('ui.jobs_apply.error_only_workers'));
         }
 
         // Ensure job is published and active
@@ -86,9 +89,11 @@ class JobApplicationController extends Controller
     {
         $isHzzFlow = $job->isHzzOfficial();
 
-        // Authorization check: Only workers can apply
+        // Authorization check: only workers can submit applications.
         if (Auth::user()->role !== 'worker') {
-            abort(403, __('ui.jobs_apply.error_only_workers'));
+            return redirect()
+                ->route('jobs.show', $job)
+                ->with('warning', __('ui.jobs_apply.error_only_workers'));
         }
 
         // Ensure job is still published and active
