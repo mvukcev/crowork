@@ -75,12 +75,18 @@
         $workingHoursText = trim((string) ($job->working_hours ?? ''));
         $shiftDetailsText = trim((string) ($job->shift_details ?? ''));
         $applicationInstructionsText = trim((string) ($job->application_instructions ?? ''));
+        $isHzzImported = $job->isImportedFromHzz();
+        $isHzzOfficial = $job->isHzzOfficial();
+        $hzzLegalNotice = trim((string) ($job->hzz_legal_notice ?? ''));
         $contractDurationDisplay = cw_localize_job_value('contract_duration', $job->contract_duration);
         $startFlexibilityDisplay = cw_localize_job_value('start_flexibility', $job->start_flexibility);
         $workingHoursText = cw_localize_job_value('working_hours', $workingHoursText);
         $shiftDetailsText = cw_localize_job_value('shift_details', $shiftDetailsText);
 
         $aboutTextRaw = trim((string) ($job->description ?? ''));
+        if ($isHzzOfficial && preg_match('/^hzz imported listing\.?$/iu', $aboutTextRaw) === 1) {
+            $aboutTextRaw = '';
+        }
         $aboutTextHasHtml = $aboutTextRaw !== strip_tags($aboutTextRaw);
         $aboutText = $aboutTextRaw;
         $responsibilitiesText = trim((string) ($job->responsibilities ?? ''));
@@ -318,22 +324,136 @@
             !empty($job->visa_support_details) ? trim((string) $job->visa_support_details) : null,
         ]));
 
-        $keyFacts = [
-            __('ui.jobs_show.fact_employment_type') => $employmentType,
-            __('ui.jobs_show.fact_category') => $category,
-            __('ui.jobs_show.fact_city') => $location,
-            __('ui.jobs_show.fact_positions_available') => $job->positions_available,
-            __('ui.jobs_show.fact_experience_level') => $experienceLevel,
-            __('ui.jobs_show.fact_education_required') => $educationRequired,
-            __('ui.jobs_show.fact_contract_duration') => $contractDurationDisplay,
-            __('ui.jobs_show.fact_start_date') => $startDateDisplay,
-            __('ui.jobs_show.fact_start_flexibility') => $startFlexibilityDisplay,
-            __('ui.jobs_show.fact_working_hours') => $workingHoursText,
-            __('ui.jobs_show.fact_shifts') => $shiftDetailsText,
-            __('ui.jobs_show.fact_languages') => $languageSummary,
-            __('ui.jobs_show.fact_salary') => $salaryDisplay,
-            __('ui.jobs_show.fact_apply_before') => $expiryDate,
-        ];
+        $sourcePayload = is_array($job->source_payload) ? $job->source_payload : [];
+        $payloadValue = static function (array|string $keys) use ($sourcePayload) {
+            foreach ((array) $keys as $key) {
+                $value = \Illuminate\Support\Arr::get($sourcePayload, $key);
+                if (is_array($value)) {
+                    $value = implode(', ', array_filter(array_map(static fn ($item) => trim((string) $item), $value)));
+                }
+
+                if (trim((string) $value) !== '') {
+                    return trim((string) $value);
+                }
+            }
+
+            return null;
+        };
+
+        $isMeaningfulValue = static function ($value): bool {
+            $value = trim((string) $value);
+            if ($value === '') {
+                return false;
+            }
+
+            return !in_array(mb_strtolower($value, 'UTF-8'), ['—', '-', 'n/a', 'na', 'unknown', 'nije poznato', 'nije specificirano'], true);
+        };
+
+        $hzzContactPerson = $normalizeImportedLine($payloadValue(['kontaktOsoba', 'kontakt_osoba']) ?? '');
+        $hzzPhone = $normalizeImportedLine($payloadValue(['telefon', 'telefonBroj', 'mobitel']) ?? '');
+        $hzzDrivingLicence = $normalizeBlock($payloadValue(['vozackiIspit', 'vozackaDozvola']) ?? '');
+        $hzzLanguages = $normalizeBlock($payloadValue(['straniJezik', 'strani_jezik']) ?? '');
+        $hzzComputerSkills = $normalizeBlock($payloadValue(['informatika', 'informatičkaZnanja']) ?? '');
+        $hzzFood = $normalizeImportedLine($payloadValue(['prehrana']) ?? '');
+        $hzzTransport = $normalizeImportedLine($payloadValue(['prijevoz']) ?? '');
+        $hzzAccommodation = $normalizeImportedLine($payloadValue(['smjestaj']) ?? '');
+        $hzzTerrain = $normalizeImportedLine($payloadValue(['teren']) ?? '');
+        $hzzShiftMode = $normalizeImportedLine($payloadValue(['nacinRada']) ?? '');
+        $hzzContactEmail = trim((string) ($job->hzz_apply_email ?? ''));
+        $hzzApplyUrl = trim((string) ($job->hzz_apply_url ?? ''));
+        $hzzHasBottomContact = $isHzzOfficial && array_filter([
+            $isMeaningfulValue($hzzContactEmail) ? $hzzContactEmail : null,
+            $isMeaningfulValue($hzzPhone) ? $hzzPhone : null,
+            $isMeaningfulValue($hzzContactPerson) ? $hzzContactPerson : null,
+            filter_var($hzzApplyUrl, FILTER_VALIDATE_URL) ? $hzzApplyUrl : null,
+        ]) !== [];
+
+        if ($isHzzOfficial && preg_match('/^[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}$/iu', $applicationInstructionsText) === 1) {
+            $applicationInstructionsText = '';
+        }
+
+        if ($isHzzOfficial && filter_var($applicationInstructionsText, FILTER_VALIDATE_URL)) {
+            $applicationInstructionsText = '';
+        }
+
+        $hzzSummaryText = null;
+        if ($isHzzOfficial) {
+            $summaryParts = [];
+            $factCount = 0;
+
+            if ($companyName && $job->title) {
+                $lead = $companyName . ' traži';
+                if ($job->positions_available) {
+                    $lead .= ' ' . $job->positions_available . ' ' . ($job->positions_available === 1 ? 'radnika' : 'radnika');
+                    $factCount++;
+                }
+                $lead .= ' za poziciju ' . mb_strtolower($job->title, 'UTF-8');
+                if ($location) {
+                    $lead .= ' u ' . $location;
+                    $factCount++;
+                }
+                $summaryParts[] = rtrim($lead, '.') . '.';
+            }
+
+            $terms = [];
+            if ($employmentType) {
+                $terms[] = mb_strtolower($employmentType, 'UTF-8');
+                $factCount++;
+            }
+            if ($workingHoursText) {
+                $terms[] = mb_strtolower($workingHoursText, 'UTF-8');
+                $factCount++;
+            }
+            if ($terms !== []) {
+                $summaryParts[] = 'Radni odnos je ' . implode(' uz ', $terms) . '.';
+            }
+
+            $closing = [];
+            if ($experienceLevel) {
+                $closing[] = 'Radno iskustvo: ' . mb_strtolower($experienceLevel, 'UTF-8');
+                $factCount++;
+            }
+            if ($expiryDate) {
+                $closing[] = 'Prijave su otvorene do ' . $expiryDate;
+                $factCount++;
+            }
+            if ($closing !== []) {
+                $summaryParts[] = implode('. ', $closing) . '.';
+            }
+
+            if ($factCount >= 3) {
+                $hzzSummaryText = implode(' ', $summaryParts);
+            }
+        }
+
+        $keyFacts = $isHzzOfficial
+            ? [
+                __('ui.jobs_show.fact_location') => $location,
+                __('ui.jobs_show.fact_employer') => $companyName,
+                __('ui.jobs_show.fact_employment_type') => $employmentType,
+                __('ui.jobs_show.fact_working_hours') => $workingHoursText,
+                __('ui.jobs_show.fact_positions_available') => $job->positions_available,
+                __('ui.jobs_show.fact_education_required') => $educationRequired,
+                __('ui.jobs_show.fact_experience_level') => $experienceLevel,
+                __('ui.jobs_show.fact_category') => $category,
+                __('ui.jobs_show.fact_apply_before') => $expiryDate,
+            ]
+            : [
+                __('ui.jobs_show.fact_employment_type') => $employmentType,
+                __('ui.jobs_show.fact_category') => $category,
+                __('ui.jobs_show.fact_city') => $location,
+                __('ui.jobs_show.fact_positions_available') => $job->positions_available,
+                __('ui.jobs_show.fact_experience_level') => $experienceLevel,
+                __('ui.jobs_show.fact_education_required') => $educationRequired,
+                __('ui.jobs_show.fact_contract_duration') => $contractDurationDisplay,
+                __('ui.jobs_show.fact_start_date') => $startDateDisplay,
+                __('ui.jobs_show.fact_start_flexibility') => $startFlexibilityDisplay,
+                __('ui.jobs_show.fact_working_hours') => $workingHoursText,
+                __('ui.jobs_show.fact_shifts') => $shiftDetailsText,
+                __('ui.jobs_show.fact_languages') => $languageSummary,
+                __('ui.jobs_show.fact_salary') => $salaryDisplay,
+                __('ui.jobs_show.fact_apply_before') => $expiryDate,
+            ];
 
         $aboutEmployerText = trim((string) ($job->employer?->description ?? ''));
         $employerLogoUrl = $job->employer?->logo_path ? asset('storage/' . $job->employer->logo_path) : null;
@@ -342,9 +462,6 @@
             ? strtoupper((string) $job->employer->brand_color)
             : '#0F274D';
         $jobCoverUrl = $job->cover_image_path ? asset('storage/' . $job->cover_image_path) : null;
-        $isHzzImported = $job->isImportedFromHzz();
-        $isHzzOfficial = $job->isHzzOfficial();
-        $hzzLegalNotice = trim((string) ($job->hzz_legal_notice ?? ''));
         $normalizeCompareText = function (?string $value): string {
             $value = trim((string) $value);
             if ($value === '') {
@@ -403,11 +520,34 @@
             $benefitsText = '';
         }
 
+        if ($isHzzOfficial && ($isMostlyDuplicate($requirementsText, $aboutTextPlain) || $isMostlyDuplicate($requirementsText, $responsibilitiesText))) {
+            $requirementsText = '';
+        }
+
         $showHzzApplicationInstructions = ! $isHzzOfficial || (auth()->check() && auth()->user()?->isWorker());
         $hzzLogoPath = public_path('assets/branding/hzz-logo.svg');
     $hzzLogoUrl = file_exists($hzzLogoPath)
         ? asset('assets/branding/hzz-logo.svg')
         : (trim((string) ($job->source_logo_url ?? '')) ?: config('services.hzz.logo_url'));
+
+        $workingConditionLines = $isHzzOfficial
+            ? array_filter([
+                $isMeaningfulValue($hzzAccommodation) ? __('ui.jobs_show.accommodation_label') . ': ' . $hzzAccommodation : null,
+                $isMeaningfulValue($hzzTransport) ? __('ui.jobs_show.transport_label') . ': ' . $hzzTransport : null,
+                $isMeaningfulValue($hzzFood) ? __('ui.jobs_show.food_label') . ': ' . $hzzFood : null,
+                $isMeaningfulValue($hzzShiftMode) ? __('ui.jobs_show.work_mode_label') . ': ' . $hzzShiftMode : null,
+                $isMeaningfulValue($hzzTerrain) ? __('ui.jobs_show.terrain_label') . ': ' . $hzzTerrain : null,
+                $isMeaningfulValue($shiftDetailsText) ? __('ui.jobs_show.fact_shifts') . ': ' . $shiftDetailsText : null,
+            ])
+            : $mobilityDetails;
+
+        $hzzRequirementFacts = array_filter([
+            __('ui.jobs_show.fact_education_required') => $educationRequired,
+            __('ui.jobs_show.requirement_experience') => $experienceLevel,
+            __('ui.jobs_show.requirement_driving_licence') => $hzzDrivingLicence,
+            __('ui.jobs_show.requirement_languages') => $hzzLanguages !== '' ? $hzzLanguages : $languageSummary,
+            __('ui.jobs_show.requirement_computer_skills') => $hzzComputerSkills,
+        ], fn ($value) => $isMeaningfulValue($value));
 
         $jobPostingSchema = [
             '@context' => 'https://schema.org',
@@ -488,28 +628,6 @@
                 </article>
             @endif
 
-            @if($isHzzOfficial)
-                <article class="cw-surface p-5 md:p-6 mb-6 border border-slate-200">
-                    <div class="flex items-start gap-4">
-                        @if($hzzLogoUrl)
-                            <img src="{{ $hzzLogoUrl }}" alt="HZZ logo" class="w-11 h-11 shrink-0 rounded-xl border border-slate-200 bg-white object-contain p-1" loading="lazy" decoding="async">
-                        @else
-                            <div class="w-11 h-11 shrink-0 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-sm font-bold text-slate-700">
-                                HZZ
-                            </div>
-                        @endif
-                        <div class="min-w-0">
-                            <p class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 mb-1">Službeni izvor</p>
-                            <h2 class="text-base font-semibold text-slate-900 mb-1">Hrvatski zavod za zapošljavanje</h2>
-                            <p class="text-sm text-slate-700 mb-2">Oglas je preuzet iz HZZ sustava.</p>
-                            @if($hzzLegalNotice !== '')
-                                <div class="text-sm text-slate-600 whitespace-pre-line">{{ $hzzLegalNotice }}</div>
-                            @endif
-                        </div>
-                    </div>
-                </article>
-            @endif
-
             <div class="mb-6 text-sm text-slate-500">
                 <a href="{{ route('home') }}" class="hover:text-slate-900">{{ __('navigation.home') }}</a>
                 <span class="mx-1">/</span>
@@ -567,13 +685,19 @@
                 </div>
             </article>
 
+            @if($hzzSummaryText)
+                <article class="cw-surface p-5 md:p-6 mb-6">
+                    <p class="text-sm md:text-[15px] leading-relaxed text-slate-700">{{ $hzzSummaryText }}</p>
+                </article>
+            @endif
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <div class="lg:col-span-2 space-y-4">
                     <article class="cw-surface p-6 md:p-7">
                         <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.key_facts') }}</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                             @foreach($keyFacts as $label => $value)
-                                @if(!is_null($value) && trim((string) $value) !== '')
+                                @if(!is_null($value) && $isMeaningfulValue($value))
                                     <p class="text-slate-700 leading-snug"><strong>{{ $label }}:</strong> {{ $value }}</p>
                                 @endif
                             @endforeach
@@ -600,10 +724,19 @@
                         </article>
                     @endif
 
-                    @if($requirementsText !== '')
+                    @if($isHzzOfficial ? (count($hzzRequirementFacts) > 0 || $requirementsText !== '') : $requirementsText !== '')
                         <article class="cw-surface p-6 md:p-7">
                             <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.requirements') }}</h2>
-                            <div class="cw-rich-text text-slate-700">{!! $renderStructuredBlock($requirementsText) !!}</div>
+                            @if($isHzzOfficial && count($hzzRequirementFacts) > 0)
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
+                                    @foreach($hzzRequirementFacts as $label => $value)
+                                        <p class="text-slate-700 leading-snug"><strong>{{ $label }}:</strong> {{ $value }}</p>
+                                    @endforeach
+                                </div>
+                            @endif
+                            @if($requirementsText !== '')
+                                <div class="cw-rich-text text-slate-700">{!! $renderStructuredBlock($requirementsText) !!}</div>
+                            @endif
                         </article>
                     @endif
 
@@ -614,11 +747,11 @@
                         </article>
                     @endif
 
-                    @if(count($mobilityDetails) > 0)
+                    @if(count($workingConditionLines) > 0)
                         <article class="cw-surface p-6 md:p-7">
-                            <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.mobility_support') }}</h2>
+                            <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.working_conditions') }}</h2>
                             <ul class="space-y-2 text-slate-700 text-sm">
-                                @foreach($mobilityDetails as $mobilityLine)
+                                @foreach($workingConditionLines as $mobilityLine)
                                     <li>{{ $mobilityLine }}</li>
                                 @endforeach
                             </ul>
@@ -632,20 +765,24 @@
                         </article>
                     @endif
 
-                    @if($isHzzImported && ! $isHzzOfficial)
-                        <article class="cw-hzz-attribution" aria-label="HZZ attribution">
-                            <div class="cw-hzz-attribution__head">
-                                @if($hzzLogoUrl)
-                                    <img src="{{ $hzzLogoUrl }}" alt="HZZ" class="cw-hzz-attribution__logo" loading="lazy" decoding="async" width="120" height="40">
+                    @if($hzzHasBottomContact)
+                        <article class="cw-surface p-6 md:p-7">
+                            <h2 class="text-xl font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.contact_title') }}</h2>
+                            <p class="text-sm text-slate-600 mb-4">{{ __('ui.jobs_show.contact_intro') }}</p>
+                            <div class="space-y-3 text-sm text-slate-700">
+                                @if($hzzContactEmail !== '')
+                                    <p><strong>{{ __('ui.jobs_show.contact_email') }}:</strong> <a href="mailto:{{ $hzzContactEmail }}" class="font-medium underline underline-offset-2 decoration-slate-300 hover:text-slate-900">{{ $hzzContactEmail }}</a></p>
                                 @endif
-                                <span class="cw-hzz-attribution__badge">{{ __('ui.jobs_show.hzz_source_badge') }}</span>
+                                @if($hzzPhone !== '')
+                                    <p><strong>{{ __('ui.jobs_show.contact_phone') }}:</strong> <a href="tel:{{ preg_replace('/[^0-9+]/', '', $hzzPhone) }}" class="hover:text-slate-900">{{ $hzzPhone }}</a></p>
+                                @endif
+                                @if($hzzContactPerson !== '')
+                                    <p><strong>{{ __('ui.jobs_show.contact_person') }}:</strong> {{ $hzzContactPerson }}</p>
+                                @endif
+                                @if(filter_var($hzzApplyUrl, FILTER_VALIDATE_URL))
+                                    <p><strong>{{ __('ui.jobs_show.contact_external_apply') }}:</strong> <a href="{{ $hzzApplyUrl }}" target="_blank" rel="noopener" class="font-medium underline underline-offset-2 decoration-slate-300 hover:text-slate-900">{{ __('ui.jobs_show.open_external_apply') }}</a></p>
+                                @endif
                             </div>
-
-                            <h2 class="cw-hzz-attribution__title">{{ __('ui.jobs_show.hzz_source_title') }}</h2>
-                            <p class="cw-hzz-attribution__line">{{ __('ui.jobs_show.hzz_source_rights') }}</p>
-                            <p class="cw-hzz-attribution__line">{{ __('ui.jobs_show.hzz_source_transfer') }}</p>
-                            <p class="cw-hzz-attribution__line cw-hzz-attribution__line--disclaimer">{{ __('ui.jobs_show.hzz_source_disclaimer') }}</p>
-
                         </article>
                     @endif
 
@@ -685,45 +822,47 @@
                     <div class="cw-surface p-5">
                         <h2 class="text-lg font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.apply_to_role') }}</h2>
 
-                        @if($salaryDisplay)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_salary') }}:</strong> {{ $salaryDisplay }}</p>
-                        @endif
-                        @if($location)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_city') }}:</strong> {{ $location }}</p>
-                        @endif
-                        @if($employmentType)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_employment_type') }}:</strong> {{ $employmentType }}</p>
-                        @endif
-                        @if($experienceLevel)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_experience_level') }}:</strong> {{ $experienceLevel }}</p>
-                        @endif
-                        @if($educationRequired)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_education_required') }}:</strong> {{ $educationRequired }}</p>
-                        @endif
-                        @if($workingHoursText)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_working_hours') }}:</strong> {{ $workingHoursText }}</p>
-                        @endif
-                        @if($shiftDetailsText)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_shifts') }}:</strong> {{ $shiftDetailsText }}</p>
-                        @endif
-                        @if($startDateDisplay)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_start_date') }}:</strong> {{ $startDateDisplay }}</p>
-                        @endif
-                        @if($contractDurationDisplay)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_contract_duration') }}:</strong> {{ $contractDurationDisplay }}</p>
-                        @endif
-                        @if($languageSummary)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_languages') }}:</strong> {{ $languageSummary }}</p>
-                        @endif
-                        @if($job->accommodation_provided)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.accommodation_label') }}:</strong> {{ __('ui.jobs_show.provided') }}</p>
-                        @endif
-                        @if($job->visa_support)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.visa_label') }}:</strong> {{ __('ui.jobs_show.supported') }}</p>
-                        @endif
-                        @if($expiryDate)
-                            <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_apply_before') }}:</strong> {{ $expiryDate }}</p>
-                        @endif
+                        @unless($isHzzOfficial)
+                            @if($salaryDisplay)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_salary') }}:</strong> {{ $salaryDisplay }}</p>
+                            @endif
+                            @if($location)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_city') }}:</strong> {{ $location }}</p>
+                            @endif
+                            @if($employmentType)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_employment_type') }}:</strong> {{ $employmentType }}</p>
+                            @endif
+                            @if($experienceLevel)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_experience_level') }}:</strong> {{ $experienceLevel }}</p>
+                            @endif
+                            @if($educationRequired)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_education_required') }}:</strong> {{ $educationRequired }}</p>
+                            @endif
+                            @if($workingHoursText)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_working_hours') }}:</strong> {{ $workingHoursText }}</p>
+                            @endif
+                            @if($shiftDetailsText)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_shifts') }}:</strong> {{ $shiftDetailsText }}</p>
+                            @endif
+                            @if($startDateDisplay)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_start_date') }}:</strong> {{ $startDateDisplay }}</p>
+                            @endif
+                            @if($contractDurationDisplay)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_contract_duration') }}:</strong> {{ $contractDurationDisplay }}</p>
+                            @endif
+                            @if($languageSummary)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_languages') }}:</strong> {{ $languageSummary }}</p>
+                            @endif
+                            @if($job->accommodation_provided)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.accommodation_label') }}:</strong> {{ __('ui.jobs_show.provided') }}</p>
+                            @endif
+                            @if($job->visa_support)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.visa_label') }}:</strong> {{ __('ui.jobs_show.supported') }}</p>
+                            @endif
+                            @if($expiryDate)
+                                <p class="text-sm text-slate-700 mb-2"><strong>{{ __('ui.jobs_show.fact_apply_before') }}:</strong> {{ $expiryDate }}</p>
+                            @endif
+                        @endunless
 
                         <div class="flex flex-col gap-2 mt-3">
                             @if($isPreview)
@@ -741,9 +880,26 @@
                                 </a>
                             @endif
                         </div>
+
+                        @if($isHzzOfficial && $hzzHasBottomContact)
+                            <div class="mt-4 pt-4 border-t border-slate-200">
+                                <h3 class="text-sm font-semibold text-slate-900 mb-3">{{ __('ui.jobs_show.contact_title') }}</h3>
+                                <div class="space-y-2 text-sm text-slate-700">
+                                    @if($hzzContactEmail !== '')
+                                        <p><a href="mailto:{{ $hzzContactEmail }}" class="font-medium underline underline-offset-2 decoration-slate-300 hover:text-slate-900">{{ $hzzContactEmail }}</a></p>
+                                    @endif
+                                    @if($hzzPhone !== '')
+                                        <p><a href="tel:{{ preg_replace('/[^0-9+]/', '', $hzzPhone) }}" class="hover:text-slate-900">{{ $hzzPhone }}</a></p>
+                                    @endif
+                                    @if($hzzContactPerson !== '')
+                                        <p>{{ $hzzContactPerson }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
-                    @if($aboutEmployerText !== '' || $job->employer)
+                    @if(! $isHzzOfficial && ($aboutEmployerText !== '' || $job->employer))
                         <div class="cw-surface p-5" style="background: linear-gradient(145deg, {{ $brandColor }}2a 0%, {{ $brandColor }}1a 36%, rgba(255, 255, 255, 0.96) 100%); border: 1px solid color-mix(in srgb, {{ $brandColor }} 28%, var(--cw-hairline));">
                             @if($employerCoverUrl)
                                 <div class="-mx-5 -mt-5 mb-4 aspect-[13/5] overflow-hidden rounded-t-[inherit] border-b border-slate-200">
@@ -779,10 +935,12 @@
                         </div>
                     @endif
 
-                    <div class="cw-surface p-5">
-                        <h3 class="text-base font-semibold text-slate-900 mb-2">{{ __('ui.jobs_show.report_question') }}</h3>
-                        <a href="{{ route('reports.create', ['type' => 'job', 'id' => $job->id]) }}" class="cw-button-secondary w-full text-center">{{ __('ui.jobs_show.report_job') }}</a>
-                    </div>
+                    @if(! $isHzzOfficial)
+                        <div class="cw-surface p-5">
+                            <h3 class="text-base font-semibold text-slate-900 mb-2">{{ __('ui.jobs_show.report_question') }}</h3>
+                            <a href="{{ route('reports.create', ['type' => 'job', 'id' => $job->id]) }}" class="cw-button-secondary w-full text-center">{{ __('ui.jobs_show.report_job') }}</a>
+                        </div>
+                    @endif
                 </aside>
             </div>
         </div>

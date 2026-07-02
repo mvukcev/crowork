@@ -3,6 +3,11 @@
 namespace App\Services\Hzz;
 
 use App\Models\Job;
+use DOMComment;
+use DOMDocument;
+use DOMElement;
+use DOMNode;
+use DOMText;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -31,6 +36,18 @@ class HzzJobImportService
         'PDV',
         'HR',
         'CV',
+        'IT',
+    ];
+
+    /**
+     * Common legal suffixes that should keep their original form.
+     *
+     * @var array<int, string>
+     */
+    private const PRESERVED_COMPANY_SUFFIXES = [
+        'd.o.o.',
+        'j.d.o.o.',
+        'd.d.',
     ];
 
     public function __construct(
@@ -317,7 +334,7 @@ class HzzJobImportService
             ?? ''
         );
 
-        $title = $this->normalizeSentenceCase($this->cleanRichText($this->flattenToText(
+        $title = $this->normalizeJobTitle($this->cleanRichText($this->flattenToText(
             Arr::get($item, 'title')
             ?? Arr::get($item, 'job_title')
             ?? Arr::get($item, 'nazivRadnogMjesta')
@@ -329,24 +346,16 @@ class HzzJobImportService
             return null;
         }
 
-        $descriptionRaw = $this->cleanRichText($this->flattenToText(
-            Arr::get($item, 'description')
-            ?? Arr::get($item, 'opis')
-            ?? ''
-        ));
+        $descriptionSource = Arr::get($item, 'description') ?? Arr::get($item, 'opis') ?? '';
+        $requirementsSource = Arr::get($item, 'requirements') ?? Arr::get($item, 'posebniZahtjevi') ?? '';
+        $conditionsSource = Arr::get($item, 'uvjeti') ?? '';
+        $benefitsSource = Arr::get($item, 'benefits') ?? Arr::get($item, 'pogodnosti') ?? '';
 
-        $requirementsRaw = $this->cleanRichText($this->flattenToText(
-            Arr::get($item, 'requirements')
-            ?? Arr::get($item, 'posebniZahtjevi')
-            ?? Arr::get($item, 'uvjeti')
-            ?? ''
-        ));
-
-        $benefitsRaw = $this->cleanRichText($this->flattenToText(
-            Arr::get($item, 'benefits')
-            ?? Arr::get($item, 'pogodnosti')
-            ?? ''
-        ));
+        $descriptionHtml = $this->sanitizeImportedHtml(is_string($descriptionSource) ? $descriptionSource : '');
+        $descriptionRaw = $this->cleanRichText($this->flattenToText($descriptionSource));
+        $requirementsRaw = $this->cleanRichText($this->flattenToText($requirementsSource));
+        $conditionsRaw = $this->cleanRichText($this->flattenToText($conditionsSource));
+        $benefitsRaw = $this->cleanRichText($this->flattenToText($benefitsSource));
 
         $nacinPrijaveRaw = $this->cleanRichText($this->flattenToText(
             Arr::get($item, 'nacinPrijave')
@@ -382,14 +391,34 @@ class HzzJobImportService
         $benefitsText = $this->deduplicateLinesInBlock($benefitsText);
         $instructionsText = $this->deduplicateLinesInBlock($instructionsText);
 
-        if ($requirementsText !== '' && $this->isMostlyDuplicate($description, $requirementsText)) {
-            // For HZZ imports the responsibilities/requirements section is more useful than a duplicated generic description.
-            $description = '';
+        if ($conditionsRaw !== '') {
+            $normalizedConditions = $this->normalizeSentenceCase($conditionsRaw);
+            if (! $this->isMostlyDuplicate($requirementsText, $normalizedConditions) && ! $this->isMostlyDuplicate($description, $normalizedConditions)) {
+                $requirementsText = trim(implode("\n", array_filter([
+                    $requirementsText,
+                    $normalizedConditions,
+                ], fn ($value) => trim((string) $value) !== '')));
+            }
         }
 
-        if ($requirementsText === '' && preg_match('/\bod\s+vas\s+se\s+očekuje\b/iu', $description) === 1) {
-            $requirementsText = $description;
-            $description = '';
+        if ($requirementsText !== '' && $this->isMostlyDuplicate($description, $requirementsText)) {
+            $requirementsText = '';
+        }
+
+        $responsibilitiesText = $this->extractResponsibilities($description, $requirementsText);
+        if ($responsibilitiesText !== '') {
+            $description = $this->removeLinesFromBlock($description, $responsibilitiesText);
+            $requirementsText = $this->removeLinesFromBlock($requirementsText, $responsibilitiesText);
+            $descriptionHtml = '';
+        }
+
+        if ($description === '' && $requirementsText !== '' && $this->looksLikeDescriptiveBlock($requirementsText)) {
+            $description = $requirementsText;
+            $requirementsText = '';
+        }
+
+        if ($description === '' && $descriptionHtml !== '') {
+            $description = $this->cleanRichText($descriptionHtml);
         }
 
         $sourceUrlRaw = (string) (
@@ -408,7 +437,7 @@ class HzzJobImportService
             ?? ''
         );
 
-        $externalCompanyName = $this->normalizeSentenceCase(trim($this->flattenToText(
+        $externalCompanyName = $this->normalizeOrganizationName(trim($this->flattenToText(
             Arr::get($item, 'poslodavac')
             ?? Arr::get($item, 'company_name')
             ?? Arr::get($item, 'company')
@@ -450,9 +479,8 @@ class HzzJobImportService
         $parsedContact = $this->contactParser->parse($contactInput, $sourceUrl);
         $parsedApplyUrl = $this->normalizeDuplicatedUrl((string) ($parsedContact['apply_url'] ?? ''));
 
-        if (! empty($parsedContact['email'])) {
-            // HZZ instructions should keep a clean destination email when available.
-            $instructionsText = (string) $parsedContact['email'];
+        if ($instructionsText !== '' && $this->looksLikeSingleEmailInstruction($instructionsText)) {
+            $instructionsText = '';
         }
 
         $publishedAt = Arr::get($item, 'published_at')
@@ -519,18 +547,6 @@ class HzzJobImportService
             ?? ''
         )));
 
-        $additionalConditions = $this->normalizeSentenceCase(trim($this->flattenToText(
-            Arr::get($item, 'uvjeti')
-            ?? ''
-        )));
-
-        if ($additionalConditions !== '' && ! $this->isMostlyDuplicate($requirementsText, $additionalConditions)) {
-            $requirementsText = trim(implode("\n", array_filter([
-                $requirementsText,
-                $additionalConditions,
-            ], fn ($value) => trim((string) $value) !== '')));
-        }
-
         $mobilityDetails = array_values(array_filter([
             $accommodationRaw !== '' ? 'Smještaj: ' . $accommodationRaw : null,
             $transportRaw !== '' ? 'Prijevoz: ' . $transportRaw : null,
@@ -587,9 +603,9 @@ class HzzJobImportService
             'source_imported_at' => now(),
             'external_company_name' => $externalCompanyName,
             'title' => $title,
-            'description' => $description !== '' ? $description : 'HZZ imported listing.',
-            'responsibilities' => $requirementsText !== '' ? $requirementsText : null,
-            'requirements' => null,
+            'description' => $descriptionHtml !== '' && $description !== '' ? $descriptionHtml : ($description !== '' ? $description : null),
+            'responsibilities' => $responsibilitiesText !== '' ? $responsibilitiesText : null,
+            'requirements' => $requirementsText !== '' ? $requirementsText : null,
             'benefits' => $benefitsText !== '' ? $benefitsText : null,
             'location_city' => $city,
             'category' => $category,
@@ -928,6 +944,28 @@ class HzzJobImportService
         return $this->normalizeSentenceCaseLine($text);
     }
 
+    private function normalizeJobTitle(string $value): string
+    {
+        $title = $this->normalizeSentenceCase($value);
+        $title = preg_replace('/\s*-\s*/u', ' – ', $title) ?? $title;
+
+        return trim((string) $title);
+    }
+
+    private function normalizeOrganizationName(string $value): string
+    {
+        $text = trim($value);
+        if ($text === '') {
+            return '';
+        }
+
+        [$text, $tokens] = $this->protectAcronyms($text);
+        $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
+        $text = mb_convert_case(mb_strtolower($text, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+
+        return trim($this->restoreAcronyms($text, $tokens));
+    }
+
     private function normalizeSentenceCaseLine(string $value): string
     {
         $text = trim($value);
@@ -972,6 +1010,26 @@ class HzzJobImportService
     {
         $tokens = [];
         $protected = $value;
+
+        preg_match_all('/\b(?:https?:\/\/|www\.)\S+\b/iu', $protected, $urlMatches);
+        foreach ($urlMatches[0] ?? [] as $index => $match) {
+            $token = "__cw_url_{$index}__";
+            $protected = str_replace($match, $token, $protected);
+            $tokens[$token] = $match;
+        }
+
+        preg_match_all('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu', $protected, $emailMatches);
+        foreach ($emailMatches[0] ?? [] as $index => $match) {
+            $token = "__cw_mail_{$index}__";
+            $protected = str_replace($match, $token, $protected);
+            $tokens[$token] = $match;
+        }
+
+        foreach (self::PRESERVED_COMPANY_SUFFIXES as $index => $suffix) {
+            $token = "__cw_suffix_{$index}__";
+            $protected = preg_replace('/\b' . preg_quote($suffix, '/') . '\b/iu', $token, $protected) ?? $protected;
+            $tokens[$token] = $suffix;
+        }
 
         foreach (self::PRESERVED_ACRONYMS as $index => $acronym) {
             $token = "__cw_acr_{$index}__";
@@ -1075,5 +1133,229 @@ class HzzJobImportService
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function looksLikeDescriptiveBlock(string $value): bool
+    {
+        $normalized = trim($this->normalizeForComparison($value));
+        if ($normalized === '') {
+            return false;
+        }
+
+        $wordCount = count(array_filter(explode(' ', $normalized)));
+
+        return $wordCount >= 8;
+    }
+
+    private function extractResponsibilities(string ...$sources): string
+    {
+        $items = [];
+
+        foreach ($sources as $source) {
+            $lines = preg_split('/\R+/u', trim($source)) ?: [];
+
+            foreach ($lines as $line) {
+                $line = trim((string) $line);
+                if ($line === '') {
+                    continue;
+                }
+
+                if (preg_match('/^[-*]\s*(.+)$/u', $line, $matches) === 1) {
+                    $candidate = $this->normalizeSentenceCase(trim((string) $matches[1]));
+                    if ($candidate !== '') {
+                        $items[] = $candidate;
+                    }
+                    continue;
+                }
+
+                if (preg_match('/^(opis\s+posla|odgovornosti|zadaci|radni\s+zadaci)\s*:\s*(.+)$/iu', $line, $matches) === 1) {
+                    $chunks = preg_split('/\s*[;•]\s*/u', trim((string) $matches[2])) ?: [];
+                    foreach ($chunks as $chunk) {
+                        $candidate = $this->normalizeSentenceCase(trim((string) $chunk));
+                        if ($candidate !== '') {
+                            $items[] = $candidate;
+                        }
+                    }
+                }
+            }
+        }
+
+        $unique = [];
+        foreach ($items as $item) {
+            if (mb_strlen($item, 'UTF-8') < 4) {
+                continue;
+            }
+
+            $duplicate = false;
+            foreach ($unique as $existing) {
+                if ($this->isMostlyDuplicate($item, $existing, 0.86)) {
+                    $duplicate = true;
+                    break;
+                }
+            }
+
+            if (! $duplicate) {
+                $unique[] = $item;
+            }
+        }
+
+        $unique = array_slice($unique, 0, 8);
+
+        if (count($unique) < 2) {
+            return '';
+        }
+
+        return implode("\n", array_map(static fn (string $item): string => '- ' . $item, $unique));
+    }
+
+    private function removeLinesFromBlock(string $source, string $linesToRemove): string
+    {
+        $sourceLines = preg_split('/\R+/u', trim($source)) ?: [];
+        $removals = preg_split('/\R+/u', trim($linesToRemove)) ?: [];
+        $normalizedRemovals = array_values(array_filter(array_map(function (string $line): string {
+            return $this->normalizeForComparison(preg_replace('/^[-*]\s*/u', '', trim($line)) ?? trim($line));
+        }, $removals)));
+
+        $kept = [];
+        foreach ($sourceLines as $line) {
+            $line = trim((string) $line);
+            if ($line === '') {
+                continue;
+            }
+
+            $normalizedLine = $this->normalizeForComparison(preg_replace('/^[-*]\s*/u', '', $line) ?? $line);
+            if ($normalizedLine === '') {
+                continue;
+            }
+
+            $shouldRemove = false;
+            foreach ($normalizedRemovals as $removal) {
+                if ($removal !== '' && $this->isMostlyDuplicate($normalizedLine, $removal, 0.86)) {
+                    $shouldRemove = true;
+                    break;
+                }
+            }
+
+            if (! $shouldRemove) {
+                $kept[] = $line;
+            }
+        }
+
+        return trim(implode("\n", $kept));
+    }
+
+    private function sanitizeImportedHtml(string $value): string
+    {
+        $html = trim($value);
+        if ($html === '' || ! preg_match('/<[^>]+>/', $html)) {
+            return '';
+        }
+
+        $previous = libxml_use_internal_errors(true);
+
+        try {
+            $document = new DOMDocument('1.0', 'UTF-8');
+            $wrappedHtml = '<div>' . $html . '</div>';
+            $loaded = $document->loadHTML('<?xml encoding="utf-8" ?>' . $wrappedHtml, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING);
+
+            if (! $loaded) {
+                return '';
+            }
+
+            $root = $document->getElementsByTagName('div')->item(0);
+            if (! $root instanceof DOMElement) {
+                return '';
+            }
+
+            $previousHeading = null;
+            $this->sanitizeHtmlNode($root, $previousHeading);
+
+            $output = '';
+            foreach (iterator_to_array($root->childNodes) as $child) {
+                $output .= $document->saveHTML($child);
+            }
+
+            $output = preg_replace('/<(p|h3|h4|li)>\s*<\/\1>/i', '', $output) ?? $output;
+
+            return trim((string) $output);
+        } catch (\Throwable) {
+            return '';
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
+    }
+
+    private function sanitizeHtmlNode(DOMNode $node, ?string &$previousHeading): void
+    {
+        foreach (iterator_to_array($node->childNodes) as $child) {
+            if ($child instanceof DOMComment) {
+                $node->removeChild($child);
+                continue;
+            }
+
+            if ($child instanceof DOMText) {
+                $child->nodeValue = $this->normalizeHtmlTextNode($child->wholeText);
+                continue;
+            }
+
+            if (! $child instanceof DOMElement) {
+                continue;
+            }
+
+            $tag = strtolower($child->tagName);
+            if (in_array($tag, ['script', 'style', 'iframe', 'object', 'embed', 'form'], true)) {
+                $node->removeChild($child);
+                continue;
+            }
+
+            if (! in_array($tag, ['p', 'br', 'strong', 'b', 'em', 'i', 'ul', 'ol', 'li', 'h3', 'h4'], true)) {
+                while ($child->firstChild) {
+                    $node->insertBefore($child->firstChild, $child);
+                }
+                $node->removeChild($child);
+                continue;
+            }
+
+            while ($child->attributes->length > 0) {
+                $child->removeAttributeNode($child->attributes->item(0));
+            }
+
+            $this->sanitizeHtmlNode($child, $previousHeading);
+
+            $textContent = trim((string) $child->textContent);
+            if (in_array($tag, ['h3', 'h4'], true)) {
+                $heading = $this->normalizeSentenceCase($textContent);
+                if ($heading === '' || ($previousHeading !== null && $this->isMostlyDuplicate($heading, $previousHeading, 0.9))) {
+                    $node->removeChild($child);
+                    continue;
+                }
+
+                $child->nodeValue = $heading;
+                $previousHeading = $heading;
+            }
+
+            if ($tag !== 'br' && $textContent === '' && ! $child->hasChildNodes()) {
+                $node->removeChild($child);
+            }
+        }
+    }
+
+    private function normalizeHtmlTextNode(string $value): string
+    {
+        $text = preg_replace('/\s+/u', ' ', $value) ?? $value;
+        if (trim($text) === '') {
+            return $text;
+        }
+
+        $hasLower = preg_match('/\p{Ll}/u', $text) === 1;
+        $letterCount = preg_match_all('/\p{L}/u', $text, $letters) ?: 0;
+        $upperCount = preg_match_all('/\p{Lu}/u', $text, $uppers) ?: 0;
+
+        if (! $hasLower && $letterCount > 0 && ($upperCount / $letterCount) > 0.45) {
+            return $this->normalizeSentenceCase($text);
+        }
+
+        return $text;
     }
 }

@@ -12,7 +12,7 @@ class HzzJobShowVisibilityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_hzz_application_instructions_are_hidden_for_guests(): void
+    public function test_hzz_source_copy_is_hidden_for_guests_but_contact_is_visible(): void
     {
         $job = $this->createPublishedHzzJob('prijava@example.hr');
 
@@ -20,9 +20,13 @@ class HzzJobShowVisibilityTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee(__('ui.jobs_show.application_instructions'));
+        $response->assertDontSee('HZZ imported listing.');
+        $response->assertDontSee('Službeni izvor');
+        $response->assertSee(__('ui.jobs_show.contact_title'));
+        $response->assertSee('prijava@example.hr');
     }
 
-    public function test_hzz_application_instructions_are_visible_for_logged_worker(): void
+    public function test_hzz_worker_view_keeps_contact_panel_without_source_banner(): void
     {
         $job = $this->createPublishedHzzJob('prijava@example.hr');
         $worker = User::factory()->create(['role' => User::ROLE_WORKER]);
@@ -30,7 +34,8 @@ class HzzJobShowVisibilityTest extends TestCase
         $response = $this->actingAs($worker)->get(route('jobs.show', $job));
 
         $response->assertOk();
-        $response->assertSee(__('ui.jobs_show.application_instructions'));
+        $response->assertDontSee(__('ui.jobs_show.application_instructions'));
+        $response->assertDontSee('Službeni izvor');
         $response->assertSee('prijava@example.hr');
     }
 

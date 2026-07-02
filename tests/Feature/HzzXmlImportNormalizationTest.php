@@ -51,22 +51,23 @@ XML;
         $this->assertTrue($job->canApplyViaCroWork());
 
         $this->assertSame(
-            'Prodavač/prodavačica - konobar/konobarica na benzinskoj postaji',
-            $job->title
+          'Prodavač/prodavačica – konobar/konobarica na benzinskoj postaji',
+          $job->title
         );
 
         $this->assertSame('Varaždinske toplice', $job->location_city);
         $this->assertSame('HZZ EU programi', $job->category);
 
-        // Duplicate text from opis/posebniZahtjevi should be kept once in responsibilities.
+        // Duplicate text from opis/posebniZahtjevi should be kept once, without placeholder fallback.
         $this->assertSame(
-          'Od vas se očekuje: aktivna uloga u prodaji proizvoda iz našeg bogatog asortimana.',
-          $job->responsibilities
+            'Od vas se očekuje: aktivna uloga u prodaji proizvoda iz našeg bogatog asortimana.',
+            $job->description
         );
-        $this->assertSame('HZZ imported listing.', $job->description);
+        $this->assertNull($job->responsibilities);
+        $this->assertNull($job->requirements);
 
-        // nacinPrijave should be normalized to pure email (without "Email:" prefix)
-        $this->assertSame('pridruzise@ina.hr', $job->application_instructions);
+        // Email-only instructions should become contact data, not a visible instruction block.
+        $this->assertNull($job->application_instructions);
 
         $this->assertSame('Na određeno', $job->contract_type);
         $this->assertSame('Nije potrebno', $job->experience_level);
@@ -74,6 +75,42 @@ XML;
 
         // Preserve known acronyms in uppercase after sentence-case conversion.
         $this->assertStringContainsString('HZZ EU', $job->category);
+    }
+
+    public function test_hzz_xml_import_extracts_responsibilities_from_bullet_lists_without_duplicating_about_text(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<radnaMjesta>
+  <radnoMjesto>
+    <id>164366409</id>
+    <url>http://burzarada.hzz.hr/RadnoMjesto_Ispis.aspx?WebSifra=164366409</url>
+    <nazivRadnogMjesta>KUHAR/ICA</nazivRadnogMjesta>
+    <opis><![CDATA[
+      <p>RAD NA PRIPREMI I POSLUŽIVANJU HRANE.</p>
+      <ul>
+        <li>PRIPREMA JELA</li>
+        <li>ODRŽAVANJE ČISTOĆE KUHINJE</li>
+        <li>SUDJELOVANJE U NARUDŽBAMA</li>
+      </ul>
+    ]]></opis>
+    <mjestoRada>ZAGREB</mjestoRada>
+  </radnoMjesto>
+</radnaMjesta>
+XML;
+
+        Http::fake([
+            'https://example.test/hzz-bullets.xml' => Http::response($xml, 200, ['Content-Type' => 'application/xml']),
+        ]);
+
+        $summary = app(HzzJobImportService::class)->importFromUrl('https://example.test/hzz-bullets.xml', false, false);
+
+        $this->assertSame(1, $summary['created']);
+
+        $job = Job::query()->firstOrFail();
+
+        $this->assertSame('Rad na pripremi i posluživanju hrane.', trim(strip_tags((string) $job->description)));
+        $this->assertSame("- Priprema jela\n- Održavanje čistoće kuhinje\n- Sudjelovanje u narudžbama", $job->responsibilities);
     }
 
       public function test_hzz_xml_import_handles_empty_xml_without_creating_records(): void
