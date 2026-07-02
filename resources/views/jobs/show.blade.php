@@ -112,8 +112,11 @@
             $value = preg_replace('/:\s*/u', ': ', $value) ?? $value;
 
             $upperRatio = preg_match_all('/\p{Lu}/u', $value, $upperMatches) ?: 0;
+            $lowerRatio = preg_match_all('/\p{Ll}/u', $value, $lowerMatches) ?: 0;
             $letterCount = preg_match_all('/\p{L}/u', $value, $letterMatches) ?: 0;
-            if ($letterCount > 0 && ($upperRatio / $letterCount) > 0.72) {
+            $looksAllCaps = $letterCount >= 6 && ($lowerRatio === 0 || ($upperRatio / $letterCount) > 0.60);
+
+            if ($looksAllCaps) {
                 $lower = mb_strtolower($value, 'UTF-8');
                 $value = mb_strtoupper(mb_substr($lower, 0, 1), 'UTF-8') . mb_substr($lower, 1);
             }
@@ -254,7 +257,7 @@
             return $html;
         };
 
-        $renderRichEditorBlock = static function (?string $value): string {
+        $renderRichEditorBlock = static function (?string $value) use ($isHzzOfficial, $normalizeImportedLine): string {
             $html = trim((string) $value);
             if ($html === '') {
                 return '';
@@ -313,6 +316,19 @@
 
                 return '<img src="' . e($src) . '" alt="" loading="lazy" decoding="async">';
             }, $html) ?? $html;
+
+            if ($isHzzOfficial) {
+                $html = preg_replace_callback('/>([^<]+)</u', static function (array $matches) use ($normalizeImportedLine): string {
+                    $text = (string) ($matches[1] ?? '');
+                    $normalized = $normalizeImportedLine($text);
+
+                    if (trim($normalized) === '') {
+                        return '><';
+                    }
+
+                    return '>' . e($normalized) . '<';
+                }, $html) ?? $html;
+            }
 
             return $html;
         };
@@ -783,6 +799,21 @@
                                     <p><strong>{{ __('ui.jobs_show.contact_external_apply') }}:</strong> <a href="{{ $hzzApplyUrl }}" target="_blank" rel="noopener" class="font-medium underline underline-offset-2 decoration-slate-300 hover:text-slate-900">{{ __('ui.jobs_show.open_external_apply') }}</a></p>
                                 @endif
                             </div>
+                        </article>
+                    @endif
+
+                    @if($isHzzOfficial)
+                        <article class="cw-hzz-attribution" aria-label="HZZ attribution">
+                            <div class="cw-hzz-attribution__head">
+                                @if($hzzLogoUrl)
+                                    <img src="{{ $hzzLogoUrl }}" alt="HZZ" class="cw-hzz-attribution__logo" loading="lazy" decoding="async" width="120" height="40">
+                                @endif
+                            </div>
+
+                            <h2 class="cw-hzz-attribution__title">Hrvatski zavod za zapošljavanje</h2>
+                            <p class="cw-hzz-attribution__line">Sva prava pridržana © 2026, www.hzz.hr.</p>
+                            <p class="cw-hzz-attribution__line">Sadržaj ovog oglasa je prenesen sa službenih stranica Hrvatskog zavoda za zapošljavanje.</p>
+                            <p class="cw-hzz-attribution__line cw-hzz-attribution__line--disclaimer">Platforma CroWork.hr ne odgovara za eventualnu netočnost podataka u oglasu.</p>
                         </article>
                     @endif
 

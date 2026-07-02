@@ -347,12 +347,14 @@ class HzzJobImportService
         }
 
         $descriptionSource = Arr::get($item, 'description') ?? Arr::get($item, 'opis') ?? '';
+        $responsibilitiesSource = Arr::get($item, 'responsibilities') ?? Arr::get($item, 'odgovornosti') ?? '';
         $requirementsSource = Arr::get($item, 'requirements') ?? Arr::get($item, 'posebniZahtjevi') ?? '';
         $conditionsSource = Arr::get($item, 'uvjeti') ?? '';
         $benefitsSource = Arr::get($item, 'benefits') ?? Arr::get($item, 'pogodnosti') ?? '';
 
         $descriptionHtml = $this->sanitizeImportedHtml(is_string($descriptionSource) ? $descriptionSource : '');
         $descriptionRaw = $this->cleanRichText($this->flattenToText($descriptionSource));
+        $responsibilitiesRaw = $this->cleanRichText($this->flattenToText($responsibilitiesSource));
         $requirementsRaw = $this->cleanRichText($this->flattenToText($requirementsSource));
         $conditionsRaw = $this->cleanRichText($this->flattenToText($conditionsSource));
         $benefitsRaw = $this->cleanRichText($this->flattenToText($benefitsSource));
@@ -379,14 +381,16 @@ class HzzJobImportService
             $nacinPrijaveNormalized,
         ], fn ($value) => trim((string) $value) !== '')));
 
-        [$description, $requirementsText, $benefitsText, $instructionsText] = $this->deduplicateSections([
+        [$description, $responsibilitiesText, $requirementsText, $benefitsText, $instructionsText] = $this->deduplicateSections([
             $this->normalizeSentenceCase($descriptionRaw),
+            $this->normalizeSentenceCase($responsibilitiesRaw),
             $this->normalizeSentenceCase($requirementsRaw),
             $this->normalizeSentenceCase($benefitsRaw),
             $this->normalizeSentenceCase($instructionsCombined),
         ]);
 
         $description = $this->deduplicateLinesInBlock($description);
+        $responsibilitiesText = $this->deduplicateLinesInBlock($responsibilitiesText);
         $requirementsText = $this->deduplicateLinesInBlock($requirementsText);
         $benefitsText = $this->deduplicateLinesInBlock($benefitsText);
         $instructionsText = $this->deduplicateLinesInBlock($instructionsText);
@@ -405,11 +409,8 @@ class HzzJobImportService
             $requirementsText = '';
         }
 
-        $responsibilitiesText = $this->extractResponsibilities($description, $requirementsText);
-        if ($responsibilitiesText !== '') {
-            $description = $this->removeLinesFromBlock($description, $responsibilitiesText);
-            $requirementsText = $this->removeLinesFromBlock($requirementsText, $responsibilitiesText);
-            $descriptionHtml = '';
+        if ($responsibilitiesText !== '' && ($this->isMostlyDuplicate($responsibilitiesText, $description) || $this->isMostlyDuplicate($responsibilitiesText, $requirementsText))) {
+            $responsibilitiesText = '';
         }
 
         if ($description === '' && $requirementsText !== '' && $this->looksLikeDescriptiveBlock($requirementsText)) {
@@ -593,6 +594,15 @@ class HzzJobImportService
             $instructionsText = $this->limitString($instructionsText, 64000) ?? '';
         }
 
+        $finalDescription = $descriptionHtml !== '' && $description !== ''
+            ? $descriptionHtml
+            : $description;
+
+        if ($finalDescription === '' && $requirementsText !== '' && $this->looksLikeDescriptiveBlock($requirementsText) && ! $this->looksLikeHeadingOnlyBlock($requirementsText)) {
+            $finalDescription = $requirementsText;
+            $requirementsText = '';
+        }
+
         return [
             'source_system' => 'hzz',
             'hzz_is_official' => true,
@@ -603,7 +613,7 @@ class HzzJobImportService
             'source_imported_at' => now(),
             'external_company_name' => $externalCompanyName,
             'title' => $title,
-            'description' => $descriptionHtml !== '' && $description !== '' ? $descriptionHtml : ($description !== '' ? $description : null),
+            'description' => $finalDescription,
             'responsibilities' => $responsibilitiesText !== '' ? $responsibilitiesText : null,
             'requirements' => $requirementsText !== '' ? $requirementsText : null,
             'benefits' => $benefitsText !== '' ? $benefitsText : null,
@@ -1147,101 +1157,19 @@ class HzzJobImportService
         return $wordCount >= 8;
     }
 
-    private function extractResponsibilities(string ...$sources): string
+    private function looksLikeHeadingOnlyBlock(string $value): bool
     {
-        $items = [];
-
-        foreach ($sources as $source) {
-            $lines = preg_split('/\R+/u', trim($source)) ?: [];
-
-            foreach ($lines as $line) {
-                $line = trim((string) $line);
-                if ($line === '') {
-                    continue;
-                }
-
-                if (preg_match('/^[-*]\s*(.+)$/u', $line, $matches) === 1) {
-                    $candidate = $this->normalizeSentenceCase(trim((string) $matches[1]));
-                    if ($candidate !== '') {
-                        $items[] = $candidate;
-                    }
-                    continue;
-                }
-
-                if (preg_match('/^(opis\s+posla|odgovornosti|zadaci|radni\s+zadaci)\s*:\s*(.+)$/iu', $line, $matches) === 1) {
-                    $chunks = preg_split('/\s*[;•]\s*/u', trim((string) $matches[2])) ?: [];
-                    foreach ($chunks as $chunk) {
-                        $candidate = $this->normalizeSentenceCase(trim((string) $chunk));
-                        if ($candidate !== '') {
-                            $items[] = $candidate;
-                        }
-                    }
-                }
-            }
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return false;
         }
 
-        $unique = [];
-        foreach ($items as $item) {
-            if (mb_strlen($item, 'UTF-8') < 4) {
-                continue;
-            }
-
-            $duplicate = false;
-            foreach ($unique as $existing) {
-                if ($this->isMostlyDuplicate($item, $existing, 0.86)) {
-                    $duplicate = true;
-                    break;
-                }
-            }
-
-            if (! $duplicate) {
-                $unique[] = $item;
-            }
+        $lines = preg_split('/\R+/u', $trimmed) ?: [];
+        if (count($lines) !== 1) {
+            return false;
         }
 
-        $unique = array_slice($unique, 0, 8);
-
-        if (count($unique) < 2) {
-            return '';
-        }
-
-        return implode("\n", array_map(static fn (string $item): string => '- ' . $item, $unique));
-    }
-
-    private function removeLinesFromBlock(string $source, string $linesToRemove): string
-    {
-        $sourceLines = preg_split('/\R+/u', trim($source)) ?: [];
-        $removals = preg_split('/\R+/u', trim($linesToRemove)) ?: [];
-        $normalizedRemovals = array_values(array_filter(array_map(function (string $line): string {
-            return $this->normalizeForComparison(preg_replace('/^[-*]\s*/u', '', trim($line)) ?? trim($line));
-        }, $removals)));
-
-        $kept = [];
-        foreach ($sourceLines as $line) {
-            $line = trim((string) $line);
-            if ($line === '') {
-                continue;
-            }
-
-            $normalizedLine = $this->normalizeForComparison(preg_replace('/^[-*]\s*/u', '', $line) ?? $line);
-            if ($normalizedLine === '') {
-                continue;
-            }
-
-            $shouldRemove = false;
-            foreach ($normalizedRemovals as $removal) {
-                if ($removal !== '' && $this->isMostlyDuplicate($normalizedLine, $removal, 0.86)) {
-                    $shouldRemove = true;
-                    break;
-                }
-            }
-
-            if (! $shouldRemove) {
-                $kept[] = $line;
-            }
-        }
-
-        return trim(implode("\n", $kept));
+        return preg_match('/^(opis\s+poslova|odgovornosti|uvjeti|zahtjevi)\s*:?$/iu', trim((string) $lines[0])) === 1;
     }
 
     private function sanitizeImportedHtml(string $value): string

@@ -77,7 +77,7 @@ XML;
         $this->assertStringContainsString('HZZ EU', $job->category);
     }
 
-    public function test_hzz_xml_import_extracts_responsibilities_from_bullet_lists_without_duplicating_about_text(): void
+    public function test_hzz_xml_import_keeps_bullet_list_content_in_description_when_it_comes_from_opis(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -109,8 +109,58 @@ XML;
 
         $job = Job::query()->firstOrFail();
 
-        $this->assertSame('Rad na pripremi i posluživanju hrane.', trim(strip_tags((string) $job->description)));
-        $this->assertSame("- Priprema jela\n- Održavanje čistoće kuhinje\n- Sudjelovanje u narudžbama", $job->responsibilities);
+        $this->assertStringContainsString('Rad na pripremi i posluživanju hrane.', (string) strip_tags((string) $job->description));
+        $this->assertStringContainsString('Priprema jela', (string) strip_tags((string) $job->description));
+        $this->assertNull($job->responsibilities);
+    }
+
+    public function test_hzz_xml_import_keeps_non_null_description_when_source_is_only_bullets(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<radnaMjesta>
+  <radnoMjesto>
+    <id>164251816</id>
+    <url>http://burzarada.hzz.hr/RadnoMjesto_Ispis.aspx?WebSifra=164251816</url>
+    <nazivRadnogMjesta>DJELATNIK/DJELATNICA U KUŠAONICI VINA</nazivRadnogMjesta>
+    <opis><![CDATA[
+      <P>- PRIMARNI RAD U KUŠAONICI VINARIJE, NA POSLOVIMA PREZENTACIJE, POSLUŽIVANJA I PRODAJE&amp;NBSP;VINA.</P>
+      <P>- UVJET JE&amp;NBSP;DOBRO POZNAVANJE ENGLESKOG JEZIKA I&amp;NBSP;DOBRE KOMUNIKACIJSKE VJEŠTINE.</P>
+      <P>- UVJET NIJE FORMALNO OBRAZOVANJE.</P>
+      <P>- JEDAN DAN U TJEDNU NERADNI.</P>
+      <P>- RADNO VRIJEME OD 12-20 H (5 DANA PO 6H I 1 DAN 8H, ILI SLIČNO, OVISNO O DOGOVORU.)</P>
+      <P>- MOGUĆE I POVREMENI ANGAŽMAN</P>
+    ]]></opis>
+    <mjestoRada>SKRADIN</mjestoRada>
+    <nacinPrijave>Email: info@antesladicvino.hr</nacinPrijave>
+    <uvjeti>Teren:Oboje</uvjeti>
+    <posebniZahtjevi><![CDATA[
+      Opis poslova:<br />
+      - Primarni rad u kušaonici vinarije, na poslovima prezentacije, posluživanja i prodaje&amp;nbsp;vina.<br />
+      - Uvjet je&amp;nbsp;dobro poznavanje engleskog jezika i&amp;nbsp;dobre komunikacijske vještine.<br />
+      - Uvjet nije formalno obrazovanje.<br />
+      - Jedan dan u tjednu neradni.<br />
+      - Radno vrijeme od 12-20 h (5 dana po 6h i 1 dan 8h, ili slično, ovisno o dogovoru.)<br />
+      - Moguće i povremeni angažman.
+    ]]></posebniZahtjevi>
+  </radnoMjesto>
+</radnaMjesta>
+XML;
+
+        Http::fake([
+            'https://example.test/hzz-bullet-only.xml' => Http::response($xml, 200, ['Content-Type' => 'application/xml']),
+        ]);
+
+        $summary = app(HzzJobImportService::class)->importFromUrl('https://example.test/hzz-bullet-only.xml', false, false);
+
+        $this->assertSame(1, $summary['created']);
+
+        $job = Job::query()->firstOrFail();
+
+        $this->assertNotSame('', (string) $job->description);
+        $this->assertStringContainsString('primarni rad u kušaonici vinarije', mb_strtolower((string) strip_tags((string) $job->description), 'UTF-8'));
+        $this->assertNull($job->responsibilities);
+        $this->assertStringContainsString('Teren', (string) $job->requirements);
     }
 
       public function test_hzz_xml_import_handles_empty_xml_without_creating_records(): void
