@@ -65,6 +65,8 @@ class JobController extends Controller
             abort(404);
         }
 
+        $job->loadMissing(['employer', 'translations']);
+
         if ($job->isHzzOfficial()) {
             app(HzzAnalyticsTracker::class)->trackView($job, request());
         }
@@ -81,7 +83,7 @@ class JobController extends Controller
     public function previewByToken(string $token)
     {
         $job = Job::query()
-            ->with('employer')
+            ->with(['employer', 'translations'])
             ->where('preview_token', trim($token))
             ->firstOrFail();
 
@@ -111,7 +113,7 @@ class JobController extends Controller
     protected function getFilteredJobs(Request $request)
     {
         $query = Job::query()
-            ->with('employer') // Prevent N+1
+            ->with(['employer', 'translations']) // Prevent N+1
             ->active(); // Use existing scope for published/active jobs
 
         // Search by title or company
@@ -207,10 +209,10 @@ class JobController extends Controller
     protected function getSimilarJobs(Job $job)
     {
         // Load employer relationship for company info
-        $job->loadMissing('employer');
+        $job->loadMissing(['employer', 'translations']);
 
         $baseSimilarQuery = Job::query()
-            ->with('employer')
+            ->with(['employer', 'translations'])
             ->active()
             ->where('id', '!=', $job->id);
 
@@ -239,7 +241,7 @@ class JobController extends Controller
             $excludeIds = $similarJobs->pluck('id')->push($job->id)->values();
 
             $fallbackJobs = Job::query()
-                ->with('employer')
+                ->with(['employer', 'translations'])
                 ->active()
                 ->whereNotIn('id', $excludeIds)
                 ->orderBy('published_at', 'desc')
@@ -358,4 +360,3 @@ class JobController extends Controller
         });
     }
 }
-

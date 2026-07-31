@@ -245,6 +245,12 @@ class Setting extends Model
                 'GBP' => 'GBP (£)',
             ],
         ],
+        'job_translation_enabled' => [
+            'label' => 'Automatic Job Translation Enabled',
+            'group' => 'Localization',
+            'type' => 'boolean',
+            'default' => true,
+        ],
 
         // Analytics & Tracking
         'analytics_enabled' => [

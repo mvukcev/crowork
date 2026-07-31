@@ -76,4 +76,6 @@ return [
     'metadata_education' => 'Qualification: :value',
     'metadata_schedule' => 'Schedule: :value',
     'metadata_languages' => 'Languages: :value :extra',
+    'automatic_translation_disclaimer' => 'This job listing was translated automatically from Croatian. The translation may contain inaccuracies or errors. In case of any discrepancy, the original Croatian listing shall prevail. CroWork is not responsible for errors introduced by the automated translation.',
+    'view_croatian_original' => 'View the original Croatian listing.',
 ];

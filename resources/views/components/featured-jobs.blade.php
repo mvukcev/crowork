@@ -21,9 +21,10 @@
                     }
                 }
             @endphp
-            <x-job-card :title="$job->title"
-                        :company="$employer?->company_name"
+            <x-job-card :title="$job->localized('title')"
+                        :company="$job->employer_display_name"
                         :company_href="$company_href"
+                        :employer_logo_url="$employer?->logo_path ? asset('storage/' . $employer->logo_path) : ($job->source_logo_url ?: null)"
                         :job_cover_url="$job->cover_image_path ? asset('storage/' . $job->cover_image_path) : null"
                         :city="$job->location_city"
                         :salary_min="$job->salary_min"
@@ -34,7 +35,7 @@
                         :experience_level="$job->experience_level"
                         :education_required="$job->education_required"
                         :positions_available="$job->positions_available"
-                        :working_hours="$job->working_hours"
+                        :working_hours="$job->localized('working_hours')"
                         :start_date="$job->start_date"
                         :start_flexibility="$job->start_flexibility"
                         :accommodation_provided="$job->accommodation_provided"

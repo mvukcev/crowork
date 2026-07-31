@@ -1,11 +1,13 @@
 <x-app-layout>
-    <x-slot name="title">{{ $job->title }}</x-slot>
-    <x-slot name="description">{{ \Illuminate\Support\Str::limit(strip_tags($job->description), 150) }}</x-slot>
+    <x-slot name="title">{{ $job->localized('title') }}</x-slot>
+    <x-slot name="description">{{ \Illuminate\Support\Str::limit(strip_tags($job->localized('description')), 150) }}</x-slot>
     <x-slot name="canonical">{{ route('jobs.show', $job) }}</x-slot>
     <x-slot name="ogType">article</x-slot>
 
     @php
         $isPreview = (bool) ($isPreview ?? false);
+        $localizedTitle = $job->localized('title');
+        $isAutomaticallyTranslated = $job->hasAutomaticTranslation();
         $companyProfileUrl = $job->employer?->slug ? route('companies.show', $job->employer) : null;
         $companyName = $job->employer?->company_display_name
             ?? $job->employer?->company_name
@@ -72,26 +74,26 @@
         $postedAgo = $job->published_at?->diffForHumans() ?? $job->created_at?->diffForHumans();
         $expiryDate = $job->expires_at?->translatedFormat('j M Y');
         $startDateDisplay = $job->start_date?->translatedFormat('j M Y');
-        $workingHoursText = trim((string) ($job->working_hours ?? ''));
-        $shiftDetailsText = trim((string) ($job->shift_details ?? ''));
-        $applicationInstructionsText = trim((string) ($job->application_instructions ?? ''));
+        $workingHoursText = trim((string) ($job->localized('working_hours') ?? ''));
+        $shiftDetailsText = trim((string) ($job->localized('shift_details') ?? ''));
+        $applicationInstructionsText = trim((string) ($job->localized('application_instructions') ?? ''));
         $isHzzImported = $job->isImportedFromHzz();
         $isHzzOfficial = $job->isHzzOfficial();
-        $hzzLegalNotice = trim((string) ($job->hzz_legal_notice ?? ''));
+        $hzzLegalNotice = trim((string) ($job->localized('hzz_legal_notice') ?? ''));
         $contractDurationDisplay = cw_localize_job_value('contract_duration', $job->contract_duration);
         $startFlexibilityDisplay = cw_localize_job_value('start_flexibility', $job->start_flexibility);
         $workingHoursText = cw_localize_job_value('working_hours', $workingHoursText);
         $shiftDetailsText = cw_localize_job_value('shift_details', $shiftDetailsText);
 
-        $aboutTextRaw = trim((string) ($job->description ?? ''));
+        $aboutTextRaw = trim((string) ($job->localized('description') ?? ''));
         if ($isHzzOfficial && preg_match('/^hzz imported listing\.?$/iu', $aboutTextRaw) === 1) {
             $aboutTextRaw = '';
         }
         $aboutTextHasHtml = $aboutTextRaw !== strip_tags($aboutTextRaw);
         $aboutText = $aboutTextRaw;
-        $responsibilitiesText = trim((string) ($job->responsibilities ?? ''));
-        $requirementsText = trim((string) ($job->requirements ?? ''));
-        $benefitsText = trim((string) ($job->benefits ?? ''));
+        $responsibilitiesText = trim((string) ($job->localized('responsibilities') ?? ''));
+        $requirementsText = trim((string) ($job->localized('requirements') ?? ''));
+        $benefitsText = trim((string) ($job->localized('benefits') ?? ''));
 
         $normalizeImportedLine = static function (?string $value): string {
             $value = trim((string) $value);
@@ -335,9 +337,9 @@
 
         $mobilityDetails = array_values(array_filter([
             $job->accommodation_provided ? __('ui.jobs_show.accommodation_provided_line') : null,
-            !empty($job->accommodation_details) ? trim((string) $job->accommodation_details) : null,
+            filled($job->localized('accommodation_details')) ? trim((string) $job->localized('accommodation_details')) : null,
             $job->visa_support ? __('ui.jobs_show.visa_support_line') : null,
-            !empty($job->visa_support_details) ? trim((string) $job->visa_support_details) : null,
+            filled($job->localized('visa_support_details')) ? trim((string) $job->localized('visa_support_details')) : null,
         ]));
 
         $sourcePayload = is_array($job->source_payload) ? $job->source_payload : [];
@@ -393,7 +395,7 @@
         }
 
         $hzzSummaryText = null;
-        if ($isHzzOfficial) {
+        if ($isHzzOfficial && app()->getLocale() === 'hr') {
             $summaryParts = [];
             $factCount = 0;
 
@@ -568,8 +570,8 @@
         $jobPostingSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'JobPosting',
-            'title' => $job->title,
-            'description' => \Illuminate\Support\Str::limit(strip_tags((string) $job->description), 4000, ''),
+            'title' => $localizedTitle,
+            'description' => \Illuminate\Support\Str::limit(strip_tags((string) $job->localized('description')), 4000, ''),
             'datePosted' => optional($job->published_at ?? $job->created_at)?->toIso8601String(),
             'validThrough' => optional($job->expires_at)?->toIso8601String(),
             'employmentType' => $employmentTypeSchema,
@@ -623,7 +625,7 @@
                 [
                     '@type' => 'ListItem',
                     'position' => 3,
-                    'name' => $job->title,
+                    'name' => $localizedTitle,
                     'item' => route('jobs.show', $job),
                 ],
             ],
@@ -649,18 +651,18 @@
                 <span class="mx-1">/</span>
                 <a href="{{ route('jobs.index') }}" class="hover:text-slate-900">{{ __('navigation.jobs') }}</a>
                 <span class="mx-1">/</span>
-                <span class="text-slate-700">{{ $job->title }}</span>
+                <span class="text-slate-700">{{ $localizedTitle }}</span>
             </div>
 
             <article class="cw-surface p-6 md:p-8 mb-6 overflow-hidden" style="background: linear-gradient(150deg, {{ $brandColor }}10, transparent 42%), var(--cw-surface); border: 1px solid color-mix(in srgb, {{ $brandColor }} 16%, var(--cw-hairline));">
                 @if($jobCoverUrl)
                     <div class="-mx-6 md:-mx-8 -mt-6 md:-mt-8 mb-5 aspect-[2/1] overflow-hidden rounded-t-[inherit]">
-                        <img src="{{ $jobCoverUrl }}" alt="{{ $job->title }}" class="h-full w-full object-cover" loading="eager" fetchpriority="high" decoding="async">
+                        <img src="{{ $jobCoverUrl }}" alt="{{ $localizedTitle }}" class="h-full w-full object-cover" loading="eager" fetchpriority="high" decoding="async">
                     </div>
                 @endif
 
                 <p class="cw-kicker mb-2">{{ __('ui.jobs_show.kicker') }}</p>
-                <h1 class="cw-display text-4xl md:text-6xl mb-3">{{ $job->title }}</h1>
+                <h1 class="cw-display text-4xl md:text-6xl mb-3">{{ $localizedTitle }}</h1>
                 <p class="text-base text-slate-600 mb-4">
                     @if($companyProfileUrl)
                         <a href="{{ $companyProfileUrl }}" class="hover:text-slate-900 underline-offset-2 hover:underline">{{ $companyName }}</a>
@@ -700,6 +702,17 @@
                     @endif
                 </div>
             </article>
+
+            @if($isAutomaticallyTranslated)
+                <aside class="cw-surface p-4 md:p-5 mb-6 border border-amber-200 bg-amber-50" role="note">
+                    <p class="text-sm leading-relaxed text-amber-900">
+                        {{ __('jobs.automatic_translation_disclaimer') }}
+                        <a href="{{ request()->fullUrlWithQuery(['lang' => 'hr']) }}" class="font-semibold underline underline-offset-2">
+                            {{ __('jobs.view_croatian_original') }}
+                        </a>
+                    </p>
+                </aside>
+            @endif
 
             @if($hzzSummaryText)
                 <article class="cw-surface p-5 md:p-6 mb-6">
@@ -825,8 +838,8 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 @foreach($similarJobs as $similarJob)
                                     <x-job-card
-                                        :title="$similarJob->title"
-                                        :company="$similarJob->employer?->company_name"
+                                        :title="$similarJob->localized('title')"
+                                        :company="$similarJob->employer_display_name"
                                         :company_href="$similarJob->employer?->slug ? route('companies.show', $similarJob->employer) : null"
                                         :job_cover_url="$similarJob->cover_image_path ? asset('storage/' . $similarJob->cover_image_path) : null"
                                         :city="$similarJob->location_city"

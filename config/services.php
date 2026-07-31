@@ -51,4 +51,11 @@ return [
         'max_feed_bytes' => (int) env('HZZ_FEED_MAX_BYTES', 12000000),
     ],
 
+    'azure_translator' => [
+        'enabled' => filter_var(env('AZURE_TRANSLATOR_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'key' => env('AZURE_TRANSLATOR_KEY'),
+        'region' => env('AZURE_TRANSLATOR_REGION'),
+        'endpoint' => env('AZURE_TRANSLATOR_ENDPOINT', 'https://api.cognitive.microsofttranslator.com'),
+    ],
+
 ];

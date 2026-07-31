@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\TranslateJobPosting;
 use App\Services\Hzz\HzzApplicationContactParser;
 use App\Services\ImageSanitizerService;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,20 @@ use Illuminate\Support\Str;
 
 class Job extends Model
 {
+    public const TRANSLATABLE_FIELDS = [
+        'title',
+        'description',
+        'responsibilities',
+        'requirements',
+        'benefits',
+        'accommodation_details',
+        'visa_support_details',
+        'working_hours',
+        'shift_details',
+        'application_instructions',
+        'hzz_legal_notice',
+    ];
+
     protected $table = 'job_postings';
 
     protected $fillable = [
@@ -174,6 +189,28 @@ class Job extends Model
 
             app(ImageSanitizerService::class)->sanitizeAndOptimize('public', $coverPath, 2200, 1400);
         });
+
+        static::saved(function (Job $job): void {
+            if (
+                ! config('services.azure_translator.enabled')
+                || ! setting('job_translation_enabled', true)
+                || $job->status !== 'published'
+            ) {
+                return;
+            }
+
+            $translationRelevantChange = $job->wasRecentlyCreated
+                || $job->wasChanged(self::TRANSLATABLE_FIELDS)
+                || $job->wasChanged(['status', 'published_at']);
+
+            if (! $translationRelevantChange) {
+                return;
+            }
+
+            TranslateJobPosting::dispatch($job->id, 'en')
+                ->onQueue($job->translationQueueName())
+                ->afterCommit();
+        });
     }
 
     protected static function generateUniqueSlug(string $title): string
@@ -222,6 +259,23 @@ class Job extends Model
         return route('jobs.preview.shared', ['token' => $token]);
     }
 
+    public function getEmployerDisplayNameAttribute(): ?string
+    {
+        foreach ([
+            $this->employer?->company_display_name,
+            $this->employer?->company_name,
+            $this->external_company_name,
+        ] as $name) {
+            $name = trim((string) $name);
+
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
@@ -251,6 +305,101 @@ class Job extends Model
     public function applications()
     {
         return $this->hasMany(JobApplication::class);
+    }
+
+    public function translations()
+    {
+        return $this->hasMany(JobTranslation::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function translationSourceContent(): array
+    {
+        $content = [];
+
+        foreach (self::TRANSLATABLE_FIELDS as $field) {
+            $value = trim((string) $this->getAttribute($field));
+            if ($value !== '') {
+                $content[$field] = $value;
+            }
+        }
+
+        return $content;
+    }
+
+    public function translationSourceHash(): string
+    {
+        return hash('sha256', json_encode(
+            $this->translationSourceContent(),
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        ) ?: '');
+    }
+
+    public function translationQueueName(): string
+    {
+        return $this->isImportedFromHzz() ? 'translations-hzz' : 'translations-native';
+    }
+
+    public function localized(string $field, ?string $locale = null): mixed
+    {
+        $sourceValue = $this->getAttribute($field);
+        $locale ??= app()->getLocale();
+
+        if ($locale === 'hr' || ! in_array($field, self::TRANSLATABLE_FIELDS, true)) {
+            return $sourceValue;
+        }
+
+        $translation = $this->relationLoaded('translations')
+            ? $this->translations->firstWhere('locale', $locale)
+            : $this->translations()->where('locale', $locale)->first();
+
+        if (
+            ! $translation
+            || $translation->status !== 'completed'
+            || ! hash_equals((string) $translation->source_hash, $this->translationSourceHash())
+        ) {
+            return $sourceValue;
+        }
+
+        return $translation->content[$field] ?? $sourceValue;
+    }
+
+    public function hasAutomaticTranslation(?string $locale = null): bool
+    {
+        $locale ??= app()->getLocale();
+        if ($locale === 'hr') {
+            return false;
+        }
+
+        $translation = $this->relationLoaded('translations')
+            ? $this->translations->firstWhere('locale', $locale)
+            : $this->translations()->where('locale', $locale)->first();
+
+        return $translation !== null
+            && $translation->status === 'completed'
+            && hash_equals((string) $translation->source_hash, $this->translationSourceHash());
+    }
+
+    public function translationStatus(string $locale = 'en'): string
+    {
+        $translation = $this->relationLoaded('translations')
+            ? $this->translations->firstWhere('locale', $locale)
+            : $this->translations()->where('locale', $locale)->first();
+
+        if (! $translation) {
+            return 'not_queued';
+        }
+
+        if (
+            $translation->status === 'completed'
+            && ! hash_equals((string) $translation->source_hash, $this->translationSourceHash())
+        ) {
+            return 'outdated';
+        }
+
+        return (string) $translation->status;
     }
 
     /**

@@ -359,7 +359,7 @@ data-cw-public-nav>
                         <a href="{{ route('for-employers') }}" class="cw-mobile-nav-link">{{ __('navigation.for_employers') }}</a>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 px-6 pb-6 mt-auto">
+                    <div class="cw-mobile-menu-footer flex w-full flex-col gap-2 px-6 pb-6 mt-auto">
                         <div class="cw-mobile-action-grid" aria-label="{{ __('settings.mobile_utility_actions') }}">
                             <button type="button" class="cw-mobile-action-row" data-cw-mobile-language-toggle aria-expanded="false" aria-controls="cw-mobile-panel-language">
                                 <span class="cw-mobile-action-row-label">{{ __('settings.language') }}</span>
@@ -390,7 +390,7 @@ data-cw-public-nav>
                                 </button>
                             @else
                                 <a href="{{ route('access.show') }}" class="cw-mobile-action-row cw-mobile-action-row-emphasis cw-mobile-action-row-accent" data-cw-track-click="mobile_login">
-                                    <span class="cw-mobile-action-row-label">{{ __('navigation.get_started') }}</span>
+                                    <span class="cw-mobile-action-row-label">{{ __('navigation.login') }}</span>
                                     <span class="cw-mobile-action-row-meta" aria-hidden="true">
                                         <svg class="cw-mobile-action-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 6l6 6-6 6" />

@@ -12,6 +12,7 @@ class CompanyController extends Controller
 
         $company->load([
             'jobs' => fn ($query) => $query
+                ->with('translations')
                 ->active()
                 ->orderByDesc('is_featured')
                 ->orderByDesc('published_at')

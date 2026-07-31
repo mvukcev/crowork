@@ -149,6 +149,7 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
         return [
             'dashboard' => 'Dashboard',
             'jobs' => 'Jobs',
+            'job-translation-trackers' => 'Job Translation Tracker',
             'job-applications' => 'Job Applications',
             'educations' => 'Educations',
             'education-applications' => 'Education Applications',

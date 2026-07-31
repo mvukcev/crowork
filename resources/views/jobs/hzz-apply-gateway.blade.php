@@ -1,12 +1,12 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('ui.jobs_show.apply_via_crowork') }} - {{ $job->title }}</x-slot>
+    <x-slot name="title">{{ __('ui.jobs_show.apply_via_crowork') }} - {{ $job->localized('title') }}</x-slot>
 
     <section class="cw-section">
         <div class="cw-container max-w-3xl">
             <div class="mb-6 text-sm text-slate-500">
                 <a href="{{ route('jobs.index') }}" class="hover:text-slate-900">{{ __('navigation.jobs') }}</a>
                 <span class="mx-1">/</span>
-                <a href="{{ route('jobs.show', $job) }}" class="hover:text-slate-900">{{ $job->title }}</a>
+                <a href="{{ route('jobs.show', $job) }}" class="hover:text-slate-900">{{ $job->localized('title') }}</a>
                 <span class="mx-1">/</span>
                 <span class="text-slate-700">{{ __('ui.jobs_show.apply_via_crowork') }}</span>
             </div>

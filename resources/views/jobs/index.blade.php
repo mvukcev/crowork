@@ -19,7 +19,7 @@
                         '@type' => 'ListItem',
                         'position' => $index + 1,
                         'url' => route('jobs.show', $job),
-                        'name' => $job->title,
+                        'name' => $job->localized('title'),
                     ];
                 })->all(),
             ],

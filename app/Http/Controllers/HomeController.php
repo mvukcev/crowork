@@ -11,7 +11,7 @@ class HomeController extends Controller
         $limit = 6;
 
         $featuredJobs = Job::query()
-            ->with('employer')
+            ->with(['employer', 'translations'])
             ->published()
             ->active()
             ->whereNotNull('slug')
@@ -27,7 +27,7 @@ class HomeController extends Controller
             $excludeIds = $featuredJobs->pluck('id')->all();
 
             $fallbackJobs = Job::query()
-                ->with('employer')
+                ->with(['employer', 'translations'])
                 ->published()
                 ->active()
                 ->whereNotNull('slug')

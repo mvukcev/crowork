@@ -3,8 +3,8 @@
         @foreach($jobs as $job)
             <div class="cw-listing-card-wrap" style="--cw-card-delay: {{ min($loop->index * 55, 385) }}ms;">
                 <x-job-card
-                    :title="$job->title"
-                    :company="$job->employer?->company_display_name ?? $job->employer?->company_name"
+                    :title="$job->localized('title')"
+                    :company="$job->employer_display_name"
                     :company_href="$job->employer?->slug ? route('companies.show', $job->employer) : null"
                     :employer_logo_url="$job->employer?->logo_path ? asset('storage/' . $job->employer->logo_path) : null"
                     :job_cover_url="$job->cover_image_path ? asset('storage/' . $job->cover_image_path) : null"
@@ -17,7 +17,7 @@
                     :experience_level="$job->experience_level"
                     :education_required="$job->education_required"
                     :positions_available="$job->positions_available"
-                    :working_hours="$job->working_hours"
+                    :working_hours="$job->localized('working_hours')"
                     :start_date="$job->start_date"
                     :start_flexibility="$job->start_flexibility"
                     :accommodation_provided="$job->accommodation_provided"

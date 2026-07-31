@@ -76,4 +76,6 @@ return [
     'metadata_education' => 'Kvalifikacije: :value',
     'metadata_schedule' => 'Raspored: :value',
     'metadata_languages' => 'Jezici: :value :extra',
+    'automatic_translation_disclaimer' => 'Ovaj oglas za posao automatski je preveden s hrvatskog jezika. Prijevod može sadržavati netočnosti ili pogreške. U slučaju nepodudarnosti mjerodavan je izvorni hrvatski oglas. CroWork nije odgovoran za pogreške nastale automatskim prijevodom.',
+    'view_croatian_original' => 'Pogledaj izvorni hrvatski oglas.',
 ];

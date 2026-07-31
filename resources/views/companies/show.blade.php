@@ -135,7 +135,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 @foreach($openJobs as $job)
                                     <x-job-card
-                                        :title="$job->title"
+                                        :title="$job->localized('title')"
                                         :href="route('jobs.show', $job)"
                                         :company="$displayName"
                                         :company_href="route('companies.show', $company)"

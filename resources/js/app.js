@@ -859,6 +859,13 @@ const initCroworkUi = () => {
 
 		if (!mobileToggle || !mobilePanel) return;
 
+		// Keep the fullscreen overlay outside the filtered/sticky header.
+		// Android Chrome/WebView can otherwise treat the header as the containing
+		// block for position: fixed and clip or offset the menu.
+		if (mobilePanel.parentElement !== document.body) {
+			document.body.appendChild(mobilePanel);
+		}
+
 		const isDesktopViewport = () => window.matchMedia('(min-width: 1024px)').matches;
 
 		let setMobileOpen = (nextOpen) => {
@@ -889,11 +896,9 @@ const initCroworkUi = () => {
 			setMobileOpen(!isOpen);
 		};
 
-		if (window.PointerEvent) {
-			mobileToggle.addEventListener('pointerup', toggleMobilePanel);
-		} else {
-			mobileToggle.addEventListener('click', toggleMobilePanel);
-		}
+		// `click` is the most reliable activation event across Android Chrome,
+		// older WebViews, touch, mouse and keyboard input.
+		mobileToggle.addEventListener('click', toggleMobilePanel);
 
 		// Close overlay (X button)
 		if (mobileClose) {

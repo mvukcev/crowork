@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('ui.jobs_apply.page_title', ['title' => $job->title]) }}</x-slot>
+    <x-slot name="title">{{ __('ui.jobs_apply.page_title', ['title' => $job->localized('title')]) }}</x-slot>
 
     @php
         $isHzzOfficial = $job->isHzzOfficial();
@@ -10,7 +10,7 @@
             <div class="mb-6 text-sm text-slate-500">
                 <a href="{{ route('jobs.index') }}" class="hover:text-slate-900">{{ __('ui.navigation.jobs') }}</a>
                 <span class="mx-1">/</span>
-                <a href="{{ route('jobs.show', $job) }}" class="hover:text-slate-900">{{ $job->title }}</a>
+                <a href="{{ route('jobs.show', $job) }}" class="hover:text-slate-900">{{ $job->localized('title') }}</a>
                 <span class="mx-1">/</span>
                 <span class="text-slate-700">{{ __('ui.jobs_apply.apply') }}</span>
             </div>
@@ -31,7 +31,7 @@
             @else
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <div class="lg:col-span-2 cw-surface p-6">
-                        <h1 class="cw-display text-3xl md:text-5xl mb-3">{{ __('ui.jobs_apply.apply_for_role', ['title' => $job->title]) }}</h1>
+                        <h1 class="cw-display text-3xl md:text-5xl mb-3">{{ __('ui.jobs_apply.apply_for_role', ['title' => $job->localized('title')]) }}</h1>
                         @if($isHzzOfficial)
                             <p class="text-sm font-medium text-slate-800 mb-2">{{ __('ui.jobs_show.apply_via_crowork') }}</p>
                         @endif

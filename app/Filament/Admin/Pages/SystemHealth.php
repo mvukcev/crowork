@@ -518,7 +518,7 @@ class SystemHealth extends Page
             'label' => __('system.queue_worker'),
             'status' => 'warn',
             'value' => __('system.queue_command_label'),
-            'details' => 'cd /home/crowork/htdocs/crowork.hr && php artisan queue:work --tries=3 --timeout=90 --memory=256',
+            'details' => 'cd /home/crowork/htdocs/crowork.hr && php artisan queue:work --queue=translations-native,translations-hzz,default --tries=4 --timeout=120 --memory=256',
         ];
     }
 
