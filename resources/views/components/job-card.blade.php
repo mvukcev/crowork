@@ -65,6 +65,32 @@
     $employmentChipText = cw_localize_job_value('employment_type', $employment_type);
     $experienceLevelText = cw_localize_job_value('experience_level', $experience_level);
     $educationText = cw_localize_job_value('education_required', $education_required);
+
+    $compactMetadataValue = function (?string $value, int $maxItems = 2): ?string {
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            return null;
+        }
+
+        $parts = preg_split('/[;\n]+/', $raw) ?: [];
+        $parts = array_values(array_filter(array_map(fn ($part) => trim((string) $part), $parts)));
+
+        if (count($parts) === 0) {
+            return null;
+        }
+
+        $selected = array_slice($parts, 0, $maxItems);
+        $overflow = count($parts) - count($selected);
+
+        $result = implode(', ', $selected);
+        if ($overflow > 0) {
+            $result .= ' +' . $overflow;
+        }
+
+        return $result;
+    };
+
+    $educationTextCompact = $compactMetadataValue(is_string($educationText) ? $educationText : null);
     $postedText = $posted_at ? __('jobs.posted_short', ['time' => \Carbon\Carbon::parse($posted_at)->diffForHumans()]) : null;
 
     $companyName = trim((string) ($company ?: __('jobs.employer_fallback')));
@@ -132,16 +158,16 @@
 
             <div class="cw-listing-meta">
                 @if($experienceLevelText)
-                    <span>{{ __('jobs.metadata_experience', ['value' => $experienceLevelText]) }}</span>
+                    <span data-meta="experience">{{ __('jobs.metadata_experience', ['value' => $experienceLevelText]) }}</span>
                 @endif
-                @if($educationText)
-                    <span>{{ __('jobs.metadata_education', ['value' => $educationText]) }}</span>
+                @if($educationTextCompact)
+                    <span data-meta="education" title="{{ __('jobs.metadata_education', ['value' => $educationText]) }}">{{ __('jobs.metadata_education', ['value' => $educationTextCompact]) }}</span>
                 @endif
                 @if($languageText)
-                    <span>{{ __('jobs.metadata_languages', ['value' => $languageText, 'extra' => $languageOverflow > 0 ? '+' . $languageOverflow : '']) }}</span>
+                    <span data-meta="languages">{{ __('jobs.metadata_languages', ['value' => $languageText, 'extra' => $languageOverflow > 0 ? '+' . $languageOverflow : '']) }}</span>
                 @endif
                 @if($postedText)
-                    <span>{{ $postedText }}</span>
+                    <span data-meta="posted">{{ $postedText }}</span>
                 @endif
             </div>
         </div>

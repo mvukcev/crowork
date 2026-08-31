@@ -15,22 +15,24 @@
         <title>{{ $guestTitle }}</title>
         <meta name="description" content="{{ $guestDescription }}">
         <meta name="robots" content="{{ $guestRobots }}">
+        <meta name="googlebot" content="{{ $guestRobots }}">
+        <meta name="bingbot" content="{{ $guestRobots }}">
         <link rel="canonical" href="{{ $guestCanonical }}">
         <meta property="og:title" content="{{ $guestTitle }}">
         <meta property="og:description" content="{{ $guestDescription }}">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ $guestCanonical }}">
         <meta property="og:image" content="{{ cw_asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta property="og:image:alt" content="{{ config('app.name', 'CroWork') }}">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ $guestTitle }}">
         <meta name="twitter:description" content="{{ $guestDescription }}">
         <meta name="twitter:image" content="{{ cw_asset('assets/branding/CW-Logo-Dark.png') }}">
+        <meta name="twitter:url" content="{{ $guestCanonical }}">
         @if(filled(setting('google_search_console_verification')))
             <meta name="google-site-verification" content="{{ setting('google_search_console_verification') }}">
         @endif
-        <link rel="icon" type="image/svg+xml" href="{{ cw_asset('assets/branding/CW-Favicon.svg') }}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
-        <link rel="apple-touch-icon" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
+        @include('components.favicon')
 
         <x-theme-init />
 

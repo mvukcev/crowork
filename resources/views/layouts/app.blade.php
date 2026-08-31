@@ -79,14 +79,14 @@
     <title>{{ $seoTitle }}</title>
     <meta name="description" content="{{ $seoDescription }}">
     <meta name="robots" content="{{ $robots }}">
+    <meta name="googlebot" content="{{ $robots }}">
+    <meta name="bingbot" content="{{ $robots }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
     @foreach($hreflangMap as $locale => $href)
         <link rel="alternate" hreflang="{{ $locale }}" href="{{ $href }}">
     @endforeach
     <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}">
-    <link rel="icon" type="image/svg+xml" href="{{ cw_asset('assets/branding/CW-Favicon.svg') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ cw_asset('assets/branding/CW-Favicon.png') }}">
+    @include('components.favicon')
     <meta property="og:title" content="{{ $ogTitle }}">
     <meta property="og:site_name" content="CroWork">
     <meta property="og:locale" content="{{ $ogLocale }}">
@@ -99,10 +99,12 @@
     <meta property="og:type" content="{{ $ogType }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:alt" content="{{ config('app.name', 'CroWork') }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $ogTitle }}">
     <meta name="twitter:description" content="{{ $ogDescription }}">
     <meta name="twitter:image" content="{{ $ogImage }}">
+    <meta name="twitter:url" content="{{ $canonicalUrl }}">
     @if(filled(setting('google_search_console_verification')))
         <meta name="google-site-verification" content="{{ setting('google_search_console_verification') }}">
     @endif

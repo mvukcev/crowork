@@ -39,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('CroWork')
             ->brandLogo(asset('assets/branding/CW-Logo-Dark.svg'))
             ->darkModeBrandLogo(asset('assets/branding/CW-Logo-Light.svg'))
+            ->favicon(asset('assets/CW-Favicon.png'))
             ->brandLogoHeight('1.45rem')
             ->colors([
                 'primary' => [

@@ -35,3 +35,6 @@ npm-debug.log
 yarn-error.log
 .DS_Store
 *.log
+
+# Local backup archives
+/crowork-update-*.zip

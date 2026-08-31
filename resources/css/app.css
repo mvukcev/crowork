@@ -1899,12 +1899,14 @@
 
     .cw-listing-salary-primary {
         margin: 0;
-        font-size: 1.28rem;
+        font-size: clamp(1.02rem, 1.8vw, 1.28rem);
         line-height: 1.2;
         font-weight: 700;
         color: rgb(30 41 59);
-        overflow-wrap: anywhere;
-        word-break: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .cw-listing-salary-secondary {
@@ -1917,17 +1919,23 @@
 
     .cw-listing-meta {
         display: grid;
-        gap: 0.32rem;
+        gap: 0.3rem;
         font-size: 0.76rem;
         color: rgb(100 116 139);
-        min-height: 3.25rem;
+        min-height: 3.4rem;
     }
 
     .cw-listing-meta span {
-        display: block;
         white-space: normal;
         overflow-wrap: anywhere;
-        word-break: break-word;
+        line-height: 1.4;
+    }
+
+    .cw-listing-meta span[data-meta='education'] {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .cw-listing-bottom {

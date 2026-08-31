@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Route;
 // SEO routes
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/llms.txt', [SeoController::class, 'llms'])->name('llms');
+Route::redirect('/favicon.ico', '/assets/CW-Favicon.png', 301)->name('favicon.redirect');
 
 // Coming soon preview access
 Route::get('/coming-soon-preview', [ComingSoonPreviewController::class, 'show'])->name('coming-soon-preview.show');
